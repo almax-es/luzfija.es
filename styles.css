@@ -4210,8 +4210,27 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
 .lf-dd-modal label{ font-size:13px; font-weight:700; color:var(--text); white-space:normal; overflow:visible; text-overflow:clip; }
 .lf-dd-modal .lf-dd-check{ display:flex; align-items:flex-start; gap:10px; cursor:pointer; user-select:none; }
 .lf-dd-check span{ font-weight:600; line-height:1.4; }
-.lf-dd-check input[type="checkbox"]{ flex:0 0 auto; width:20px; height:20px; margin:1px 0 0; accent-color:var(--accent); cursor:pointer; }
-.lf-dd-check input[type="checkbox"]:disabled{ cursor:not-allowed; }
+.lf-dd-check input[type="checkbox"],
+.lf-dd-check input[type="radio"]{ flex:0 0 auto; width:20px; height:20px; margin:1px 0 0; accent-color:var(--accent); cursor:pointer; }
+.lf-dd-check input[type="checkbox"]:disabled,
+.lf-dd-check input[type="radio"]:disabled{ cursor:not-allowed; }
+/* Periodo de la home: "Ultimos 12 meses" u "Otro periodo" con dos fechas. */
+.lf-dd-periodo{ display:grid; gap:10px; min-width:0; margin:0; padding:10px 12px 12px; border:1px solid var(--border); border-radius:10px; }
+.lf-dd-periodo legend{ padding:0 6px; font-size:13px; font-weight:700; color:var(--text); }
+.lf-dd-periodo small{ font-weight:500; color:var(--muted); }
+.lf-dd-fechas{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.lf-dd-fechas[hidden]{ display:none; }
+/* El <meta color-scheme="dark light"> hace que los controles nativos sigan el tema del SISTEMA
+   (AGENTS.md): fechas, casillas y opciones del modal se fijan al tema elegido en la web. */
+.lf-dd-modal input[type="date"],
+.lf-dd-modal input[type="checkbox"],
+.lf-dd-modal input[type="radio"]{ color-scheme:dark; }
+html.light-mode .lf-dd-modal input[type="date"],
+html.light-mode .lf-dd-modal input[type="checkbox"],
+html.light-mode .lf-dd-modal input[type="radio"]{ color-scheme:light; }
+/* Simulador solar: boton secundario bajo "Seleccionar archivo CSV" (el principal sigue siendo el CSV). */
+.btn.lf-dd-solar-btn{ width:100%; margin-top:10px; justify-content:center; padding:14px 18px; border-radius:14px; border:1px solid var(--accent); background:var(--card); color:var(--text); font-size:1rem; font-weight:800; }
+.btn.lf-dd-solar-btn:hover{ background:var(--card2); border-color:var(--accent); }
 .lf-dd-actions{ display:grid; gap:8px; margin-top:16px; }
 .lf-dd-actions .btn{ width:100%; justify-content:center; }
 .lf-dd-progreso{ text-align:center; padding:28px 8px 8px; }
@@ -4226,6 +4245,7 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
 }
 @media (max-width: 480px){
   .modal-content.lf-dd-modal{ padding:18px 14px; }
+  .lf-dd-fechas{ grid-template-columns:1fr; }
 }
 
 /* Con el boton de Datadis la barra de .actions-center tiene seis botones de 64px: en pantallas

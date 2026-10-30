@@ -2671,8 +2671,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  async function handleFile(file) {
-    if (!file) return;
+  // `opciones.avisos`: textos que se muestran junto a los del importador (lf-datadis.js explica de
+  // donde vienen los datos). Devuelve true solo si la importacion quedo publicada.
+  async function handleFile(file, opciones = {}) {
+    if (!file) return false;
     // Elegir un CSV/XLSX nuevo sustituye tambien cualquier lectura de respaldo JSON que siguiera
     // pendiente: ambos productores compiten por el mismo grid y la accion mas reciente debe ganar.
     invalidatePendingBackupImport();
@@ -2728,12 +2730,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof window.BVSim.importFile !== 'function') {
         showToast('El importador no terminó de cargarse. Recarga la página para subir el archivo.', 'err');
         trackBvEvent('init-incompleto', ['solar', 'importador'], 'Simulador solar sin bv-import');
-        return;
+        return false;
       }
       // Obtener zona seleccionada ANTES de importar para clasificar periodos correctamente
       const zonaVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
       const result = await window.BVSim.importFile(file, zonaVal);
-      if (importGeneration !== fileImportGeneration) return;
+      if (importGeneration !== fileImportGeneration) return false;
+      if (result && result.ok && Array.isArray(opciones.avisos) && opciones.avisos.length) {
+        result.warnings = opciones.avisos.concat(Array.isArray(result.warnings) ? result.warnings : []);
+      }
       if (result && result.ok) {
         // Commit atomico de la importacion vigente: hasta aqui el fichero anterior seguia siendo
         // el activo. Un parseo fallido no cambia nombre, cache, grid ni traza.
@@ -2766,6 +2771,7 @@ document.addEventListener('DOMContentLoaded', () => {
             manualZone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }
         }, 300);
+        return true;
       } else if (result && result.error) {
         console.info('Info: No se pudo pre-procesar CSV:', result.error);
         const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
@@ -2780,8 +2786,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fileInput) fileInput.value = '';
         showBvImportError(file, result.error, errorCode);
       }
+      return false;
     } catch (e) {
-      if (importGeneration !== fileImportGeneration) return;
+      if (importGeneration !== fileImportGeneration) return false;
       if (fileInput) fileInput.value = '';
       console.warn('Error procesando CSV:', e);
       const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
@@ -2789,8 +2796,13 @@ document.addEventListener('DOMContentLoaded', () => {
       trackBvEvent('csv-import-error', ['solar', extension, errorCode], 'Error al procesar CSV/XLSX en solar');
       trackBvCsvFormatSignature(file, extension, errorCode);
       showBvImportError(file, 'Error al procesar el archivo CSV', errorCode);
+      return false;
     }
   }
+
+  // Importacion directa desde Datadis (js/lf-datadis.js): entrega un CSV generado que sigue
+  // exactamente el mismo camino que uno elegido a mano.
+  window.BVSim.importarFichero = (file, opciones) => handleFile(file, opciones);
 
   // Botón de subir CSV
   if (uploadCsvBtn) {

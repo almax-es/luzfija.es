@@ -72,6 +72,134 @@
     return { iniYmd: ymd(ini), finYmd: ymd(fin), iniMes: ym(ini), finMes: ym(fin) };
   }
 
+  const fmtYmd = (d) => `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}`;
+  const fmtYm = (d) => `${d.getFullYear()}/${pad2(d.getMonth() + 1)}`;
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+  function hoyLocal(now) {
+    const base = now instanceof Date && !isNaN(now.getTime()) ? now : new Date();
+    return new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  }
+
+  /** Simulador solar: los 12 ultimos meses naturales COMPLETOS (exige 12 meses, no 365 dias). */
+  function rangoMesesCompletos(now) {
+    const hoy = hoyLocal(now);
+    const fin = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+    const ini = new Date(fin.getFullYear(), fin.getMonth() - 11, 1);
+    return { iniYmd: fmtYmd(ini), finYmd: fmtYmd(fin), iniMes: fmtYm(ini), finMes: fmtYm(fin) };
+  }
+
+  /**
+   * Home, "Otro periodo": fechas 'AAAA-MM-DD' de los <input type="date">. Se valida ANTES de
+   * llamar a Datadis (una consulta erronea tambien cuenta para su limite de 24 h).
+   * Datadis solo pide por meses: se piden los meses que cubren el rango y se recortan los dias.
+   */
+  function rangoPersonalizado(desde, hasta, now) {
+    const leer = (v) => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ''));
+      if (!m) return null;
+      const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      return d.getFullYear() === Number(m[1]) && d.getMonth() === Number(m[2]) - 1 && d.getDate() === Number(m[3]) ? d : null;
+    };
+    const ini = leer(desde);
+    const fin = leer(hasta);
+    if (!ini || !fin) return { error: 'formato' };
+    const hoy = hoyLocal(now);
+    const ayer = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 1);
+    const minimo = new Date(hoy.getFullYear() - 2, hoy.getMonth(), hoy.getDate());
+    if (ini > fin) return { error: 'orden' };
+    if (fin > ayer) return { error: 'futuro' };
+    if (ini < minimo) return { error: 'antiguo' };
+    if (Math.round((fin - ini) / 86400000) + 1 > DIAS_HISTORICO) return { error: 'largo' };
+    return { rango: { iniYmd: fmtYmd(ini), finYmd: fmtYmd(fin), iniMes: fmtYm(ini), finMes: fmtYm(fin) } };
+  }
+
+  /** '2025/10' -> 'octubre de 2025' */
+  function etiquetaMes(ym) {
+    const m = /^(\d{4})\/(\d{2})$/.exec(String(ym || ''));
+    return m ? `${MESES[Number(m[2]) - 1]} de ${m[1]}` : String(ym || '');
+  }
+
+  function tieneConsumo(f) {
+    return f && f.consumptionKWh !== null && f.consumptionKWh !== undefined && Number.isFinite(Number(f.consumptionKWh));
+  }
+
+  /**
+   * Cobertura de excedentes MES A MES. Distingue tres cosas que no son lo mismo:
+   *  - dato positivo,
+   *  - cero (dato real: ese mes no se vertio),
+   *  - ausente (null: Datadis/distribuidora no lo ha publicado; NO es un cero).
+   * Un mes es 'completo' si al menos el 97 % de sus horas trae dato, 'sin' si no trae ninguno y
+   * 'parcial' en otro caso. Solo cuentan las horas con consumo dentro del rango.
+   */
+  function evaluarExcedentes(filas, rango) {
+    const meses = new Map();
+    for (const f of Array.isArray(filas) ? filas : []) {
+      if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date) || !tieneConsumo(f)) continue;
+      if (rango && (f.date < rango.iniYmd || f.date > rango.finYmd)) continue;
+      const mes = f.date.slice(0, 7);
+      if (!meses.has(mes)) meses.set(mes, { mes, horas: 0, conDato: 0, positivos: 0, kwh: 0 });
+      const m = meses.get(mes);
+      m.horas++;
+      const v = f.surplusEnergyKWh;
+      if (v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v))) {
+        m.conDato++;
+        if (Number(v) > 0) { m.positivos++; m.kwh += Number(v); }
+      }
+    }
+    const lista = [...meses.values()].sort((a, b) => a.mes.localeCompare(b.mes));
+    for (const m of lista) m.estado = m.conDato === 0 ? 'sin' : (m.conDato / m.horas >= 0.97 ? 'completo' : 'parcial');
+    const estado = !lista.length ? 'ausente'
+      : lista.every((m) => m.estado === 'completo') ? 'completo'
+        : lista.every((m) => m.estado === 'sin') ? 'ausente' : 'parcial';
+    const hayPositivos = lista.some((m) => m.positivos > 0);
+    return {
+      meses: lista,
+      estado,
+      hayPositivos,
+      horasSinDato: lista.filter((m) => m.estado === 'completo').reduce((s, m) => s + (m.horas - m.conDato), 0),
+      mesesIncompletos: lista.filter((m) => m.estado !== 'completo').map((m) => m.mes),
+      mesesACero: hayPositivos ? lista.filter((m) => m.estado === 'completo' && m.positivos === 0).map((m) => m.mes) : []
+    };
+  }
+
+  /**
+   * Que dice el contrato sobre autoconsumo: 'con' | 'sin' (excedentes) | 'si' (autoconsumo de
+   * tipo no identificable) | 'no' | null (sin contrato). Se basa en la DESCRIPCION y en indicios
+   * (codigo distinto de 0, potencia instalada, CAU), no en una tabla de codigos concreta: no se
+   * ha podido contrastar con la fuente oficial cual corresponde a cada modalidad.
+   */
+  function leerAutoconsumo(respuestaContrato) {
+    const c = respuestaContrato && Array.isArray(respuestaContrato.contract) ? respuestaContrato.contract[0] : null;
+    if (!c) return null;
+    const desc = String(c.selfConsumptionTypeDesc || '');
+    if (/sin\s+autoconsumo/i.test(desc)) return 'no';
+    if (/sin\s+excedentes/i.test(desc)) return 'sin';
+    if (/con\s+excedentes/i.test(desc)) return 'con';
+    const code = String(c.selfConsumptionTypeCode == null ? '' : c.selfConsumptionTypeCode).trim();
+    const cap = Number(c.installedCapacityKW != null ? c.installedCapacityKW : c.installedCapacity);
+    if ((code && !/^0+$/.test(code)) || (Number.isFinite(cap) && cap > 0) || (typeof c.cau === 'string' && c.cau.trim())) return 'si';
+    return 'no';
+  }
+
+  /**
+   * Simulador solar: nunca se genera un ranking como si no hubiera excedentes cuando puede
+   * haberlos y faltan. Devuelve { accion: 'importar'|'confirmar'|'bloquear', excedentes, motivo }.
+   */
+  function decidirSolar(autoconsumo, ev) {
+    if (!ev.hayPositivos && (autoconsumo === 'no' || autoconsumo === 'sin')) {
+      return { accion: 'importar', excedentes: 'sin', motivo: autoconsumo };
+    }
+    if (ev.estado === 'parcial') return { accion: 'bloquear', motivo: 'parcial' };
+    if (ev.estado === 'completo') {
+      if (ev.hayPositivos) return { accion: 'importar', excedentes: 'con', motivo: 'completo' };
+      if (autoconsumo === 'con') return { accion: 'confirmar', excedentes: 'con', motivo: 'ceros' };
+      return { accion: 'confirmar', excedentes: 'sin', motivo: 'desconocido' };
+    }
+    if (autoconsumo === 'con') return { accion: 'bloquear', motivo: 'ausente-con' };
+    return { accion: 'confirmar', excedentes: 'sin', motivo: 'desconocido' };
+  }
+
   function decimalEs(v) {
     const n = Number(v);
     if (!Number.isFinite(n)) return '';
@@ -85,8 +213,11 @@
    *   cronologicamente (la etiqueta 03 aparece dos veces). El dia de 23 h conserva el salto.
    * - Filas sin consumo se omiten (hueco honesto) en vez de inventar un 0.
    * - El CSV no lleva CUPS ni direccion: solo fecha, hora, kWh y metodo.
+   * - Excedentes: 'auto' (home) anade la columna si hay algun valor > 0; 'con' la anade siempre y
+   *   'sin' nunca (simulador solar, segun decidirSolar). Con columna, una hora sin dato va a 0: la
+   *   home lo avisa y el solar solo llega aqui si cada mes tiene dato en >= 97 % de sus horas.
    */
-  function construirCsv(filas, rango) {
+  function construirCsv(filas, rango, modoExcedentes) {
     const lista = Array.isArray(filas) ? filas : [];
     const porDia = new Map();
     for (const f of lista) {
@@ -95,7 +226,9 @@
       if (!porDia.has(f.date)) porDia.set(f.date, []);
       porDia.get(f.date).push(f);
     }
-    const hayExcedentes = lista.some((f) => f && Number(f.surplusEnergyKWh) > 0);
+    const hayExcedentes = modoExcedentes === 'con' ? true
+      : modoExcedentes === 'sin' ? false
+        : lista.some((f) => f && Number(f.surplusEnergyKWh) > 0);
     const cab = ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh', 'Metodo_obtencion'];
     if (hayExcedentes) cab.push('Energia_vertida_kWh');
     const out = [cab.join(';')];
@@ -297,7 +430,8 @@
    *          onProgreso:function(string):void, elegirSuministro:function(Array):Promise<Object|null>}} o
    */
   async function importar(o) {
-    const rango = rangoUltimosDias(new Date());
+    const solar = o.destino === 'solar';
+    const rango = solar ? rangoMesesCompletos(new Date()) : (o.rango || rangoUltimosDias(new Date()));
     const nif = normalizarDocumento(o.nif);
     const fallo = errorDocumento(nif);
     if (fallo) {
@@ -339,18 +473,22 @@
     const suministro = suministros.length === 1 ? suministros[0] : await o.elegirSuministro(suministros);
     if (!suministro) throw new DatadisError('cancelado');
 
-    let potencias = null;
-    if (o.conPotencia) {
+    // El contrato da la potencia (si se pide) y, en el simulador solar, si hay autoconsumo y de que
+    // tipo: ahi se pide siempre. Si falla, se sigue: la potencia es un extra y la falta de dato
+    // de autoconsumo se trata como "no se sabe" (nunca como "no hay placas").
+    let contrato = null;
+    if (o.conPotencia || solar) {
       o.onProgreso('contrato');
       try {
-        potencias = leerPotencias(await consultar('/api-private/api/get-contract-detail-v2', {
+        contrato = await consultar('/api-private/api/get-contract-detail-v2', {
           cups: suministro.cups, distributorCode: String(suministro.distributorCode)
-        }, token, T_CONTRATO, o.senal));
+        }, token, T_CONTRATO, o.senal);
       } catch (e) {
         if (e && (e.code === 'cancelado' || e.code === 'sesion')) throw e;
-        potencias = null; // la potencia es un extra: si falla, se importan igualmente los consumos
+        contrato = null;
       }
     }
+    const potencias = o.conPotencia ? leerPotencias(contrato) : null;
 
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     o.onProgreso('consumos');
@@ -382,6 +520,31 @@
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
 
+    const ev = evaluarExcedentes(filas, rango);
+
+    if (solar) {
+      if (!ev.meses.length) throw new DatadisError('sindatos');
+      const decision = decidirSolar(leerAutoconsumo(contrato), ev);
+      if (decision.accion === 'bloquear') {
+        const err = new DatadisError('solar');
+        err.detalle = textoBloqueoSolar(decision, ev);
+        throw err;
+      }
+      if (decision.accion === 'confirmar') {
+        const ok = await o.confirmar(textoConfirmacionSolar(decision), decision.motivo === 'ceros'
+          ? 'Importar con excedentes a 0' : 'No vierto excedentes: importar solo el consumo');
+        if (!ok) throw new DatadisError('cancelado');
+      }
+      const { csv: csvSolar, filasUsadas: usadasSolar } = construirCsv(filas, rango, decision.excedentes);
+      if (!usadasSolar) throw new DatadisError('sindatos');
+      return {
+        destino: 'solar',
+        fichero: new File([csvSolar], 'datadis-12-meses.csv', { type: 'text/csv' }),
+        avisos: avisosSolar(decision, ev, rango),
+        potencias
+      };
+    }
+
     const { csv, filasUsadas } = construirCsv(filas, rango);
     if (!filasUsadas) throw new DatadisError('sindatos');
 
@@ -402,6 +565,11 @@
       }
       return w.replace(/^✓ CSV procesado:/, '✓ Datos de Datadis procesados:');
     });
+    // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
+    // asi que se dice expresamente cuales faltan.
+    if (ev.hayPositivos && ev.mesesIncompletos.length) {
+      resultado.warnings.push(`Datadis no ha enviado todos los excedentes de ${listaMeses(ev.mesesIncompletos)}: las horas sin dato cuentan como 0 kWh vertidos. Revisa el total de excedentes después de aplicar.`);
+    }
     if (potencias) {
       resultado.potenciaContratada = potencias;
       const fmt = (n) => String(n).replace('.', ',');
@@ -413,6 +581,61 @@
   }
 
   // ===== Textos =====
+
+  /** ['2026/01','2026/02'] -> 'enero de 2026 y febrero de 2026' */
+  function listaMeses(meses) {
+    const e = (meses || []).map(etiquetaMes);
+    return e.length <= 1 ? (e[0] || '') : `${e.slice(0, -1).join(', ')} y ${e[e.length - 1]}`;
+  }
+
+  function textoBloqueoSolar(decision, ev) {
+    if (decision.motivo === 'parcial') {
+      return `Datadis no ha enviado los excedentes de todos los meses (faltan total o parcialmente: ${listaMeses(ev.mesesIncompletos)}). ` +
+        'Con meses sin dato el simulador calcularía como si no hubieras vertido nada, así que no importamos. ' +
+        'Descarga el CSV desde Datadis o desde tu distribuidora y usa «Seleccionar archivo CSV», o rellena los excedentes a mano en la tabla mensual.';
+    }
+    return 'Tu contrato figura en Datadis con autoconsumo con excedentes, pero Datadis no ha enviado ningún dato de excedentes. ' +
+      'Si importáramos solo el consumo, el simulador calcularía como si no vertieras nada, así que no importamos. ' +
+      'Descarga el CSV desde Datadis o desde tu distribuidora y usa «Seleccionar archivo CSV», o rellena los excedentes a mano en la tabla mensual.';
+  }
+
+  function textoConfirmacionSolar(decision) {
+    if (decision.motivo === 'ceros') {
+      return 'Tu contrato figura con autoconsumo con excedentes, pero Datadis indica 0 kWh vertidos en los 12 meses. ' +
+        'Puede ser correcto (por ejemplo, si la instalación es muy reciente) o un fallo de tu distribuidora. ' +
+        'Si en este año sí vertiste, no importes: usa el CSV o rellena los excedentes a mano.';
+    }
+    return 'Datadis no ha enviado excedentes y tu contrato no deja claro si tienes una instalación que vierta a la red. ' +
+      'Si no tienes placas, o tu instalación no vierte excedentes, puedes importar solo el consumo. ' +
+      'Si sí viertes, no importes: el simulador calcularía como si no vertieras nada. Usa el CSV o rellena los excedentes a mano.';
+  }
+
+  function avisosSolar(decision, ev, rango) {
+    const avisos = [`Datos de Datadis: ${etiquetaMes(rango.iniMes)} a ${etiquetaMes(rango.finMes)}.`];
+    if (decision.excedentes === 'con') {
+      if (ev.horasSinDato > 0) {
+        avisos.push(`${ev.horasSinDato} horas sin dato de excedentes en Datadis (menos del 3 % de cada mes) se han tomado como 0 kWh.`);
+      }
+      if (ev.mesesACero.length) {
+        avisos.push(`Datadis indica 0 kWh vertidos en ${listaMeses(ev.mesesACero)}. Si esos meses produjiste, compruébalo en tu factura y corrige la tabla.`);
+      }
+    } else if (decision.motivo === 'sin') {
+      avisos.push('Tu contrato es de autoconsumo sin excedentes: se importa el consumo y los excedentes quedan a 0.');
+    } else if (decision.motivo === 'no') {
+      avisos.push('Tu contrato no tiene autoconsumo y Datadis no ha enviado excedentes: se importa solo el consumo. Si tienes placas, rellena los excedentes a mano en la tabla.');
+    } else {
+      avisos.push('Importado solo el consumo, como has indicado. Si tienes excedentes, rellénalos a mano en la tabla.');
+    }
+    return avisos;
+  }
+
+  const TEXTO_PERIODO = {
+    formato: 'Elige las dos fechas del periodo.',
+    orden: 'La fecha de inicio tiene que ser anterior a la de fin.',
+    futuro: 'El periodo tiene que terminar como muy tarde ayer: Datadis todavía no tiene los datos de hoy.',
+    largo: 'El periodo puede ser como máximo de 365 días.',
+    antiguo: 'Datadis solo guarda unos dos años de datos: elige una fecha de inicio más reciente.'
+  };
 
   function textoError(err) {
     const fallos = leerFallos();
@@ -440,7 +663,11 @@
       case 'sinsuministros':
         return 'No hemos encontrado suministros en tu cuenta de Datadis.';
       case 'sindatos':
-        return 'Datadis no ha devuelto consumos para los últimos 365 días. Puede ser un suministro nuevo o un retraso de tu distribuidora.';
+        return 'Datadis no ha devuelto consumos para ese periodo. Puede ser un suministro nuevo, un periodo anterior a tu contrato o un retraso de tu distribuidora.';
+      case 'periodo':
+        return (TEXTO_PERIODO[err.detalle] || TEXTO_PERIODO.formato) + ' No hemos llamado a Datadis.';
+      case 'solar':
+        return err.detalle || 'Los datos de Datadis no son suficientes para el simulador solar. Usa el CSV o rellena la tabla a mano.';
       case 'parseo':
         return (err.detalle || 'No hemos podido interpretar los consumos recibidos.') + ' Puedes probar con el CSV descargado desde Datadis.';
       case 'http':
@@ -468,16 +695,34 @@
     return typeof f === 'function' ? f(v) : String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[c]);
   }
 
-  function abrirModal() {
+  function abrirModal(destino) {
+    const solar = destino === 'solar';
     const previo = document.activeElement;
     const fallosIniciales = leerFallos();
     let ocupado = false;
     let controlador = null;
     let cerrado = false;
     let tokenBloqueo = null;
-    let resolverSuministro = null;
+    // Promesa pendiente de una decision del usuario (elegir suministro o confirmar); al cerrar
+    // el modal se resuelve con null para que importar() no quede colgado.
+    let resolverPendiente = null;
     // En tactil no se enfoca el NIF al abrir: sacaria el teclado y taparia los avisos.
     const tactil = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+
+    // Lo que el usuario ha elegido sobrevive a los repintados (error, aviso...). Nunca la contrasena.
+    const hoy = hoyLocal();
+    const iso = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    const ayer = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 1);
+    const estado = {
+      nif: '',
+      conPotencia: true,
+      periodo: 'anual',
+      desde: iso(new Date(ayer.getFullYear(), ayer.getMonth(), ayer.getDate() - 29)),
+      hasta: iso(ayer)
+    };
+    const fechaMin = iso(new Date(hoy.getFullYear() - 2, hoy.getMonth(), hoy.getDate()));
+    const fechaMax = iso(ayer);
+    const rangoSolar = rangoMesesCompletos();
 
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay show';
@@ -497,7 +742,7 @@
       if (cerrado) return;
       cerrado = true;
       if (controlador) controlador.abort();
-      if (resolverSuministro) { resolverSuministro(null); resolverSuministro = null; }
+      if (resolverPendiente) { resolverPendiente(null); resolverPendiente = null; }
       document.removeEventListener('keydown', alTeclear);
       const clave = overlay.querySelector('#lfDdClave');
       if (clave) clave.value = '';
@@ -528,16 +773,37 @@
     }
 
     const cabecera = '<button class="modal-x" type="button" aria-label="Cerrar">✕</button>';
+    const titulo = '📥 Importar desde Datadis';
+    const botonCsv = solar ? '«Seleccionar archivo CSV»' : '«Importar CSV»';
 
     function vistaFormulario(mensajeError, aviso) {
       const fallos = leerFallos();
       const agotado = fallos >= MAX_FALLOS_LOGIN;
       const bloqueado = mensajeError && /^Datadis ha bloqueado/.test(mensajeError);
-      const deshabilitado = agotado || bloqueado;
+      const off = agotado || bloqueado ? 'disabled' : '';
+      const lead = solar
+        ? `Descarga los 12 últimos meses completos (${etiquetaMes(rangoSolar.iniMes)} a ${etiquetaMes(rangoSolar.finMes)}) de consumo y excedentes directamente desde tu cuenta de Datadis para rellenar la tabla mensual.`
+        : 'Descarga tu consumo horario (hasta un año) directamente desde tu cuenta de Datadis, sin tener que bajar el CSV a mano.';
+      const periodo = solar ? '' : `
+          <fieldset class="lf-dd-periodo" ${off}>
+            <legend>Periodo</legend>
+            <label class="lf-dd-check"><input type="radio" name="lfDdPeriodo" value="anual"><span>Últimos 12 meses <small>(recomendado: recoge verano e invierno)</small></span></label>
+            <label class="lf-dd-check"><input type="radio" name="lfDdPeriodo" value="otro"><span>Otro periodo (máximo 365 días)</span></label>
+            <div class="lf-dd-fechas" id="lfDdFechas">
+              <div class="group">
+                <label for="lfDdDesde">Desde</label>
+                <input id="lfDdDesde" class="input" type="date" min="${fechaMin}" max="${fechaMax}">
+              </div>
+              <div class="group">
+                <label for="lfDdHasta">Hasta</label>
+                <input id="lfDdHasta" class="input" type="date" min="${fechaMin}" max="${fechaMax}">
+              </div>
+            </div>
+          </fieldset>`;
       pintar(`
         ${cabecera}
-        <h3 id="lfDdTitulo" class="lf-dd-title">📥 Importar desde Datadis</h3>
-        <p class="lf-dd-lead">Descarga tus últimos ${DIAS_HISTORICO} días de consumo horario directamente desde tu cuenta de Datadis, sin tener que bajar el CSV a mano.</p>
+        <h3 id="lfDdTitulo" class="lf-dd-title">${titulo}</h3>
+        <p class="lf-dd-lead">${esc(lead)}</p>
         ${mensajeError ? `<div id="lfDdError" class="lf-dd-box lf-dd-error" role="alert" tabindex="-1">${esc(mensajeError)}</div>` : ''}
         ${aviso ? `<div id="lfDdAviso" class="lf-dd-box lf-dd-warn" role="status" tabindex="-1">${esc(aviso)}</div>` : ''}
         ${agotado && !bloqueado ? `<div class="lf-dd-box">
@@ -549,7 +815,7 @@
           <ul>
             <li>Tu usuario y contraseña van <strong>directamente de tu navegador a datadis.es</strong>. LuzFija.es no tiene servidor que los reciba y no los guarda.</li>
             <li>Solo se usan para esta importación: la contraseña, para iniciar sesión, y el permiso de Datadis, mientras se descargan tus datos. No se guardan y nada de esto se envía a analítica.</li>
-            <li>LuzFija.es es independiente de Datadis y no es una pasarela oficial. Si prefieres no usar tu contraseña, descarga el CSV desde Datadis y usa «Importar CSV».</li>
+            <li>LuzFija.es es independiente de Datadis y no es una pasarela oficial. Si prefieres no usar tu contraseña, descarga el CSV desde Datadis y usa ${botonCsv}.</li>
           </ul>
         </div>
         <div class="lf-dd-box lf-dd-warn">
@@ -558,16 +824,17 @@
         <form id="lfDdForm" class="lf-dd-form" autocomplete="on" novalidate>
           <div class="group">
             <label for="lfDdNif">NIF / NIE / CIF</label>
-            <input id="lfDdNif" class="input" type="text" name="username" autocomplete="username" autocapitalize="characters" spellcheck="false" inputmode="text" ${deshabilitado ? 'disabled' : ''}>
+            <input id="lfDdNif" class="input" type="text" name="username" autocomplete="username" autocapitalize="characters" spellcheck="false" inputmode="text" ${off}>
           </div>
           <div class="group">
             <label for="lfDdClave">Contraseña de Datadis</label>
-            <input id="lfDdClave" class="input" type="password" name="password" autocomplete="current-password" spellcheck="false" ${deshabilitado ? 'disabled' : ''}>
+            <input id="lfDdClave" class="input" type="password" name="password" autocomplete="current-password" spellcheck="false" ${off}>
           </div>
-          <label class="lf-dd-check"><input type="checkbox" id="lfDdVer" ${deshabilitado ? 'disabled' : ''}><span>Mostrar contraseña</span></label>
-          <label class="lf-dd-check"><input type="checkbox" id="lfDdPotencia" checked ${deshabilitado ? 'disabled' : ''}><span>Rellenar también mi potencia contratada (P1 y P2) desde mi contrato</span></label>
+          <label class="lf-dd-check"><input type="checkbox" id="lfDdVer" ${off}><span>Mostrar contraseña</span></label>
+          ${periodo}
+          <label class="lf-dd-check"><input type="checkbox" id="lfDdPotencia" ${off}><span>Rellenar también mi potencia contratada (P1 y P2) desde mi contrato</span></label>
           <div class="lf-dd-actions">
-            <button id="lfDdEnviar" class="btn primary" type="submit" ${deshabilitado ? 'disabled' : ''}><span>Importar mis consumos</span></button>
+            <button id="lfDdEnviar" class="btn primary" type="submit" ${off}><span>Importar mis consumos</span></button>
           </div>
         </form>
       `, mensajeError ? '#lfDdError' : (aviso ? '#lfDdAviso' : (tactil ? null : '#lfDdNif')));
@@ -576,6 +843,25 @@
       const nif = content.querySelector('#lfDdNif');
       const clave = content.querySelector('#lfDdClave');
       const ver = content.querySelector('#lfDdVer');
+      const potencia = content.querySelector('#lfDdPotencia');
+      const desde = content.querySelector('#lfDdDesde');
+      const hasta = content.querySelector('#lfDdHasta');
+      const fechas = content.querySelector('#lfDdFechas');
+      const radios = Array.from(content.querySelectorAll('input[name="lfDdPeriodo"]'));
+
+      nif.value = estado.nif;
+      potencia.checked = estado.conPotencia;
+      if (desde) { desde.value = estado.desde; hasta.value = estado.hasta; }
+      const mostrarFechas = () => {
+        if (!fechas) return;
+        fechas.hidden = estado.periodo !== 'otro';
+      };
+      radios.forEach((r) => {
+        r.checked = r.value === estado.periodo;
+        r.addEventListener('change', () => { if (r.checked) { estado.periodo = r.value; mostrarFechas(); } });
+      });
+      mostrarFechas();
+
       ver.addEventListener('change', () => { clave.type = ver.checked ? 'text' : 'password'; });
       form.addEventListener('submit', (e) => { e.preventDefault(); lanzar(); });
       const reintentar = content.querySelector('#lfDdReintentar');
@@ -588,54 +874,70 @@
 
       async function lanzar() {
         if (ocupado || leerFallos() >= MAX_FALLOS_LOGIN) return;
-        const nifValor = normalizarDocumento(nif.value);
-        const formato = errorDocumento(nifValor);
-        if (!nifValor || !clave.value || formato) {
+        estado.nif = normalizarDocumento(nif.value);
+        estado.conPotencia = potencia.checked;
+        if (desde) { estado.desde = desde.value; estado.hasta = hasta.value; }
+        const formato = errorDocumento(estado.nif);
+        if (!estado.nif || !clave.value || formato) {
           vistaFormulario(formato && formato !== 'vacio'
             ? textoError({ code: 'documento', detalle: formato })
             : 'Introduce tu NIF/NIE/CIF y tu contraseña de Datadis.');
-          const n = content.querySelector('#lfDdNif');
-          if (n) n.value = nifValor;
           return;
+        }
+        // El periodo se valida antes de llamar: una consulta erronea tambien cuenta para Datadis.
+        let rango = null;
+        if (!solar && estado.periodo === 'otro') {
+          const rp = rangoPersonalizado(estado.desde, estado.hasta);
+          if (rp.error) { vistaFormulario(textoError({ code: 'periodo', detalle: rp.error })); return; }
+          rango = rp.rango;
         }
         // La contrasena pasa del campo al objeto de la peticion y de ahi solo al login: importar()
         // la suelta nada mas usarla, y esta funcion no guarda otra copia.
-        const peticionDatadis = { nif: nifValor, clave: clave.value };
+        const peticionDatadis = { nif: estado.nif, clave: clave.value };
         clave.value = '';
-        const conPotencia = content.querySelector('#lfDdPotencia').checked;
         ocupado = true;
         controlador = new AbortController();
         vistaProgreso(TEXTO_PROGRESO.login);
         try {
           // Mismo objeto (no una copia): asi importar() puede soltar la contrasena de verdad.
           const resultado = await importar(Object.assign(peticionDatadis, {
-            conPotencia,
+            destino: solar ? 'solar' : 'home',
+            rango,
+            conPotencia: estado.conPotencia,
             senal: controlador.signal,
             onProgreso: (paso) => { if (!cerrado) vistaProgreso(TEXTO_PROGRESO[paso] || TEXTO_PROGRESO.login); },
-            elegirSuministro: (lista) => new Promise((resolve) => {
-              if (cerrado) { resolve(null); return; }
-              resolverSuministro = resolve;
-              vistaSuministros(lista);
-            })
+            elegirSuministro: (lista) => esperar((responder) => vistaSuministros(lista, responder)),
+            confirmar: (texto, textoSi) => esperar((responder) => vistaConfirmar(texto, textoSi, responder)).then(Boolean)
           }));
           ocupado = false;
           if (cerrado) return;
           cerrar();
-          window.LF.mostrarPreviewCSV(resultado);
+          if (solar) await finalizarSolar(resultado);
+          else window.LF.mostrarPreviewCSV(resultado);
         } catch (err) {
           ocupado = false;
           if (cerrado || (err && err.code === 'cancelado')) return;
           vistaFormulario(textoError(err));
-          const n = content.querySelector('#lfDdNif');
-          if (n) n.value = nifValor;
         }
       }
+    }
+
+    function esperar(pintarVista) {
+      return new Promise((resolve) => {
+        if (cerrado) { resolve(null); return; }
+        resolverPendiente = resolve;
+        pintarVista((valor) => {
+          const r = resolverPendiente;
+          resolverPendiente = null;
+          if (r) r(valor);
+        });
+      });
     }
 
     function vistaProgreso(texto) {
       pintar(`
         ${cabecera}
-        <h3 id="lfDdTitulo" class="lf-dd-title">📥 Importar desde Datadis</h3>
+        <h3 id="lfDdTitulo" class="lf-dd-title">${titulo}</h3>
         <div class="lf-dd-progreso" role="status" aria-live="polite">
           <div class="spinner" aria-hidden="true"></div>
           <p>${esc(texto)}</p>
@@ -645,7 +947,7 @@
       content.querySelector('#lfDdCancelar').addEventListener('click', cerrar);
     }
 
-    function vistaSuministros(lista) {
+    function vistaSuministros(lista, responder) {
       const activos = lista.filter((s) => !s.validDateTo);
       const preferido = (activos[0] || lista[0]);
       const opciones = lista.map((s) => {
@@ -668,11 +970,40 @@
       `, '#lfDdSuministro');
       content.querySelector('#lfDdElegir').addEventListener('click', () => {
         const cups = content.querySelector('#lfDdSuministro').value;
-        const resolver = resolverSuministro;
-        resolverSuministro = null;
-        if (resolver) resolver(lista.find((s) => s.cups === cups) || null);
+        responder(lista.find((s) => s.cups === cups) || null);
       });
       content.querySelector('#lfDdCancelar').addEventListener('click', cerrar);
+    }
+
+    function vistaConfirmar(texto, textoSi, responder) {
+      pintar(`
+        ${cabecera}
+        <h3 id="lfDdTitulo" class="lf-dd-title">☀️ Antes de importar</h3>
+        <div id="lfDdConfirmar" class="lf-dd-box lf-dd-warn" role="alert" tabindex="-1">${esc(texto)}</div>
+        <div class="lf-dd-actions">
+          <button id="lfDdSi" class="btn primary" type="button"><span>${esc(textoSi)}</span></button>
+          <button id="lfDdCancelar" class="btn" type="button"><span>Cancelar</span></button>
+        </div>
+      `, '#lfDdConfirmar');
+      content.querySelector('#lfDdSi').addEventListener('click', () => responder(true));
+      content.querySelector('#lfDdCancelar').addEventListener('click', cerrar);
+    }
+
+    // Simulador solar: el fichero generado entra por el MISMO camino que un CSV elegido a mano
+    // (bv-ui.js handleFile: importFile, tabla mensual, traza horaria y avisos).
+    async function finalizarSolar(r) {
+      const fmt = (n) => String(n).replace('.', ',');
+      const avisos = (r.avisos || []).slice();
+      if (r.potencias) avisos.push(`Potencia de tu contrato aplicada: P1 ${fmt(r.potencias.p1)} kW · P2 ${fmt(r.potencias.p2)} kW.`);
+      const ok = await window.BVSim.importarFichero(r.fichero, { avisos });
+      if (!ok || !r.potencias) return;
+      [['bv-p1', r.potencias.p1], ['bv-p2', r.potencias.p2]].forEach(([id, kw]) => {
+        const campo = document.getElementById(id);
+        if (!campo) return;
+        campo.value = fmt(kw);
+        campo.dispatchEvent(new Event('input', { bubbles: true }));
+        campo.dispatchEvent(new Event('change', { bubbles: true }));
+      });
     }
 
     document.body.appendChild(overlay);
@@ -686,10 +1017,32 @@
     vistaFormulario(fallosIniciales >= MAX_FALLOS_LOGIN ? textoError({ code: 'credenciales' }) : '');
   }
 
+  /**
+   * Coloca el boton donde toque: en el simulador solar, junto a "Seleccionar archivo CSV" (si
+   * bv-ui.js ha publicado BVSim.importarFichero); en la home, junto a "Importar CSV" (si
+   * lf-csv-import.js ha publicado procesarCSVConsumos y mostrarPreviewCSV).
+   */
   function initDatadisImport() {
     if (!DATADIS_IMPORT_ENABLED) return;
     try {
-      if (document.getElementById('btnImportarDatadis')) return;
+      // Id distinto en cada pagina: el de la home lleva reglas propias de la barra de botones en
+      // movil (pro.css) que no deben alcanzar al boton del simulador solar.
+      if (document.getElementById('btnImportarDatadis') || document.getElementById('bvImportarDatadis')) return;
+
+      const subirSolar = document.getElementById('upload-csv-btn');
+      if (subirSolar) {
+        if (!window.BVSim || typeof window.BVSim.importarFichero !== 'function') return;
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'btn lf-dd-solar-btn';
+        boton.id = 'bvImportarDatadis';
+        boton.innerHTML = '<span>📥 Importar desde Datadis</span>';
+        boton.title = 'Importa los 12 últimos meses completos de consumo y excedentes desde tu cuenta de Datadis';
+        boton.addEventListener('click', () => abrirModal('solar'));
+        subirSolar.after(boton);
+        return;
+      }
+
       if (typeof window.LF.procesarCSVConsumos !== 'function' || typeof window.LF.mostrarPreviewCSV !== 'function') return;
       const contenedor = document.querySelector('.actions-center');
       if (!contenedor) return;
@@ -699,8 +1052,8 @@
       boton.className = 'btn';
       boton.id = 'btnImportarDatadis';
       boton.innerHTML = '<span>📥</span><span class="btn-text"><em class="lf-dd-solo-desktop">Importar de </em>Datadis</span>';
-      boton.title = 'Importa tus últimos 365 días de consumo directamente desde tu cuenta de Datadis';
-      boton.addEventListener('click', abrirModal);
+      boton.title = 'Importa hasta un año de consumo horario directamente desde tu cuenta de Datadis';
+      boton.addEventListener('click', () => abrirModal('home'));
 
       const csv = document.getElementById('btnSubirCSV');
       if (csv) csv.after(boton);
@@ -711,7 +1064,13 @@
   Object.assign(window.LF, { initDatadisImport });
   window.LF.datadis = {
     rangoUltimosDias,
+    rangoMesesCompletos,
+    rangoPersonalizado,
+    etiquetaMes,
     construirCsv,
+    evaluarExcedentes,
+    leerAutoconsumo,
+    decidirSolar,
     leerPotencias,
     normalizarSuministros,
     cupsEnmascarado,
@@ -721,4 +1080,13 @@
     importar,
     DatadisError
   };
+
+  // En la home lo inicia lf-app.js (tras el importador CSV, para colocar el boton a su lado). En el
+  // simulador solar no hay coordinador: este script va detras de bv-ui.js, cuyo DOMContentLoaded
+  // (que publica BVSim.importarFichero) se registra antes y por tanto corre antes que este.
+  function iniciarSiSolar() {
+    if (document.getElementById('upload-csv-btn')) initDatadisImport();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciarSiSolar);
+  else iniciarSiSolar();
 })();

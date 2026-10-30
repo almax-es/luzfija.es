@@ -314,7 +314,10 @@ const DEFERRED_USE_DEPENDENCIES = {
     ['js/lf-csv-utils.js', 'js/lf-surplus-prices.js', 'uso perezoso'],
     ['js/bv/bv-ui-helpers.js', 'js/bv/bv-ui.js', 'DOMContentLoaded'],
     ['js/lf-surplus-prices.js', 'js/bv/bv-ui.js', 'uso perezoso'],
-    ['js/lf-csv-report.js', 'js/bv/bv-ui.js', 'uso perezoso']
+    ['js/lf-csv-report.js', 'js/bv/bv-ui.js', 'uso perezoso'],
+    // 30/10/2026: importacion directa desde Datadis. bv-ui.js publica BVSim.importarFichero en su
+    // DOMContentLoaded y lf-datadis.js (detras, sin defer) coloca su boton en el suyo.
+    ['js/bv/bv-ui.js', 'js/lf-datadis.js', 'DOMContentLoaded']
   ],
   [STATS]: [
     ['js/pvpc-stats-engine.js', 'js/pvpc-stats-ui.js', 'DOMContentLoaded'],

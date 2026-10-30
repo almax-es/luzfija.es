@@ -131,7 +131,7 @@ HEAD
 BODY (sin defer, durante el parseo)
   tracking.js -> lf-config.js -> lf-utils.js -> lf-ssaa.js -> lf-csv-utils.js
   -> lf-csv-report.js -> lf-surplus-prices.js -> bv/bv-import.js -> bv/bv-sim-monthly.js
-  -> bv/bv-ui-helpers.js -> bv/bv-ui.js
+  -> bv/bv-ui-helpers.js -> bv/bv-ui.js -> lf-datadis.js
 
 BODY (con defer, despues de todo lo anterior)
   lf-sw-update.js -> shell-lite.js
@@ -225,6 +225,7 @@ motivo para hacerlo.
 | `bv/bv-ui-helpers.js` | `bv/bv-ui.js` | `window.BVSim.manualUi` | DOM ready, con guard | tabla manual, saldo BV y coste neto |
 | `lf-surplus-prices.js` | `bv/bv-ui.js` | `window.LF.surplusPrices` | perezoso | excedentes indexados contra `data/surplus/` |
 | `lf-csv-report.js` | `bv/bv-ui.js` | `window.LF.csvReport` | perezoso, con fallback | aviso persistente de importacion fallida; sin el modulo vuelve el toast |
+| `bv/bv-ui.js` | `lf-datadis.js` | `window.BVSim.importarFichero` | DOM ready, con guard | boton "Importar desde Datadis" del simulador: bv-ui lo publica en su DOMContentLoaded, registrado antes que el de lf-datadis (va detras, sin defer); sin el no aparece el boton |
 | `lf-sw-update.js` | `shell-lite.js` | `window.LF.initSwUpdate` | eval, **sin aviso** | registro del SW en la ruta solar |
 
 ### 3.3 Observatorio
