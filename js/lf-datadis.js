@@ -1084,7 +1084,21 @@
     if (excedentesHasta) {
       resultado.warnings.push(`Tu distribuidora aún no ha publicado en Datadis los excedentes posteriores al ${fechaEs(excedentesHasta)}: para no contarlos como 0 kWh, se analizan los 365 días que terminan ese día.`);
     }
+    // Datos que empiezan o acaban lejos de lo pedido (p. ej. el ultimo mes dio un 500 en el
+    // reintento y los anteriores llegaron bien): la deteccion de huecos del importador solo mira
+    // DENTRO de lo recibido, asi que se dice aqui. 7 dias de margen: hay distribuidoras que
+    // publican con unos dias de retraso y eso no merece aviso.
+    const conConsumo = filas.filter((f) => tieneConsumo(f) && f.date >= rango.iniYmd && f.date <= rango.finYmd).map((f) => f.date).sort();
     const sinPedirHome = mesesSinPedir.filter((m) => m >= rango.iniMes && m <= rango.finMes);
+    if (conConsumo.length && !sinPedirHome.length) {
+      const dias = (a, b) => Math.round((new Date(b.replace(/\//g, '-')) - new Date(a.replace(/\//g, '-'))) / 86400000);
+      const primero = conConsumo[0];
+      const ultimo = conConsumo[conConsumo.length - 1];
+      if (dias(rango.iniYmd, primero) > 7 || dias(ultimo, rango.finYmd) > 7) {
+        resultado.warnings.push(`Datadis solo ha devuelto consumos del ${fechaEs(primero)} al ${fechaEs(ultimo)}, y pediste del ${fechaEs(rango.iniYmd)} al ${fechaEs(rango.finYmd)}. ` +
+          'Puede ser un suministro reciente, un retraso de tu distribuidora o un mes que Datadis no ha podido servir: el análisis usa solo los días recibidos.');
+      }
+    }
     if (sinPedirHome.length) {
       resultado.warnings.push(`No hemos podido descargar ${listaMeses(sinPedirHome)} (Datadis ha tardado demasiado en responder o no deja repetir hoy esa consulta): esos días faltan en el análisis, no es que no tengas consumo. Si necesitas el periodo completo, prueba mañana o usa el CSV descargado desde Datadis.`);
     }

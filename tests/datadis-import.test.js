@@ -802,6 +802,28 @@ describe('importar (fetch simulado)', () => {
     }
   });
 
+  it('home: si el ultimo mes falla con 500 en el reintento y los demas llegan, se avisa de que los datos acaban antes', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const todas = añoCompleto(rango);
+    respuestas.consumo = (u) => {
+      const q = new URL(u).searchParams;
+      if (q.get('startDate') !== q.get('endDate')) return json(500, { message: 'Internal Server Error' });
+      if (q.get('startDate') === rango.finMes) return json(500, { message: 'Internal Server Error' });
+      return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
+    };
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.warnings.join('\n')).toMatch(/Datadis solo ha devuelto consumos del \d{2}\/\d{2}\/\d{4} al \d{2}\/\d{2}\/\d{4}, y pediste del/);
+  });
+
+  it('home: un retraso normal de un par de dias al final NO genera ese aviso', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const todas = añoCompleto(rango);
+    const corte = (() => { const [y, m, d] = rango.finYmd.split('/').map(Number); const x = new Date(y, m - 1, d - 2); return `${x.getFullYear()}/${pad(x.getMonth() + 1)}/${pad(x.getDate())}`; })();
+    respuestas.consumo = () => json(200, { timeCurve: todas.filter((x) => x.date <= corte) });
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.warnings.join('\n')).not.toContain('Datadis solo ha devuelto consumos');
+  });
+
   it('informe: el resumen cuenta lo procesado (sin repetidas) y dice cuanto llego', async () => {
     const rango = D.rangoPersonalizado('2026-05-01', '2026-05-01', new Date(2026, 9, 30)).rango;
     const dia = Array.from({ length: 24 }, (_, i) => ({ cups: 'x', date: '2026/05/01', time: `${pad(i + 1)}:00:00`, consumptionKWh: 0.1, obtainMethod: 'Real' }));
@@ -1660,7 +1682,9 @@ describe('contratos estaticos de lf-datadis.js', () => {
     expect(sourceDatadis).toContain("importarFichero(r.fichero, { avisos, origen: 'datadis' })");
     // los segmentos son solo categorias cerradas: nada derivado de la cuenta o del suministro
     const llamadaHome = imp.slice(imp.indexOf("trackCsvEvent('datadis-import'"), imp.indexOf("trackCsvEvent('datadis-import'") + 400);
-    expect(llamadaHome).not.toMatch(/cups|nif|potencia|kwh|dias|periodo/i);
+    // Todos los segmentos son literales de listas cerradas ('pvpc-periodo' es una categoria fija,
+    // no el periodo del usuario): ni fechas, ni kWh, ni nada de la cuenta o del suministro.
+    expect(llamadaHome).toMatch(/\[\s*'home',\s*'aplicado',\s*debeAplicarExcedentes \? 'consumos-excedentes' : 'consumos',\s*window\.LF\.pvpcPeriodoCSV \? 'pvpc-periodo' : 'pvpc-reciente'\s*\]/);
   });
 
   it('informe de fallo: enlace de envio legible (no hereda el color de enlace sobre fondo de boton) y sin analitica', () => {
