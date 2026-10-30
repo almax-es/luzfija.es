@@ -603,13 +603,19 @@
         try { t = String(JSON.parse(t).token || ''); } catch { t = ''; }
       }
       t = t.replace(/^"|"$/g, '').trim();
-      if (!/^[\w-]+\.[\w-]+\.[\w-]*$/.test(t)) throw new DatadisError('http', r.status);
+      if (!/^[\w-]+\.[\w-]+\.[\w-]*$/.test(t)) {
+        const err = new DatadisError('http', r.status);
+        err.servidor = `login: respuesta correcta pero sin un token reconocible (${t.length} caracteres; no se incluye)`;
+        throw err;
+      }
       return t;
     }
     const m = mensajeServidor(r.text);
     if (/user blocked/i.test(m)) throw new DatadisError('bloqueado', r.status);
     if (r.status === 401 || r.status === 403 || /bad credentials/i.test(m)) throw new DatadisError('credenciales', r.status);
-    throw new DatadisError('http', r.status);
+    const err = new DatadisError('http', r.status);
+    err.servidor = `login: ${textoTecnicoLimpio(m || String(r.text || '').slice(0, 120))}`;
+    throw err;
   }
 
   async function consultar(ruta, params, token, ms, senal) {
@@ -620,19 +626,26 @@
     }, ms, senal);
     if (r.status === 401) throw new DatadisError('sesion', r.status);
     if (r.status === 429) throw new DatadisError('repeticion', r.status);
+    const endpoint = ruta.split('/').pop();
     if (!r.ok) {
       // El aviso de consulta repetida puede venir como JSON { message } o como texto plano.
       const aviso = mensajeServidor(r.text) || String(r.text || '').slice(0, 300);
       if (/24 ?h|repet|repeat|identical|misma consulta|already/i.test(aviso)) {
         throw new DatadisError('repeticion', r.status);
       }
-      throw new DatadisError('http', r.status);
+      const err = new DatadisError('http', r.status);
+      err.servidor = `${endpoint}: ${textoTecnicoLimpio(aviso)}`;
+      throw err;
     }
     // Una respuesta vacia (o el literal null) es "sin datos", no un error: asi, en consumos, se
     // pasa a pedir mes a mes como cuando el periodo llega vacio.
     const cuerpo = String(r.text || '').trim();
     if (!cuerpo || cuerpo === 'null') return [];
-    try { return JSON.parse(cuerpo); } catch { throw new DatadisError('http', r.status); }
+    try { return JSON.parse(cuerpo); } catch {
+      const err = new DatadisError('http', r.status);
+      err.servidor = `${endpoint}: respuesta que no es JSON (${cuerpo.length} caracteres): ${textoTecnicoLimpio(cuerpo.slice(0, 80))}`;
+      throw err;
+    }
   }
 
   // ===== Contador de fallos de login =====
@@ -712,7 +725,14 @@
     // (ver construirInforme): nunca NIF, contrasena, token, CUPS, direccion ni kWh.
     const diag = o.diagnostico || {};
     diag.destino = solar ? 'solar' : 'home';
-    const progreso = (paso) => { diag.paso = paso; o.onProgreso(paso); };
+    diag.tiempos = [];
+    const progreso = (paso) => {
+      const ahora = Date.now();
+      if (diag.paso && diag.inicioPaso) diag.tiempos.push(`${diag.paso} ${segundos(ahora - diag.inicioPaso)}`);
+      diag.paso = paso;
+      diag.inicioPaso = ahora;
+      o.onProgreso(paso);
+    };
     let rango = solar ? rangoMesesCompletos(new Date()) : (o.rango || rangoUltimosDias(new Date()));
     // El simulador solar y los "ultimos 12 meses" de la home piden MESES_MARGEN meses mas al
     // principio (en la misma consulta): si los ultimos dias aun no tienen los excedentes publicados
@@ -756,7 +776,9 @@
     // get-supplies (v1) a proposito: devuelve los suministros de TODAS las distribuidoras en una
     // llamada. La v2 exige distributorCode y obliga a pedir antes get-distributors-with-supplies-v2,
     // que en la prueba real del 29/10/2026 agoto 60 s sin responder.
-    const suministros = normalizarSuministros(await consultar('/api-private/api/get-supplies', {}, token, T_SUMINISTROS, o.senal));
+    const crudos = await consultar('/api-private/api/get-supplies', {}, token, T_SUMINISTROS, o.senal);
+    diag.suministrosForma = formaRespuesta(crudos, 'supplies');
+    const suministros = normalizarSuministros(crudos);
     if (!suministros.length) throw new DatadisError('sinsuministros');
     const suministro = suministros.length === 1 ? suministros[0] : await o.elegirSuministro(suministros);
     if (!suministro) throw new DatadisError('cancelado');
@@ -850,6 +872,7 @@
         // Sesion caducada, red caida, tiempo agotado o consulta repetida: pedir mes a mes no lo arregla.
         if (!e || e.code !== 'http') throw e;
         errorPeriodo = e;
+        diag.periodoError = `HTTP ${e.status}${e.servidor ? ` (${e.servidor})` : ''}`;
         filas = [];
       }
       // Algunas distribuidoras rechazan (error 500) o devuelven vacia cualquier consulta que
@@ -858,10 +881,14 @@
       if (!filas.length && rangoPedido.iniMes !== rangoPedido.finMes) {
         progreso('consumos-mes');
         const trozos = [];
+        diag.mesAMes = [];
         for (const mes of mesesDelRango(rangoPedido).reverse()) {
           try {
-            trozos.unshift(await pedir(mes, mes, T_CONSUMO_MES));
+            const trozo = await pedir(mes, mes, T_CONSUMO_MES);
+            diag.mesAMes.push(`${mes} ${trozo.length ? `${trozo.length} filas` : 'vacío'}`);
+            trozos.unshift(trozo);
           } catch (e) {
+            diag.mesAMes.push(`${mes} ${(e && e.code) || 'error'}${e && e.status ? ` ${e.status}` : ''}`);
             if (e && (e.code === 'sesion' || e.code === 'red')) throw e;
             // un mes que falla (500, vacio, repetido) se deja fuera
           }
@@ -1004,6 +1031,53 @@
     return CODIGOS_INFORME.has(code) ? code : (err instanceof DatadisError ? null : 'otro');
   }
 
+  /**
+   * Texto tecnico (mensajes de Datadis, excepciones) sin nada que parezca un dato personal:
+   * CUPS, NIF/NIE/CIF, emails, telefonos, tokens largos. Acotado.
+   */
+  function textoTecnicoLimpio(v) {
+    return String(v == null ? '' : v)
+      .replace(/ES\d{4}[A-Z0-9]{12}[A-Z0-9]{0,4}/gi, '[CUPS]')
+      .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]')
+      .replace(/\b[XYZ]?\d{7,8}[A-Z]\b/gi, '[documento]')
+      .replace(/\b[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]\b/gi, '[documento]')
+      .replace(/[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]*/g, '[token]')
+      .replace(/\+?\d[\d\s]{8,}\d/g, '[número]')
+      .replace(/\s+/g, ' ').trim().slice(0, 200);
+  }
+
+  function segundos(ms) {
+    return `${(Math.max(0, ms) / 1000).toFixed(1).replace('.', ',')} s`;
+  }
+
+  /** Familia y version principal del navegador, sin mas (ej. "Chrome 156 · móvil"). */
+  function navegadorBasico(ua) {
+    const u = String(ua || '');
+    const v = (re) => { const m = re.exec(u); return m ? m[1] : '?'; };
+    let nombre = 'otro';
+    if (/Edg\//.test(u)) nombre = `Edge ${v(/Edg\/(\d+)/)}`;
+    else if (/OPR\//.test(u)) nombre = `Opera ${v(/OPR\/(\d+)/)}`;
+    else if (/SamsungBrowser\//.test(u)) nombre = `Samsung Internet ${v(/SamsungBrowser\/(\d+)/)}`;
+    else if (/Firefox\/|FxiOS\//.test(u)) nombre = `Firefox ${v(/(?:Firefox|FxiOS)\/(\d+)/)}`;
+    else if (/CriOS\//.test(u)) nombre = `Chrome iOS ${v(/CriOS\/(\d+)/)}`;
+    else if (/Chrome\//.test(u)) nombre = `Chrome ${v(/Chrome\/(\d+)/)}`;
+    else if (/Safari\//.test(u)) nombre = `Safari ${v(/Version\/(\d+)/)}`;
+    return `${nombre}${/Mobi|Android|iPhone|iPad/.test(u) ? ' · móvil' : ''}`;
+  }
+
+  /** Forma de una respuesta (sin valores): tipo, longitud y nombres de campos. */
+  function formaRespuesta(r, clave) {
+    if (Array.isArray(r)) {
+      const primero = r.find((x) => x && typeof x === 'object');
+      return `lista de ${r.length}${primero ? ` · campos ${Object.keys(primero).slice(0, 14).join(',')}` : ''}`;
+    }
+    if (r && typeof r === 'object') {
+      const lista = Array.isArray(r[clave]) ? r[clave] : null;
+      return `objeto {${Object.keys(r).slice(0, 8).join(',')}}${lista ? ` · ${clave}: ${formaRespuesta(lista)}` : ''}`;
+    }
+    return typeof r;
+  }
+
   /** Contrato sin datos personales: tipo de autoconsumo y si trae los campos. */
   function resumenContrato(respuesta, pedido) {
     if (!pedido) return 'no pedido';
@@ -1021,10 +1095,25 @@
     const lista = Array.isArray(filas) ? filas : [];
     const meses = new Map();
     const metodos = new Set();
+    const campos = new Set();
+    const tiposConsumo = {};
+    const horasRaras = new Set();
+    const fechasEjemplo = new Set();
     let ceros = 0;
     let fechasRaras = 0;
     for (const f of lista) {
-      if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date)) { fechasRaras++; continue; }
+      if (f && typeof f === 'object') Object.keys(f).forEach((k) => { if (campos.size < 16) campos.add(k); });
+      if (f && typeof f.time === 'string' && !/^\d{2}:\d{2}$/.test(f.time) && horasRaras.size < 3) horasRaras.add(textoTecnicoLimpio(f.time).slice(0, 12));
+      if (f) {
+        const v = f.consumptionKWh;
+        const t = v === null ? 'null' : (v === '' ? 'vacío' : typeof v);
+        tiposConsumo[t] = (tiposConsumo[t] || 0) + 1;
+      }
+      if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date)) {
+        fechasRaras++;
+        if (fechasEjemplo.size < 3) fechasEjemplo.add(textoTecnicoLimpio(f && f.date).slice(0, 20) || String(f && f.date));
+        continue;
+      }
       if (horaEtiqueta(f) === 0) { ceros++; continue; }
       metodos.add(typeof f.obtainMethod === 'string' ? (f.obtainMethod.trim() || '(vacío)').slice(0, 16) : '(sin campo)');
       const k = f.date.slice(0, 7);
@@ -1043,6 +1132,10 @@
       hasta: claves[claves.length - 1] || '',
       ceros,
       fechasRaras,
+      fechasEjemplo: [...fechasEjemplo],
+      horasRaras: [...horasRaras],
+      campos: [...campos],
+      tiposConsumo: Object.entries(tiposConsumo).map(([k, n]) => `${k} ${n}`).join(', '),
       metodos: [...metodos].slice(0, 6),
       meses: claves.map((k) => {
         const m = meses.get(k);
@@ -1061,15 +1154,25 @@
     const lineas = [
       `Herramienta: ${d.destino === 'solar' ? 'Comparador de tarifas solares' : 'Comparador principal'} · importación desde Datadis`,
       `Versión: ${build} · ${fmtYmd(ahora)} ${pad2(ahora.getHours())}:${pad2(ahora.getMinutes())}`,
-      `Error: ${codigoInforme(err) || (err && err.code) || 'otro'}${err && err.status ? ` (HTTP ${err.status})` : ''} · paso: ${(err && err.paso) || d.paso || '?'}`,
-      `Mensaje: ${String(mensaje || '').slice(0, 400)}`,
+      `Error: ${codigoInforme(err) || (err && err.code) || 'otro'}${err && err.status ? ` (HTTP ${err.status})` : ''} · paso: ${(err && err.paso) || d.paso || '?'}` +
+        `${d.inicioPaso ? ` (tras ${segundos(ahora.getTime() - d.inicioPaso)})` : ''}`,
+      ...(err && err.servidor ? [`Respuesta de Datadis: ${err.servidor}`] : []),
+      ...(err && !(err instanceof DatadisError) ? [`Excepción: ${textoTecnicoLimpio(`${err.name || 'Error'}: ${err.message || ''}`)}${lugarExcepcion(err)}`] : []),
+      `Mensaje: ${String(mensaje || '').slice(0, 200)}`,
+      `Navegador: ${navegadorBasico(typeof navigator !== 'undefined' ? navigator.userAgent : '')}`,
+      ...(d.tiempos && d.tiempos.length ? [`Tiempos: ${d.tiempos.join(' · ')}`] : []),
       `Periodo pedido: ${d.periodo || '?'}`,
       dist ? `Distribuidora: ${dist.nombre || '?'} (código ${dist.codigo}) · tipo de punto ${dist.pointType || '?'} · suministros en la cuenta: ${dist.suministros}${dist.deBaja ? ' · elegido de baja' : ''}` : 'Distribuidora: (no se llegó a elegir suministro)',
       `Contrato: ${d.contrato || '(no se llegó a pedir)'}`
     ];
+    if (d.suministrosForma && (!dist || (err && err.code === 'sinsuministros'))) lineas.push(`Respuesta de suministros: ${d.suministrosForma}`);
     if (d.erroresDistribuidora && d.erroresDistribuidora.length) lineas.push(`Errores de distribuidora: ${d.erroresDistribuidora.join(' | ')}`);
+    if (d.periodoError) lineas.push(`Consulta del periodo: ${d.periodoError}`);
+    if (d.mesAMes && d.mesAMes.length) lineas.push(`Mes a mes: ${d.mesAMes.join(' · ')}`);
     if (r) {
-      lineas.push(`Respuesta: ${r.filas} filas · ${r.desde || '-'} a ${r.hasta || '-'} · horas 00:00: ${r.ceros} · fechas no reconocidas: ${r.fechasRaras} · métodos: ${r.metodos.join(', ') || '-'}`);
+      lineas.push(`Respuesta: ${r.filas} filas · ${r.desde || '-'} a ${r.hasta || '-'} · horas 00:00: ${r.ceros} · fechas no reconocidas: ${r.fechasRaras}` +
+        `${r.fechasEjemplo.length ? ` (${r.fechasEjemplo.join(' | ')})` : ''} · métodos: ${r.metodos.join(', ') || '-'}`);
+      lineas.push(`Forma: campos ${r.campos.join(',') || '-'} · consumo ${r.tiposConsumo || '-'}${r.horasRaras.length ? ` · horas con otro formato: ${r.horasRaras.join(' | ')}` : ''}`);
       if (r.meses.length) {
         lineas.push('Por mes (horas con consumo/esperadas · excedentes con valor/nulos/positivos · generación):');
         lineas.push(...r.meses);
@@ -1078,6 +1181,12 @@
       lineas.push('Respuesta de consumos: (no se llegó a recibir)');
     }
     return lineas.join('\n');
+  }
+
+  /** Fichero y linea de la excepcion dentro de nuestros scripts (sin URL completa ni datos). */
+  function lugarExcepcion(err) {
+    const m = /\/(lf-[\w-]+\.js|bv\/[\w-]+\.js)[^:\s]*:(\d+):(\d+)/.exec(String(err && err.stack || ''));
+    return m ? ` · en ${m[1]}:${m[2]}:${m[3]}` : '';
   }
 
   function mailtoInforme(texto, maxChars) {
@@ -1367,7 +1476,7 @@
         ${mensajeError && informe ? `<div class="lf-dd-box lf-dd-informe">
           <strong>🛠️ ¿Me ayudas a que funcione?</strong>
           <p>Soy aLMaX y hago LuzFija yo solo. Cada distribuidora envía los datos a Datadis a su manera y no puedo probarlas todas: con este informe puedo ver qué ha pasado con la tuya y arreglarlo.</p>
-          <p>No incluye tu NIF, tu contraseña, tu CUPS, tu dirección ni tus consumos: solo el tipo de error, tu distribuidora y cuántas horas y excedentes llegaron cada mes.</p>
+          <p>No incluye tu NIF, tu contraseña, tu CUPS, tu dirección ni tus consumos: solo datos técnicos, como el error, tu navegador, tu distribuidora y cuántas horas y excedentes llegaron cada mes.</p>
           <details>
             <summary>Revisa el informe (puedes editarlo)</summary>
             <textarea id="lfDdInforme" class="lf-dd-informe-texto" rows="8" spellcheck="false" aria-label="Informe que se enviará"></textarea>
@@ -1687,6 +1796,9 @@
     resumenFilas,
     resumenContrato,
     construirInforme,
+    textoTecnicoLimpio,
+    navegadorBasico,
+    formaRespuesta,
     mailtoInforme,
     codigoInforme,
     evaluarCobertura,

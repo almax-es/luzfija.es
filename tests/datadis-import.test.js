@@ -682,6 +682,42 @@ describe('importar (fetch simulado)', () => {
     expect(texto).toContain('Contrato: no pedido');
   });
 
+  it('informe de un HTTP 500 persistente: texto de Datadis limpio, consulta del periodo y resultado mes a mes', async () => {
+    respuestas.consumo = () => json(500, { status: 500, error: 'Internal Server Error', message: 'Fallo con ES0021000000000001AB del titular 12345678Z (soporte@datadis.es)' });
+    const diagnostico = {};
+    const e = await ejecutar({ conPotencia: false, diagnostico }).catch((x) => x);
+    expect(e.code).toBe('http');
+    const texto = D.construirInforme(diagnostico, e, D.textoError(e));
+    expect(texto).toContain('Respuesta de Datadis: get-consumption-data-v2: Fallo con [CUPS] del titular [documento] ([email])');
+    expect(texto).toMatch(/Consulta del periodo: HTTP 500/);
+    expect(texto).toMatch(/Mes a mes: \d{4}\/\d{2} http 500 · /);
+    expect(texto).toMatch(/Tiempos: login [\d,]+ s · suministros [\d,]+ s/);
+    expect(texto).toContain('Navegador: ');
+    for (const prohibido of ['ES0021000000000001AB', '12345678Z', 'soporte@datadis.es', CLAVE]) expect(texto).not.toContain(prohibido);
+  });
+
+  it('informe de una excepcion inesperada: nombre, mensaje y lugar en nuestros scripts', async () => {
+    global.window.LF.procesarCSVConsumos = async () => { throw new TypeError("Cannot read properties of undefined (reading 'consumos')"); };
+    const diagnostico = {};
+    const e = await ejecutar({ conPotencia: false, diagnostico }).catch((x) => x);
+    expect(D.codigoInforme(e)).toBe('otro');
+    const texto = D.construirInforme(diagnostico, e, D.textoError(e));
+    expect(texto).toContain("Excepción: TypeError: Cannot read properties of undefined (reading 'consumos')");
+    expect(texto).toMatch(/Respuesta: \d+ filas/);
+    expect(texto).toMatch(/Forma: campos cups,date,time,consumptionKWh/);
+  });
+
+  it('textoTecnicoLimpio y navegadorBasico no dejan pasar datos personales ni el user-agent entero', () => {
+    expect(D.textoTecnicoLimpio('CUPS ES0031405912345678KH0F, DNI 17155078E, NIE X1234567L, CIF B12345674, tel 600 123 456, a@b.es'))
+      .toBe('CUPS [CUPS], DNI [documento], NIE [documento], CIF [documento], tel [número], [email]');
+    expect(D.textoTecnicoLimpio('aaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbb.cccc')).toBe('[token]');
+    expect(D.navegadorBasico('Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.8078.48 Mobile Safari/537.36')).toBe('Chrome 156 · móvil');
+    expect(D.navegadorBasico('Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1')).toBe('Safari 18 · móvil');
+    expect(D.navegadorBasico('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0')).toBe('Edge 156');
+    expect(D.navegadorBasico('Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0')).toBe('Firefox 153');
+    expect(D.formaRespuesta({ supplies: [{ cups: 'x', address: 'y' }], distributorError: [] }, 'supplies')).toBe('objeto {supplies,distributorError} · supplies: lista de 1 · campos cups,address');
+  });
+
   it('el informe solo se ofrece en errores que pueden destapar una rareza (no en contrasena, red, bloqueo...)', () => {
     for (const c of ['http', 'parseo', 'sindatos', 'solar', 'distribuidora', 'timeout', 'sinsuministros']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(c);
     for (const c of ['credenciales', 'bloqueado', 'agotado', 'red', 'sesion', 'repeticion', 'documento', 'periodo', 'baja', 'cancelado']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(null);
