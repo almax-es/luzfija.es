@@ -783,6 +783,46 @@ describe('importar (fetch simulado)', () => {
     }
   });
 
+  it('tope de tiempo en la home: los meses sin pedir se avisan como tales (no como falta de consumo)', async () => {
+    let reloj = Date.now();
+    const espia = vi.spyOn(Date, 'now').mockImplementation(() => reloj);
+    try {
+      const rango = D.rangoUltimosDias(new Date());
+      const todas = añoCompleto(rango);
+      respuestas.consumo = (u) => {
+        const q = new URL(u).searchParams;
+        if (q.get('startDate') !== q.get('endDate')) return json(500, { message: 'Internal Server Error' });
+        reloj += 400000;
+        return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
+      };
+      const r = await ejecutar({ conPotencia: false });
+      expect(r.warnings.join('\n')).toMatch(/no ha dado tiempo a pedir .*: esos días faltan en el análisis \(no es que no tengas consumo\)/);
+    } finally {
+      espia.mockRestore();
+    }
+  });
+
+  it('informe: el resumen cuenta lo procesado (sin repetidas) y dice cuanto llego', async () => {
+    const rango = D.rangoPersonalizado('2026-05-01', '2026-05-01', new Date(2026, 9, 30)).rango;
+    const dia = Array.from({ length: 24 }, (_, i) => ({ cups: 'x', date: '2026/05/01', time: `${pad(i + 1)}:00:00`, consumptionKWh: 0.1, obtainMethod: 'Real' }));
+    dia.push({ ...dia[3] });
+    respuestas.consumo = () => json(200, { timeCurve: dia });
+    const diagnostico = {};
+    await ejecutar({ rango, conPotencia: false, diagnostico });
+    const texto = D.construirInforme(diagnostico, new D.DatadisError('solar'), 'x');
+    expect(texto).toContain('Respuesta: 25 filas recibidas, 24 procesadas');
+    expect(texto).toContain('repetidas descartadas: 1');
+    expect(texto).toMatch(/\n2026\/05 24\/744h/);
+    expect(texto).not.toContain('horas con otro formato'); // 'HH:MM:SS' es valido, no "raro"
+  });
+
+  it('el dia del cambio de hora solo se admite repetida la hora que se vive dos veces (03 peninsula, 02 Canarias)', () => {
+    const f = (time) => ({ date: '2026/10/25', time, consumptionKWh: 0.1 });
+    expect(D.quitarHorasRepetidas([f('05:00'), f('05:00')]).descartadas).toBe(1);
+    expect(D.quitarHorasRepetidas([f('03:00'), f('03:00')]).descartadas).toBe(0);
+    expect(D.quitarHorasRepetidas([f('02:00'), f('02:00')]).descartadas).toBe(0);
+  });
+
   it('el informe solo se ofrece en errores que pueden destapar una rareza (no en contrasena, red, bloqueo...)', () => {
     for (const c of ['http', 'parseo', 'sindatos', 'solar', 'distribuidora', 'timeout', 'sinsuministros']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(c);
     for (const c of ['credenciales', 'bloqueado', 'agotado', 'red', 'sesion', 'repeticion', 'documento', 'periodo', 'baja', 'cancelado']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(null);
@@ -1380,6 +1420,28 @@ describe('importar (fetch simulado)', () => {
       const r = await ejecutarSolar();
       expect(r.fichero.name).toBe('datadis-11-meses.csv');
       expect(r.avisos.join(' ')).toContain('se simulan 11 meses');
+    });
+
+    it('tope de tiempo en el mes a mes: NO simula un ano incompleto ni lo presenta como suministro reciente', async () => {
+      let reloj = Date.now();
+      const espia = vi.spyOn(Date, 'now').mockImplementation(() => reloj);
+      try {
+        const desde = mesAnterior(mesAnterior(rangoSolar().iniMes));
+        const todas = mesesConGeneracion(desde, mesesEntreTop(desde, rangoSolar().finMes), false);
+        respuestas.contract = contrato({ selfConsumptionTypeCode: '41' });
+        respuestas.consumo = (u) => {
+          const q = new URL(u).searchParams;
+          if (q.get('startDate') !== q.get('endDate')) return json(500, { message: 'Internal Server Error' });
+          reloj += 70000; // cada mes, 70 s: al sexto se agotan los 6 min
+          return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
+        };
+        const e = await ejecutarSolar().catch((x) => x);
+        expect(e.code).toBe('solar');
+        expect(D.textoError(e)).toContain('no ha dado tiempo a pedir');
+        expect(D.textoError(e)).toContain('No simulamos un año incompleto por un retraso de Datadis');
+      } finally {
+        espia.mockRestore();
+      }
     });
 
     it('ultimo mes cerrado sin excedentes publicados: simula los 12 meses anteriores y lo dice', async () => {

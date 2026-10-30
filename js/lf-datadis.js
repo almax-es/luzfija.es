@@ -193,7 +193,9 @@
       if (!filaUtil(f)) { salida.push(f); continue; }
       const clave = `${f.date}|${horaEtiqueta(f)}`;
       if (vistas.has(clave)) {
-        if (esDiaCambioOtono(f.date) && !repetidaPorDia.has(f.date)) {
+        // La hora que se vive dos veces: 02:00-03:00 en la peninsula (etiqueta 03) y 01:00-02:00
+        // en Canarias (etiqueta 02). Cualquier otra repetida ese dia tambien sobra.
+        if (esDiaCambioOtono(f.date) && !repetidaPorDia.has(f.date) && [2, 3].includes(horaEtiqueta(f))) {
           repetidaPorDia.set(f.date, true);
           salida.push(f);
         } else {
@@ -877,11 +879,14 @@
     }
     // La documentacion fija 'AAAA/MM/DD'; si alguna distribuidora mandase 'AAAA-MM-DD', sin esto
     // se descartarian TODAS las filas y el usuario veria "sin datos".
-    let filas = (await descarga).map((f) => (f && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
+    const descargado = await descarga;
+    const mesesSinPedir = descargado.sinPedir || [];
+    let filas = descargado.filas.map((f) => (f && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
       ? Object.assign({}, f, { date: f.date.replace(/-/g, '/') }) : f));
 
     async function descargarConsumos() {
       let filas;
+      const sinPedir = [];
       const params = {
         cups: suministro.cups,
         distributorCode: String(suministro.distributorCode),
@@ -933,7 +938,12 @@
         let agotado = false;
         for (const mes of mesesDelRango(rangoPedido).reverse()) {
           const queda = limite - Date.now();
-          if (queda < 5000) { agotado = true; diag.mesAMes.push(`${mes} sin pedir (tiempo total agotado)`); continue; }
+          if (queda < 5000) {
+            agotado = true;
+            sinPedir.push(mes);
+            diag.mesAMes.push(`${mes} sin pedir (tiempo total agotado)`);
+            continue;
+          }
           try {
             const trozo = await pedir(mes, mes, Math.min(T_CONSUMO_MES, queda));
             diag.mesAMes.push(`${mes} ${trozo.length ? `${trozo.length} filas` : 'vacío'}`);
@@ -948,12 +958,18 @@
         if (!filas.length && agotado) throw new DatadisError('timeout');
         if (!filas.length && errorPeriodo) throw errorPeriodo;
       }
-      return filas;
+      // Los meses que NO se llegaron a pedir viajan aparte: un hueco por tiempo agotado no es lo
+      // mismo que un suministro sin historial (la cobertura omitiria esos meses como "de antes
+      // del alta" y el simulador daria un ano mas corto con una explicacion falsa).
+      return { filas, sinPedir: sinPedir.sort() };
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
-    diag.respuesta = resumenFilas(filas);
+    const recibidas = filas.length;
     const sinRepetidas = quitarHorasRepetidas(filas);
     filas = sinRepetidas.filas;
+    // El resumen del informe, con lo que de verdad se procesa (ya sin repetidas).
+    diag.respuesta = resumenFilas(filas);
+    diag.respuesta.recibidas = recibidas;
     diag.respuesta.repetidas = sinRepetidas.descartadas;
     filas = marcarExcedentesSinPublicar(filas);
 
@@ -974,6 +990,15 @@
         const candidato = anoHastaMes(finSolar);
         if (evaluarExcedentes(filas, candidato).hayPositivos) rangoSolar = candidato;
         else mesesSinPublicar = [];
+      }
+      // 0b) Meses del ano a simular que no se llegaron a pedir por tiempo agotado: no se simula un
+      //     ano incompleto por un retraso de Datadis ni se presenta como suministro reciente.
+      const sinPedirSolar = mesesSinPedir.filter((m) => m >= rangoSolar.iniMes && m <= rangoSolar.finMes);
+      if (sinPedirSolar.length) {
+        const err = new DatadisError('solar');
+        err.detalle = `Datadis ha tardado demasiado en responder y no ha dado tiempo a pedir ${listaMeses(sinPedirSolar)}. ` +
+          'No simulamos un año incompleto por un retraso de Datadis. Prueba mañana (Datadis no deja repetir hoy las mismas consultas) o descarga el CSV desde Datadis y usa «Seleccionar archivo CSV».';
+        throw err;
       }
       // 1) Consumo: contra las horas que DEBERIAN llegar, no contra las que llegan.
       const cob = evaluarCobertura(filas, rangoSolar);
@@ -1055,6 +1080,10 @@
     }).filter((w) => w !== null);
     if (excedentesHasta) {
       resultado.warnings.push(`Tu distribuidora aún no ha publicado en Datadis los excedentes posteriores al ${fechaEs(excedentesHasta)}: para no contarlos como 0 kWh, se analizan los 365 días que terminan ese día.`);
+    }
+    const sinPedirHome = mesesSinPedir.filter((m) => m >= rango.iniMes && m <= rango.finMes);
+    if (sinPedirHome.length) {
+      resultado.warnings.push(`Datadis ha tardado demasiado en responder y no ha dado tiempo a pedir ${listaMeses(sinPedirHome)}: esos días faltan en el análisis (no es que no tengas consumo). Si necesitas el periodo completo, prueba mañana o usa el CSV descargado desde Datadis.`);
     }
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
@@ -1159,7 +1188,7 @@
     let horasNoValidas = 0;
     for (const f of lista) {
       if (f && typeof f === 'object') Object.keys(f).forEach((k) => { if (campos.size < 16) campos.add(textoTecnicoLimpio(k).slice(0, 30)); });
-      if (f && typeof f.time === 'string' && !/^\d{2}:\d{2}$/.test(f.time) && horasRaras.size < 3) horasRaras.add(textoTecnicoLimpio(f.time).slice(0, 12));
+      if (f && !Number.isFinite(horaEtiqueta(f)) && horasRaras.size < 3) horasRaras.add(textoTecnicoLimpio(f.time).slice(0, 12) || String(f.time));
       if (f) {
         const v = f.consumptionKWh;
         const t = v === null ? 'null' : (v === '' ? 'vacío' : typeof v);
@@ -1228,7 +1257,7 @@
     if (d.periodoError) lineas.push(`Consulta del periodo: ${d.periodoError}`);
     if (d.mesAMes && d.mesAMes.length) lineas.push(`Mes a mes: ${d.mesAMes.join(' · ')}`);
     if (r) {
-      lineas.push(`Respuesta: ${r.filas} filas · ${r.desde || '-'} a ${r.hasta || '-'} · horas 00:00: ${r.ceros} · fechas no reconocidas: ${r.fechasRaras}` +
+      lineas.push(`Respuesta: ${r.recibidas != null && r.recibidas !== r.filas ? `${r.recibidas} filas recibidas, ${r.filas} procesadas` : `${r.filas} filas`} · ${r.desde || '-'} a ${r.hasta || '-'} · horas 00:00: ${r.ceros} · fechas no reconocidas: ${r.fechasRaras}` +
         `${r.fechasEjemplo.length ? ` (${r.fechasEjemplo.join(' | ')})` : ''} · métodos: ${r.metodos.join(', ') || '-'}`);
       lineas.push(`Forma: campos ${r.campos.join(',') || '-'} · consumo ${r.tiposConsumo || '-'}${r.horasRaras.length ? ` · horas con otro formato: ${r.horasRaras.join(' | ')}` : ''}` +
         ` · horas no válidas: ${r.horasNoValidas} · repetidas descartadas: ${r.repetidas || 0}`);
@@ -1535,7 +1564,7 @@
         ${mensajeError && informe ? `<div class="lf-dd-box lf-dd-informe">
           <strong>🛠️ ¿Me ayudas a que funcione?</strong>
           <p>Soy aLMaX y hago LuzFija yo solo. Cada distribuidora envía los datos a Datadis a su manera y no puedo probarlas todas: con este informe puedo ver qué ha pasado con la tuya y arreglarlo.</p>
-          <p>No incluye tu NIF, tu contraseña, tu CUPS, tu dirección ni tus consumos: solo datos técnicos, como el error, tu navegador, tu distribuidora y cuántas horas y excedentes llegaron cada mes.</p>
+          <p>No incluimos tu NIF, tu contraseña, tu CUPS, tu dirección ni tus consumos, y ocultamos lo que se les parezca en los textos que manda Datadis: solo van datos técnicos, como el error, tu navegador, tu distribuidora y cuántas horas y excedentes llegaron cada mes. Revísalo antes de enviarlo.</p>
           <details>
             <summary>Revisa el informe (puedes editarlo)</summary>
             <textarea id="lfDdInforme" class="lf-dd-informe-texto" rows="8" spellcheck="false" aria-label="Informe que se enviará"></textarea>
