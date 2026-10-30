@@ -654,6 +654,50 @@ describe('importar (fetch simulado)', () => {
     expect(D.errorDeDistribuidora({ distributorError: [{ distributorCode: '1' }] }, '2')).toBe(null);
   });
 
+  it('informe de fallo: recoge el diagnostico sin NIF, contrasena, CUPS, direccion ni kWh', async () => {
+    respuestas.supplies = () => json(200, [{ ...SUM, distributor: 'EDISTRIBUCIÓN', address: 'CALLE MAYOR 1', municipality: 'ZARAGOZA' }]);
+    respuestas.contract = () => json(200, { contract: [{ contractedPowerkW: [5.75, 5.75], selfConsumptionTypeCode: '43', selfConsumptionTypeDesc: 'Con excedentes y compensación Colectivo a través de red - Consumo', codeFare: '2T' }] });
+    respuestas.consumo = () => json(200, { timeCurve: [], distributorError: [{ distributorCode: '2', distributorName: 'EDISTRIBUCIÓN', errorCode: '10', errorDescription: 'Error interno distribuidora' }] });
+    const diagnostico = {};
+    const e = await ejecutar({ conPotencia: true, diagnostico }).catch((x) => x);
+    expect(D.codigoInforme(e)).toBe('distribuidora');
+    const texto = D.construirInforme(diagnostico, e, D.textoError(e));
+    expect(texto).toContain('Error: distribuidora · paso: consumos');
+    expect(texto).toContain('Distribuidora: EDISTRIBUCIÓN (código 2) · tipo de punto 5 · suministros en la cuenta: 1');
+    expect(texto).toContain('autoconsumo 43 «Con excedentes y compensación Colectivo');
+    expect(texto).toContain('Errores de distribuidora: 2 · EDISTRIBUCIÓN · 10 · Error interno distribuidora');
+    expect(texto).toMatch(/Periodo pedido: \d{4}\/\d{2} a \d{4}\/\d{2} \(últimos 12 meses\)/);
+    for (const prohibido of ['12345678Z', CLAVE, SUM.cups, 'CALLE MAYOR', 'ZARAGOZA', 'aaaa.bbbb']) expect(texto).not.toContain(prohibido);
+  });
+
+  it('informe de fallo con respuesta: resumen por mes con horas y excedentes, sin energia', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango) });
+    const diagnostico = {};
+    await ejecutar({ conPotencia: false, diagnostico });
+    const texto = D.construirInforme(diagnostico, new D.DatadisError('solar'), 'x');
+    expect(texto).toMatch(/Respuesta: \d+ filas · \d{4}\/\d{2} a \d{4}\/\d{2} · horas 00:00: 0/);
+    expect(texto).toMatch(/\n\d{4}\/\d{2} \d+\/\d+h · exc \d+\/\d+\/\d+ · gen (sí|no)/);
+    expect(texto).not.toMatch(/kWh/);
+    expect(texto).toContain('Contrato: no pedido');
+  });
+
+  it('el informe solo se ofrece en errores que pueden destapar una rareza (no en contrasena, red, bloqueo...)', () => {
+    for (const c of ['http', 'parseo', 'sindatos', 'solar', 'distribuidora', 'timeout', 'sinsuministros']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(c);
+    for (const c of ['credenciales', 'bloqueado', 'agotado', 'red', 'sesion', 'repeticion', 'documento', 'periodo', 'baja', 'cancelado']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(null);
+    expect(D.codigoInforme(new TypeError('x'))).toBe('otro'); // fallo inesperado del codigo: si se ofrece
+  });
+
+  it('mailto del informe: a hola@luzfija.es y recortado si no cabe en el correo', () => {
+    const corto = D.mailtoInforme('Error: http');
+    expect(corto.href.startsWith('mailto:hola@luzfija.es?subject=')).toBe(true);
+    expect(corto.recortado).toBe(false);
+    const largo = D.mailtoInforme(Array.from({ length: 80 }, (_, i) => `2026/${i} linea larga con acentos áéíóú y más texto`).join('\n'));
+    expect(largo.recortado).toBe(true);
+    expect(largo.href.length).toBeLessThanOrEqual(1900);
+    expect(decodeURIComponent(largo.href)).toContain('pulsa «Copiar texto»');
+  });
+
   it('fechas con guiones (AAAA-MM-DD) y horas con segundos se aceptan igual que el formato documentado', async () => {
     const rango = D.rangoUltimosDias(new Date());
     respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango).map((f) => ({ ...f, date: f.date.replace(/\//g, '-'), time: f.time + ':00' })) });
@@ -1371,6 +1415,13 @@ describe('contratos estaticos de lf-datadis.js', () => {
     // Sin fondo propio, web en oscuro + sistema en claro = lista nativa blanco sobre blanco.
     expect(css).toMatch(/\.lf-dd-modal select option\{ color:var\(--text\); background-color:var\(--bg1\); \}/);
     expect(css).toMatch(/\.lf-dd-suministro-info\{[^}]*overflow-wrap:anywhere/);
+  });
+
+  it('informe de fallo: enlace de envio legible (no hereda el color de enlace sobre fondo de boton) y sin analitica', () => {
+    const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
+    expect(sourceDatadis).toContain('<a id="lfDdInformeEnviar" class="btn lf-dd-informe-enviar"');
+    expect(css).toMatch(/\.lf-dd-box a\.lf-dd-informe-enviar\{ color:var\(--text\);/);
+    expect(sourceDatadis).not.toMatch(/__LF_trackDetail|__LF_track\b|goatcounter/i);
   });
 
   it('la vista previa de la home no habla de "este mismo archivo" cuando los datos vienen de Datadis', () => {

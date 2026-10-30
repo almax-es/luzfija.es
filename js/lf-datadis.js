@@ -708,12 +708,18 @@
    */
   async function importar(o) {
     const solar = o.destino === 'solar';
+    // Diagnostico SIN datos personales para el informe que el usuario puede enviar si falla
+    // (ver construirInforme): nunca NIF, contrasena, token, CUPS, direccion ni kWh.
+    const diag = o.diagnostico || {};
+    diag.destino = solar ? 'solar' : 'home';
+    const progreso = (paso) => { diag.paso = paso; o.onProgreso(paso); };
     let rango = solar ? rangoMesesCompletos(new Date()) : (o.rango || rangoUltimosDias(new Date()));
     // El simulador solar y los "ultimos 12 meses" de la home piden MESES_MARGEN meses mas al
     // principio (en la misma consulta): si los ultimos dias aun no tienen los excedentes publicados
     // (la distribuidora tarda semanas), se analiza el ano que termina en lo ultimo publicado. Un
     // periodo elegido a mano no se mueve.
     const rangoPedido = solar || !o.rango ? conMesAnterior(rango, MESES_MARGEN) : rango;
+    diag.periodo = `${rangoPedido.iniMes} a ${rangoPedido.finMes} (${solar ? 'simulador solar' : (o.rango ? 'otro periodo' : 'últimos 12 meses')})`;
     const nif = normalizarDocumento(o.nif);
     const fallo = errorDocumento(nif);
     if (fallo) {
@@ -722,7 +728,7 @@
       throw e;
     }
 
-    o.onProgreso('login');
+    progreso('login');
     // La contrasena solo hace falta para el login. Se suelta del objeto recibido ya y de esta
     // variable en cuanto termina (el marco de una funcion async vive mientras dura toda la
     // importacion, incluida una descarga que siga en segundo plano tras cerrar el modal).
@@ -746,7 +752,7 @@
       claveLogin = '';
     }
 
-    o.onProgreso('suministros');
+    progreso('suministros');
     // get-supplies (v1) a proposito: devuelve los suministros de TODAS las distribuidoras en una
     // llamada. La v2 exige distributorCode y obliga a pedir antes get-distributors-with-supplies-v2,
     // que en la prueba real del 29/10/2026 agoto 60 s sin responder.
@@ -754,6 +760,13 @@
     if (!suministros.length) throw new DatadisError('sinsuministros');
     const suministro = suministros.length === 1 ? suministros[0] : await o.elegirSuministro(suministros);
     if (!suministro) throw new DatadisError('cancelado');
+    diag.distribuidora = {
+      nombre: String(suministro.distributor || '').slice(0, 60),
+      codigo: String(suministro.distributorCode),
+      pointType: suministro.pointType == null ? '' : String(suministro.pointType),
+      suministros: suministros.length,
+      deBaja: Boolean(fechaBaja(suministro))
+    };
     // Suministro dado de baja antes del periodo: no hay nada que pedir. Se corta aqui para no
     // gastar consultas (que Datadis no deja repetir en 24 h) en una respuesta vacia segura.
     const baja = fechaBaja(suministro);
@@ -768,7 +781,7 @@
     // de autoconsumo se trata como "no se sabe" (nunca como "no hay placas").
     let contrato = null;
     if (o.conPotencia || solar) {
-      o.onProgreso('contrato');
+      progreso('contrato');
       try {
         contrato = await consultar('/api-private/api/get-contract-detail-v2', {
           cups: suministro.cups, distributorCode: String(suministro.distributorCode)
@@ -779,9 +792,10 @@
       }
     }
     const potencias = o.conPotencia ? leerPotencias(contrato) : null;
+    diag.contrato = resumenContrato(contrato, Boolean(o.conPotencia || solar));
 
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
-    o.onProgreso('consumos');
+    progreso('consumos');
     const clave = [suministro.cups, suministro.distributorCode, rangoPedido.iniMes, rangoPedido.finMes].join('|');
     // En la cache van las filas o, mientras se descargan, la PROMESA: si el usuario cancela (la
     // descarga sigue, ver abajo) y reintenta antes de que acabe, espera a la misma descarga en vez
@@ -818,9 +832,13 @@
         const recibidas = Array.isArray(r) ? r : (r && Array.isArray(r.timeCurve) ? r.timeCurve : []);
         // Vacia con un error de SU distribuidora en `distributorError`: el fallo es de la
         // distribuidora (no "no hay datos") y pedir mes a mes solo multiplicaria consultas fallidas.
+        if (r && Array.isArray(r.distributorError) && r.distributorError.length) {
+          diag.erroresDistribuidora = r.distributorError.slice(0, 4).map((x) => [x && x.distributorCode, x && x.distributorName, x && x.errorCode, x && x.errorDescription]
+            .map((v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 80)).join(' · '));
+        }
         if (!recibidas.length) {
           const err = errorDeDistribuidora(r, params.distributorCode);
-          if (err) throw err;
+          if (err) { diag.respuesta = resumenFilas(recibidas); throw err; }
         }
         return recibidas;
       };
@@ -838,7 +856,7 @@
       // incluya el primer mes de un contrato, y se perderia el periodo entero. Mes a mes, del mas
       // reciente al mas antiguo, un mes roto solo se pierde a si mismo; la cobertura lo detecta.
       if (!filas.length && rangoPedido.iniMes !== rangoPedido.finMes) {
-        o.onProgreso('consumos-mes');
+        progreso('consumos-mes');
         const trozos = [];
         for (const mes of mesesDelRango(rangoPedido).reverse()) {
           try {
@@ -854,6 +872,7 @@
       return filas;
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
+    diag.respuesta = resumenFilas(filas);
     filas = marcarExcedentesSinPublicar(filas);
 
     if (solar) {
@@ -968,6 +987,115 @@
       );
     }
     return resultado;
+  }
+
+  // ===== Informe de fallo (lo envia el usuario por su correo, si quiere) =====
+
+  const INFORME_EMAIL = 'hola@luzfija.es';
+  // Outlook y otros clientes truncan o rechazan mailto de mas de ~2.000 caracteres (mismo
+  // presupuesto que el aviso de CSV fallido): el cuerpo se recorta y "Copiar" lo da entero.
+  const INFORME_MAILTO_MAX = 1900;
+  // Errores en los que el informe puede descubrir una rareza de la distribuidora o un fallo
+  // nuestro. Los de contrasena, bloqueo, red, sesion o periodo no aportan nada.
+  const CODIGOS_INFORME = new Set(['http', 'parseo', 'sindatos', 'solar', 'distribuidora', 'timeout', 'sinsuministros', 'otro']);
+
+  function codigoInforme(err) {
+    const code = err && err.code;
+    return CODIGOS_INFORME.has(code) ? code : (err instanceof DatadisError ? null : 'otro');
+  }
+
+  /** Contrato sin datos personales: tipo de autoconsumo y si trae los campos. */
+  function resumenContrato(respuesta, pedido) {
+    if (!pedido) return 'no pedido';
+    const c = contratoVigente(respuesta);
+    if (!c) return 'sin contrato en la respuesta';
+    const n = respuesta && Array.isArray(respuesta.contract) ? respuesta.contract.length : 1;
+    const campos = 'selfConsumptionTypeCode' in c ? 'presentes' : 'ausentes';
+    const codigo = c.selfConsumptionTypeCode == null ? '-' : String(c.selfConsumptionTypeCode).slice(0, 8);
+    const desc = c.selfConsumptionTypeDesc ? ` «${String(c.selfConsumptionTypeDesc).slice(0, 70)}»` : '';
+    return `autoconsumo ${codigo}${desc} · campos ${campos} · contratos ${n} · tarifa ${String(c.codeFare || '-').slice(0, 8)}`;
+  }
+
+  /** Que llego de Datadis, por mes y sin valores de energia. */
+  function resumenFilas(filas) {
+    const lista = Array.isArray(filas) ? filas : [];
+    const meses = new Map();
+    const metodos = new Set();
+    let ceros = 0;
+    let fechasRaras = 0;
+    for (const f of lista) {
+      if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date)) { fechasRaras++; continue; }
+      if (horaEtiqueta(f) === 0) { ceros++; continue; }
+      metodos.add(typeof f.obtainMethod === 'string' ? (f.obtainMethod.trim() || '(vacío)').slice(0, 16) : '(sin campo)');
+      const k = f.date.slice(0, 7);
+      const m = meses.get(k) || { horas: 0, consumo: 0, excNum: 0, excPos: 0, excNull: 0, gen: 0 };
+      m.horas++;
+      if (Number.isFinite(numero(f.consumptionKWh))) m.consumo++;
+      const exc = numero(f.surplusEnergyKWh);
+      if (Number.isFinite(exc)) { m.excNum++; if (exc > 0) m.excPos++; } else m.excNull++;
+      if (Number.isFinite(numero(f.generationEnergyKWh)) || Number.isFinite(numero(f.selfConsumptionEnergyKWh))) m.gen++;
+      meses.set(k, m);
+    }
+    const claves = [...meses.keys()].sort();
+    return {
+      filas: lista.length,
+      desde: claves[0] || '',
+      hasta: claves[claves.length - 1] || '',
+      ceros,
+      fechasRaras,
+      metodos: [...metodos].slice(0, 6),
+      meses: claves.map((k) => {
+        const m = meses.get(k);
+        return `${k} ${m.consumo}/${horasEsperadasMes(k, rangoDeMes(k))}h · exc ${m.excNum}/${m.excNull}/${m.excPos} · gen ${m.gen ? 'sí' : 'no'}`;
+      })
+    };
+  }
+
+  /** Texto del informe: el usuario lo ve y lo edita antes de enviarlo. */
+  function construirInforme(diag, err, mensaje) {
+    const d = diag || {};
+    const r = d.respuesta;
+    const dist = d.distribuidora;
+    const build = typeof window !== 'undefined' && typeof window.__LF_BUILD_ID === 'string' ? window.__LF_BUILD_ID : '?';
+    const ahora = new Date();
+    const lineas = [
+      `Herramienta: ${d.destino === 'solar' ? 'Comparador de tarifas solares' : 'Comparador principal'} · importación desde Datadis`,
+      `Versión: ${build} · ${fmtYmd(ahora)} ${pad2(ahora.getHours())}:${pad2(ahora.getMinutes())}`,
+      `Error: ${codigoInforme(err) || (err && err.code) || 'otro'}${err && err.status ? ` (HTTP ${err.status})` : ''} · paso: ${(err && err.paso) || d.paso || '?'}`,
+      `Mensaje: ${String(mensaje || '').slice(0, 400)}`,
+      `Periodo pedido: ${d.periodo || '?'}`,
+      dist ? `Distribuidora: ${dist.nombre || '?'} (código ${dist.codigo}) · tipo de punto ${dist.pointType || '?'} · suministros en la cuenta: ${dist.suministros}${dist.deBaja ? ' · elegido de baja' : ''}` : 'Distribuidora: (no se llegó a elegir suministro)',
+      `Contrato: ${d.contrato || '(no se llegó a pedir)'}`
+    ];
+    if (d.erroresDistribuidora && d.erroresDistribuidora.length) lineas.push(`Errores de distribuidora: ${d.erroresDistribuidora.join(' | ')}`);
+    if (r) {
+      lineas.push(`Respuesta: ${r.filas} filas · ${r.desde || '-'} a ${r.hasta || '-'} · horas 00:00: ${r.ceros} · fechas no reconocidas: ${r.fechasRaras} · métodos: ${r.metodos.join(', ') || '-'}`);
+      if (r.meses.length) {
+        lineas.push('Por mes (horas con consumo/esperadas · excedentes con valor/nulos/positivos · generación):');
+        lineas.push(...r.meses);
+      }
+    } else {
+      lineas.push('Respuesta de consumos: (no se llegó a recibir)');
+    }
+    return lineas.join('\n');
+  }
+
+  function mailtoInforme(texto, maxChars) {
+    const limite = Number.isFinite(maxChars) ? maxChars : INFORME_MAILTO_MAX;
+    const asunto = 'Fallo al importar desde Datadis en LuzFija';
+    const cabeza = 'Hola:\n\nLa importación desde Datadis me ha fallado. Este es el informe que genera la web (sin mis datos personales):\n';
+    const build = (t) => `mailto:${INFORME_EMAIL}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(`${cabeza}\n${t}`)}`;
+    const completo = String(texto == null ? '' : texto);
+    let href = build(completo);
+    if (href.length <= limite) return { href, recortado: false };
+    const lineas = completo.split('\n');
+    const nota = '[…recortado para que quepa en el correo; pulsa «Copiar texto» en la web para pegarlo entero]';
+    while (lineas.length > 1) {
+      lineas.pop();
+      href = build(`${lineas.join('\n')}\n${nota}`);
+      if (href.length <= limite) return { href, recortado: true };
+    }
+    return { href: build(nota), recortado: true };
   }
 
   // ===== Textos =====
@@ -1207,7 +1335,7 @@
     const titulo = '📥 Importar desde Datadis';
     const botonCsv = solar ? '«Seleccionar archivo CSV»' : '«Importar CSV»';
 
-    function vistaFormulario(mensajeError, aviso) {
+    function vistaFormulario(mensajeError, aviso, informe) {
       const fallos = leerFallos();
       const agotado = fallos >= MAX_FALLOS_LOGIN;
       const bloqueado = mensajeError && /^Datadis ha bloqueado/.test(mensajeError);
@@ -1236,6 +1364,21 @@
         <h3 id="lfDdTitulo" class="lf-dd-title">${titulo}</h3>
         <p class="lf-dd-lead">${esc(lead)}</p>
         ${mensajeError ? `<div id="lfDdError" class="lf-dd-box lf-dd-error" role="alert" tabindex="-1">${esc(mensajeError)}</div>` : ''}
+        ${mensajeError && informe ? `<div class="lf-dd-box lf-dd-informe">
+          <strong>🛠️ ¿Me ayudas a que funcione?</strong>
+          <p>Soy aLMaX y hago LuzFija yo solo. Cada distribuidora envía los datos a Datadis a su manera y no puedo probarlas todas: con este informe puedo ver qué ha pasado con la tuya y arreglarlo.</p>
+          <p>No incluye tu NIF, tu contraseña, tu CUPS, tu dirección ni tus consumos: solo el tipo de error, tu distribuidora y cuántas horas y excedentes llegaron cada mes.</p>
+          <details>
+            <summary>Revisa el informe (puedes editarlo)</summary>
+            <textarea id="lfDdInforme" class="lf-dd-informe-texto" rows="8" spellcheck="false" aria-label="Informe que se enviará"></textarea>
+          </details>
+          <div class="lf-dd-actions">
+            <a id="lfDdInformeEnviar" class="btn lf-dd-informe-enviar" href="mailto:${INFORME_EMAIL}"><span>📧 Enviar a ${INFORME_EMAIL}</span></a>
+            <button id="lfDdInformeCopiar" class="btn" type="button"><span>📋 Copiar texto</span></button>
+          </div>
+          <p id="lfDdInformeEstado" class="lf-dd-informe-estado" role="status" aria-live="polite"></p>
+          <p class="lf-dd-informe-nota">Se abrirá tu correo con el texto ya escrito: tú decides si lo envías. Nada se envía solo.</p>
+        </div>` : ''}
         ${aviso ? `<div id="lfDdAviso" class="lf-dd-box lf-dd-warn" role="status" tabindex="-1">${esc(aviso)}</div>` : ''}
         ${agotado && !bloqueado ? `<div class="lf-dd-box">
           Cuando hayas comprobado tu contraseña entrando en <a href="https://datadis.es" target="_blank" rel="noopener noreferrer">datadis.es</a>, puedes volver a intentarlo aquí.
@@ -1269,6 +1412,32 @@
           </div>
         </form>
       `, mensajeError ? '#lfDdError' : (aviso ? '#lfDdAviso' : (tactil ? null : '#lfDdNif')));
+
+      const informeTexto = content.querySelector('#lfDdInforme');
+      if (informeTexto) {
+        const enviar = content.querySelector('#lfDdInformeEnviar');
+        const estadoInforme = content.querySelector('#lfDdInformeEstado');
+        informeTexto.value = informe;
+        const refrescar = () => enviar.setAttribute('href', mailtoInforme(informeTexto.value).href);
+        informeTexto.addEventListener('input', refrescar);
+        refrescar();
+        enviar.addEventListener('click', () => {
+          estadoInforme.textContent = '¡Gracias! Si no se ha abierto tu correo, pulsa «Copiar texto» y mándalo a ' + INFORME_EMAIL + '.';
+        });
+        content.querySelector('#lfDdInformeCopiar').addEventListener('click', () => {
+          const hecho = (ok) => {
+            estadoInforme.textContent = ok
+              ? 'Texto copiado. Pégalo en un correo a ' + INFORME_EMAIL + '.'
+              : 'No se pudo copiar automáticamente: abre «Revisa el informe», selecciona el texto y cópialo a mano.';
+          };
+          const aMano = () => {
+            try { informeTexto.closest('details').open = true; informeTexto.focus(); informeTexto.select(); return document.execCommand('copy'); } catch (_) { return false; }
+          };
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText(informeTexto.value).then(() => hecho(true), () => hecho(aMano()));
+          } else hecho(aMano());
+        });
+      }
 
       const form = content.querySelector('#lfDdForm');
       const nif = content.querySelector('#lfDdNif');
@@ -1328,10 +1497,12 @@
         clave.value = '';
         ocupado = true;
         controlador = new AbortController();
+        const diagnostico = {};
         vistaProgreso(TEXTO_PROGRESO.login);
         try {
           // Mismo objeto (no una copia): asi importar() puede soltar la contrasena de verdad.
           const resultado = await importar(Object.assign(peticionDatadis, {
+            diagnostico,
             destino: solar ? 'solar' : 'home',
             rango,
             conPotencia: estado.conPotencia,
@@ -1348,7 +1519,8 @@
         } catch (err) {
           ocupado = false;
           if (cerrado || (err && err.code === 'cancelado')) return;
-          vistaFormulario(textoError(err));
+          const mensaje = textoError(err);
+          vistaFormulario(mensaje, null, codigoInforme(err) ? construirInforme(diagnostico, err, mensaje) : null);
         }
       }
     }
@@ -1512,6 +1684,11 @@
     marcarExcedentesSinPublicar,
     contratoDeclaraSinAutoconsumo,
     errorDeDistribuidora,
+    resumenFilas,
+    resumenContrato,
+    construirInforme,
+    mailtoInforme,
+    codigoInforme,
     evaluarCobertura,
     evaluarExcedentes,
     leerAutoconsumo,

@@ -4231,6 +4231,19 @@ html.light-mode .lf-dd-modal input[type="radio"]{ color-scheme:light; }
 /* Opciones del selector de suministro: mismo patron que #zonaFiscal. Sin fondo propio, con la web
    en oscuro y el sistema en claro la lista nativa salia blanco sobre blanco (medido 30/10/2026). */
 .lf-dd-modal select option{ color:var(--text); background-color:var(--bg1); }
+/* Informe de fallo que el usuario puede enviar por su correo (mismo aspecto que el aviso de CSV fallido). */
+.lf-dd-informe{ border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); background:color-mix(in srgb, var(--accent) 7%, var(--card)); }
+.lf-dd-informe p{ margin:6px 0 0; }
+.lf-dd-informe details{ margin-top:8px; }
+.lf-dd-informe summary{ cursor:pointer; font-weight:700; padding:4px 0; }
+.lf-dd-informe-texto{ display:block; box-sizing:border-box; width:100%; min-height:150px; margin-top:6px; padding:10px; border:1px solid var(--border2); border-radius:10px; background:var(--bg1); color:var(--text); font-family:var(--mono); font-size:12px; line-height:1.45; resize:vertical; overflow-wrap:anywhere; }
+.lf-dd-informe .lf-dd-actions{ margin-top:12px; }
+.lf-dd-informe .lf-dd-actions .btn{ text-decoration:none; }
+/* Enlace con aspecto de boton: la regla `.lf-dd-box a` (color de enlace) no debe ganarle. */
+.lf-dd-box a.lf-dd-informe-enviar{ color:var(--text); border-color:color-mix(in srgb, var(--accent) 70%, var(--border)); background:color-mix(in srgb, var(--accent) 22%, var(--card)); }
+.lf-dd-informe-estado{ font-weight:700; }
+.lf-dd-informe-estado:empty{ display:none; }
+.lf-dd-informe-nota{ color:var(--muted2); }
 /* Descripcion completa del suministro elegido: en movil el <select> corta la direccion. */
 .lf-dd-suministro-info{ margin:6px 0 0; font-size:12px; line-height:1.45; color:var(--muted); overflow-wrap:anywhere; }
 /* Simulador solar: boton secundario bajo "Seleccionar archivo CSV" (el principal sigue siendo el CSV). */
