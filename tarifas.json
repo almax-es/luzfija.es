@@ -472,27 +472,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "EnergyAsset Tarifa Plana",
-      "cPunta": 0.145006,
-      "cLlano": 0.145006,
-      "cValle": 0.145006,
-      "p1": 0.1041,
-      "p2": 0.1041,
-      "web": "https://energyasset.es/tarifa",
-      "tipo": "1P",
-      "promo": "5 € de descuento sobre el término de energía durante los 3 primeros meses.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": -1.0,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.146001,
       "cLlano": 0.146001,
@@ -1029,6 +1008,27 @@
         "precioBV": 2.99
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "EnergyAsset Tarifa Plana",
+      "cPunta": 0.175007,
+      "cLlano": 0.175007,
+      "cValle": 0.175007,
+      "p1": 0.1041,
+      "p2": 0.1041,
+      "web": "https://energyasset.es/tarifa",
+      "tipo": "1P",
+      "promo": "5 € de descuento sobre el término de energía durante los 3 primeros meses.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "CHC Plan Ilumina Dúo Promo",
@@ -1901,27 +1901,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "EnergyAsset Precio por Periodo 3P",
-      "cPunta": 0.220004,
-      "cLlano": 0.14,
-      "cValle": 0.1,
-      "p1": 0.137,
-      "p2": 0.0685,
-      "web": "https://energyasset.es/tarifa",
-      "tipo": "3P",
-      "promo": "5 € de descuento sobre el término de energía durante los 3 primeros meses.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": -1.0,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Bonpreu Solar 3P",
       "cPunta": 0.220035,
       "cLlano": 0.141385,
@@ -2183,6 +2162,27 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 2.99
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "EnergyAsset Precio por Periodo 3P",
+      "cPunta": 0.260002,
+      "cLlano": 0.17,
+      "cValle": 0.12,
+      "p1": 0.137,
+      "p2": 0.0685,
+      "web": "https://energyasset.es/tarifa",
+      "tipo": "3P",
+      "promo": "5 € de descuento sobre el término de energía durante los 3 primeros meses.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
       },
       "requiereFV": false
     },
@@ -2454,5 +2454,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-30T13:56:38.905Z"
+  "updatedAt": "2026-10-30T15:31:07.522Z"
 }
