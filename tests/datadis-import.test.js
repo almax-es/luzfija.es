@@ -632,6 +632,36 @@ describe('importar (fetch simulado)', () => {
     expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(1);
   });
 
+  it('consumos vacios con error de SU distribuidora (distributorError): lo explica y no reintenta mes a mes', async () => {
+    respuestas.consumo = () => json(200, { timeCurve: [], distributorError: [{ distributorCode: '2', distributorName: 'EDISTRIBUCIÓN', errorCode: '10', errorDescription: 'Error interno distribuidora' }] });
+    const e = await ejecutar({ conPotencia: false }).catch((x) => x);
+    expect(e.code).toBe('distribuidora');
+    expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(1);
+    const texto = D.textoError(e);
+    expect(texto).toContain('distribuidora (EDISTRIBUCIÓN): «Error interno distribuidora»');
+    expect(texto).toContain('no de tu cuenta ni de tu contraseña');
+    expect(fallosGuardados()).toBe(0); // no cuenta como fallo de login
+  });
+
+  it('un distributorError de OTRA distribuidora no estropea una respuesta con datos', async () => {
+    const buena = respuestas.consumo;
+    respuestas.consumo = (u) => {
+      const r = buena(u);
+      return { ...r, text: async () => JSON.stringify({ ...JSON.parse(await r.text()), distributorError: [{ distributorCode: '1', distributorName: 'VIESGO', errorCode: '10', errorDescription: 'Error interno distribuidora' }] }) };
+    };
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.ok).toBe(true);
+    expect(D.errorDeDistribuidora({ distributorError: [{ distributorCode: '1' }] }, '2')).toBe(null);
+  });
+
+  it('fechas con guiones (AAAA-MM-DD) y horas con segundos se aceptan igual que el formato documentado', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango).map((f) => ({ ...f, date: f.date.replace(/\//g, '-'), time: f.time + ':00' })) });
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.ok).toBe(true);
+    expect(r.dias).toBe(365);
+  });
+
   it('si la descarga en curso falla, se puede volver a intentar (no se queda una promesa rota en memoria)', async () => {
     let n = 0;
     const buena = respuestas.consumo;
@@ -703,6 +733,22 @@ describe('importar (fetch simulado)', () => {
     // contrato que no dice nada: el aviso condicional de siempre
     avisos = await conContrato({});
     expect(avisos).toContain('Si tienes placas');
+    // contrato que DECLARA sin autoconsumo (campos presentes y a null, forma real de i-DE y
+    // e-distribucion; Datadis: "si no se tiene autoconsumo, estos campos vendran con valor null")
+    avisos = await conContrato({ selfConsumptionTypeCode: null, selfConsumptionTypeDesc: null, section: null, subsection: null, partitionCoefficient: null, cau: null, installedCapacity: null });
+    expect(avisos).not.toMatch(/excedentes, así que se importa solo el consumo|Si tienes placas|excedentes=0/);
+  });
+
+  it('contratoDeclaraSinAutoconsumo: solo con los campos presentes y vacios', () => {
+    const nulos = { selfConsumptionTypeCode: null, selfConsumptionTypeDesc: null, cau: null, installedCapacity: null };
+    expect(D.contratoDeclaraSinAutoconsumo({ contract: [nulos] })).toBe(true);
+    expect(D.contratoDeclaraSinAutoconsumo({ contract: [{ ...nulos, selfConsumptionTypeCode: '', cau: '' }] })).toBe(true);
+    expect(D.contratoDeclaraSinAutoconsumo({ contract: [{}] })).toBe(false); // sin los campos: no se deduce nada
+    expect(D.contratoDeclaraSinAutoconsumo({ contract: [{ ...nulos, cau: 'ES0021...A000' }] })).toBe(false);
+    expect(D.contratoDeclaraSinAutoconsumo({ contract: [{ ...nulos, installedCapacity: 3.6 }] })).toBe(false);
+    expect(D.contratoDeclaraSinAutoconsumo(null)).toBe(false);
+    // y el simulador solar NO lo toma como prueba: sigue siendo "no se sabe"
+    expect(D.leerAutoconsumo({ contract: [nulos] })).toBe(null);
   });
 
   it('periodo elegido a mano dentro del mes sin publicar (forma real: excedente 0, produccion vacia): orienta a meses anteriores', async () => {

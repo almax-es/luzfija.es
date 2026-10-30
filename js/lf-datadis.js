@@ -285,6 +285,22 @@
   }
 
   /** El mismo rango empezando un mes antes. */
+  /**
+   * Error de la distribuidora del suministro en la respuesta v2 (`distributorError`). La lista
+   * puede traer errores de OTRAS distribuidoras de la cuenta aunque los datos lleguen bien: solo
+   * cuenta el de la distribuidora consultada (o uno sin codigo). Texto de Datadis acotado; se
+   * pinta escapado.
+   */
+  function errorDeDistribuidora(respuesta, distributorCode) {
+    const lista = respuesta && Array.isArray(respuesta.distributorError) ? respuesta.distributorError : [];
+    const e = lista.find((x) => x && (x.distributorCode == null || String(x.distributorCode) === String(distributorCode)));
+    if (!e) return null;
+    const corto = (v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 120);
+    const err = new DatadisError('distribuidora');
+    err.detalle = { nombre: corto(e.distributorName), descripcion: corto(e.errorDescription) };
+    return err;
+  }
+
   /** El mismo rango empezando `n` meses antes (1 por defecto). */
   function conMesAnterior(rango, n) {
     const [y, m] = rango.iniMes.split('/').map(Number);
@@ -367,6 +383,23 @@
     if ((code && !/^0+$/.test(code)) || (Number.isFinite(cap) && cap > 0) || (typeof c.cau === 'string' && c.cau.trim())) return 'si';
     if (/^0+$/.test(code)) return 'no';
     return null;
+  }
+
+  /**
+   * El contrato DECLARA que no hay autoconsumo: trae los campos de autoconsumo y todos vacios.
+   * Datadis lo comunico asi al anadirlos (2023): "en caso de que no se tenga autoconsumo, estos
+   * campos vendran con valor null"; visto en contratos reales de i-DE y e-distribucion. Si faltan
+   * los campos (otra version, error de la distribuidora), no se deduce nada. Solo se usa para no
+   * mostrar en la home el aviso "si tienes placas..."; el simulador solar sigue preguntando
+   * (leerAutoconsumo exige ahi prueba positiva, por si alguna distribuidora no los rellena).
+   */
+  function contratoDeclaraSinAutoconsumo(respuestaContrato) {
+    const c = contratoVigente(respuestaContrato);
+    if (!c || !('selfConsumptionTypeCode' in c) || !('cau' in c)) return false;
+    const vacio = (v) => v == null || String(v).trim() === '';
+    const cap = c.installedCapacityKW != null ? c.installedCapacityKW : c.installedCapacity;
+    return vacio(c.selfConsumptionTypeCode) && vacio(c.selfConsumptionTypeDesc) && vacio(c.cau)
+      && (vacio(cap) || Number(cap) === 0);
   }
 
   /** Abril a septiembre: con placas es muy improbable un mes entero sin verter nada. */
@@ -759,7 +792,10 @@
       cacheConsumos.set(clave, descarga);
       descarga.then((f) => cacheConsumos.set(clave, f), () => cacheConsumos.delete(clave));
     }
-    let filas = await descarga;
+    // La documentacion fija 'AAAA/MM/DD'; si alguna distribuidora mandase 'AAAA-MM-DD', sin esto
+    // se descartarian TODAS las filas y el usuario veria "sin datos".
+    let filas = (await descarga).map((f) => (f && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
+      ? Object.assign({}, f, { date: f.date.replace(/-/g, '/') }) : f));
 
     async function descargarConsumos() {
       let filas;
@@ -779,7 +815,14 @@
       const pedir = async (ini, fin, ms) => {
         const r = await consultar('/api-private/api/get-consumption-data-v2',
           Object.assign({}, params, { startDate: ini, endDate: fin }), token, ms, null);
-        return Array.isArray(r) ? r : (r && Array.isArray(r.timeCurve) ? r.timeCurve : []);
+        const recibidas = Array.isArray(r) ? r : (r && Array.isArray(r.timeCurve) ? r.timeCurve : []);
+        // Vacia con un error de SU distribuidora en `distributorError`: el fallo es de la
+        // distribuidora (no "no hay datos") y pedir mes a mes solo multiplicaria consultas fallidas.
+        if (!recibidas.length) {
+          const err = errorDeDistribuidora(r, params.distributorCode);
+          if (err) throw err;
+        }
+        return recibidas;
       };
       let errorPeriodo = null;
       try {
@@ -894,7 +937,7 @@
     resultado.warnings = (resultado.warnings || []).map((w) => {
       if (typeof w !== 'string') return w;
       if (/^No se detectaron excedentes/.test(w)) {
-        if (autoconsumo === 'no' || autoconsumo === 'sin') return null;
+        if (autoconsumo === 'no' || autoconsumo === 'sin' || contratoDeclaraSinAutoconsumo(contrato)) return null;
         if (autoconsumo === 'con') {
           // Caso real (30/10/2026): un periodo elegido dentro del mes en curso llega con el
           // excedente a 0 y la produccion vacia porque la distribuidora aun no lo ha publicado.
@@ -1043,6 +1086,12 @@
             : 'Si quieres analizarlo, elige «Otro periodo» anterior a esa fecha.');
       case 'sinsuministros':
         return 'No hemos encontrado suministros en tu cuenta de Datadis.';
+      case 'distribuidora': {
+        const d = err.detalle || {};
+        return `Datadis no ha podido obtener tus consumos de la distribuidora${d.nombre ? ` (${d.nombre})` : ''}` +
+          `${d.descripcion ? `: «${d.descripcion}»` : ''}. Es un fallo de la distribuidora, no de tu cuenta ni de tu contraseña, y suele ser temporal. ` +
+          'Prueba más tarde (si vuelve a fallar, mañana: Datadis puede contar la consulta) o usa el CSV descargado desde Datadis.';
+      }
       case 'sindatos':
         return 'Datadis no ha devuelto consumos para ese periodo. Puede ser un suministro nuevo o dado de baja, un periodo fuera de tu contrato o un retraso de tu distribuidora.';
       case 'periodo':
@@ -1461,6 +1510,8 @@
     inicioMasAntiguo,
     contratoVigente,
     marcarExcedentesSinPublicar,
+    contratoDeclaraSinAutoconsumo,
+    errorDeDistribuidora,
     evaluarCobertura,
     evaluarExcedentes,
     leerAutoconsumo,
