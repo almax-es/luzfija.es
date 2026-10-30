@@ -1071,26 +1071,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Catgas 2.0 TDL",
-      "cPunta": 0.179901,
-      "cLlano": 0.179901,
-      "cValle": 0.179901,
-      "p1": 0.093726,
-      "p2": 0.028027,
-      "web": "https://catgas.cat/es/tarifes-catllum-llar",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Atulado Milenial",
       "cPunta": 0.181773,
       "cLlano": 0.181773,
@@ -1250,6 +1230,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Catgas 2.0 TDL",
+      "cPunta": 0.209904,
+      "cLlano": 0.209904,
+      "cValle": 0.209904,
+      "p1": 0.093726,
+      "p2": 0.028027,
+      "web": "https://catgas.cat/es/tarifes-catllum-llar",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -2454,5 +2454,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-30T11:06:14.741Z"
+  "updatedAt": "2026-10-30T11:44:58.899Z"
 }
