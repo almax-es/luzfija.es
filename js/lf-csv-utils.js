@@ -1881,6 +1881,11 @@
   // (una hora no pasa de ~15 kWh), por eso es alineacion defensiva y no un bug observable.
   const CONTRACT_KWH_HEADERS = new Set(['ehcr', 'ehex']);
 
+  // Alias de energia SIN unidad en el nombre y SIN fuente que la fije (p. ej. `consumo`, UFD) se
+  // deciden por el heuristico de magnitud de abajo: forzarlos a kWh lo desactivaria. Todo alias
+  // sin `wh` debe ir a CONTRACT_KWH_HEADERS (con la fuente delante) o registrarse como
+  // heuristico en tests/csv-hardening.test.js, que lo exige.
+
   function detectUnitFactor(headerNorm, sampleRows, columnIdx, parseNumber) {
     if (headerNorm.includes('kwh')) return { factor: 1, converted: false };
     if (CONTRACT_KWH_HEADERS.has(headerNorm)) return { factor: 1, converted: false };

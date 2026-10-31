@@ -669,10 +669,12 @@ describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
     const fuente = fs.readFileSync(path.resolve(__dirname, '../js/lf-csv-utils.js'), 'utf8');
     const bloqueAlias = fuente.slice(fuente.indexOf('const HEADER_ALIASES'), fuente.indexOf('const HORA_PERIODO_AMBIGUOUS'));
     const grupos = ['importacion', 'exportacion', 'autoconsumo'];
-    const contrato = new Set(['ehcr', 'ehex']);
-    // Excepcion documentada: UFD "Consumo" (31/10/2026) va por heuristico de magnitud, no por
-    // contrato. No hay fuente que fije su unidad; forzar kWh desactivaria la conversion si un
-    // dia llega en Wh. Si cambia, moverlo a `contrato` con la fuente delante.
+    // El contrato se lee de lf-csv-utils.js para no duplicarlo aqui.
+    const m = fuente.match(/const CONTRACT_KWH_HEADERS = new Set\(\[([^\]]*)\]\)/);
+    expect(m).not.toBeNull();
+    const contrato = new Set([...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]));
+    // Sin unidad ni fuente: van por heuristico de magnitud (forzar kWh lo desactivaria).
+    //   consumo  UFD (Naturgy), 31/10/2026: CUPS;Fecha;Hora;Consumo;Metodo_obtencion.
     const heuristico = new Set(['consumo']);
 
     for (const grupo of grupos) {
