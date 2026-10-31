@@ -324,6 +324,7 @@
   //   UFD (distribuidora)        EHCR/EHEX en kWh.         Ver SIMULADOR-BV.md.
   //   Datadis mensual            Fecha;Valle;Llano;Punta.   isDatadisMonthlyFormat().
   //   Visalia (comercializadora) date;hour;kwh.             tests/csv-parsing.test.js.
+  //   UFD (Naturgy) CUPS;Fecha;Hora;Consumo;Metodo_obtencion. tests/csv-parsing.test.js.
   //   RECHAZADO a proposito: UFD (Naturgy) "consumptions.xlsx" (27/10/2026), Fecha;Hora;Consumo
   //   kWh con solo 4 fechas repetidas en ~34.000 filas y 4 perfiles diarios: no es curva real.
   //   El error lo dice (contarReinicioHorasMismaFecha); no se importa ni se "arregla".
@@ -351,7 +352,10 @@
       // facturas de su web. date;hour;kwh, hora 1-24, decimal con coma, sin CUPS. Es una curva
       // de FACTURACION: los totales por periodo salen redondos (24/10/2026: 72/56/103 kWh en
       // 30 dias), asi que no se espera que cuadre hora a hora con una lectura del contador.
-      'kwh'
+      'kwh',
+      // UFD (Naturgy, distribuidora): CUPS;Fecha;Hora;Consumo;Metodo_obtencion, fecha dd/mm/aaaa,
+      // hora 1-24, decimal con coma, kWh sin unidad en la cabecera (31/10/2026, lectura real "R").
+      'consumo'
     ],
     exportacion: [
       'as_kwh', 'energia_vertida_kwh', 'vertido_kwh', 'export_kwh', 'exportacion_kwh',

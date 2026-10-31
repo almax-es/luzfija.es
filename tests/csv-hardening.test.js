@@ -670,6 +670,10 @@ describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
     const bloqueAlias = fuente.slice(fuente.indexOf('const HEADER_ALIASES'), fuente.indexOf('const HORA_PERIODO_AMBIGUOUS'));
     const grupos = ['importacion', 'exportacion', 'autoconsumo'];
     const contrato = new Set(['ehcr', 'ehex']);
+    // Excepcion documentada: UFD "Consumo" (31/10/2026) va por heuristico de magnitud, no por
+    // contrato. No hay fuente que fije su unidad; forzar kWh desactivaria la conversion si un
+    // dia llega en Wh. Si cambia, moverlo a `contrato` con la fuente delante.
+    const heuristico = new Set(['consumo']);
 
     for (const grupo of grupos) {
       const inicio = bloqueAlias.indexOf(`${grupo}: [`);
@@ -678,7 +682,7 @@ describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
       const alias = [...lista.matchAll(/'([^']+)'/g)].map(m => m[1]);
       expect(alias.length).toBeGreaterThan(0);
       for (const nombre of alias) {
-        if (contrato.has(nombre)) continue;
+        if (contrato.has(nombre) || heuristico.has(nombre)) continue;
         expect(nombre).toMatch(/wh/);
       }
     }

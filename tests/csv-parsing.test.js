@@ -255,6 +255,21 @@ describe('CSV Utils - Parsing Robusto', () => {
     });
   });
 
+  describe('UFD (Naturgy): CUPS;Fecha;Hora;Consumo;Metodo_obtencion', () => {
+    it('Importa la columna "Consumo" sin unidad y no guarda el CUPS', () => {
+      const lineas = ['CUPS;Fecha;Hora;Consumo;Metodo_obtencion'];
+      for (let h = 1; h <= 24; h++) lineas.push(`ES0000000000000000XX;01/09/2026;${h};0,07;R`);
+      const { rows, separator, headerRowIndex } = csvUtils.parseCSVToRows(lineas.join('\r\n'));
+      expect(separator).toBe(';');
+      expect(headerRowIndex).toBe(0);
+
+      const result = csvUtils.parseEnergyTableRows(rows, { headerRowIndex, separator });
+      expect(result.records).toHaveLength(24);
+      expect(result.records[0]).toMatchObject({ hora: 1, kwh: 0.07, excedente: 0, esReal: true });
+      expect(JSON.stringify(result)).not.toContain('ES0000000000000000XX');
+    });
+  });
+
   describe('Fecha que no avanza (UFD, 27/10/2026)', () => {
     const cabecera = ['Fecha', 'Hora', 'Consumo kWh'];
     const jornada = (fecha, repetirHora2) => {
