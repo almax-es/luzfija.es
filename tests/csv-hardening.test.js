@@ -622,9 +622,11 @@ describe('Metadato estructurado unmappedSolarColumns', () => {
 });
 
 // Ronda 29: la unidad de una columna la fija su contrato, no el tamanho de sus numeros.
-// `detectUnitFactor` deduce Wh cuando la cabecera no declara unidad y alguna muestra llega a
-// 100. Las unicas cabeceras mapeables sin unidad son EHCR y EHEX de UFD, que por contrato son
-// kWh, asi que para ellas esa deduccion solo podia equivocarse.
+// `detectUnitFactor` deduce Wh cuando la cabecera no declara unidad y algun valor de la columna
+// (entera desde el 31/10/2026, antes las 20 primeras muestras) llega a 100. EHCR y EHEX de UFD
+// son codigos con unidad por contrato (kWh), asi que para ellas esa deduccion solo podia
+// equivocarse. `consumo` (UFD, 31/10/2026) es un nombre generico y se queda
+// en el heuristico: ver el comentario de CONTRACT_KWH_HEADERS.
 describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
   let u;
   beforeAll(() => { u = window.LF.csvUtils; });
@@ -660,6 +662,45 @@ describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
 
     expect(res.records.map(r => r.kwh)).toEqual([0.3, 0]);
     expect((res.warnings || []).join(' ')).toContain('Wh detectados');
+  });
+
+  it('"Consumo" sin unidad va por heuristico: kWh de UFD intactos, Wh convertidos', () => {
+    // Forma real de UFD (31/10/2026): decimales de kWh, nunca 100 en una hora.
+    const kwh = parse('CUPS;Fecha;Hora;Consumo;Metodo_obtencion\nES1;01/09/2026;1;0,07;R\nES1;01/09/2026;2;3,56;R');
+    // Mismo nombre desde otro exportador en Wh: el heuristico lo detecta y avisa.
+    const wh = parse('CUPS;Fecha;Hora;Consumo;Metodo_obtencion\nES1;01/09/2026;1;70;R\nES1;01/09/2026;2;350;R');
+
+    expect(kwh.records.map(r => r.kwh)).toEqual([0.07, 3.56]);
+    expect((kwh.warnings || []).join(' ')).not.toContain('Wh detectados');
+    expect(wh.records[0].kwh).toBeCloseTo(0.07, 9);
+    expect(wh.records[1].kwh).toBeCloseTo(0.35, 9);
+    expect((wh.warnings || []).join(' ')).toContain('Wh detectados');
+  });
+
+  it('mira la columna entera: unas vacaciones al principio no hacen pasar Wh por kWh', () => {
+    // 48 horas por debajo de 100 Wh (casa vacia) y despues consumo normal. Con la muestra de
+    // las 20 primeras filas esto se leia como kWh: x1000.
+    const lineas = ['CUPS;Fecha;Hora;Consumo'];
+    for (let d = 1; d <= 3; d++) {
+      for (let h = 1; h <= 24; h++) lineas.push(`ES1;0${d}/09/2026;${h};${d < 3 ? 40 : 350}`);
+    }
+    const res = parse(lineas.join('\n'));
+
+    expect(res.records[0].kwh).toBeCloseTo(0.04, 9);
+    expect(res.records[71].kwh).toBeCloseTo(0.35, 9);
+    expect((res.warnings || []).join(' ')).toContain('Wh detectados');
+  });
+
+  it('una fila de totales al pie no convierte a Wh un fichero en kWh', () => {
+    const lineas = ['CUPS;Fecha;Hora;Consumo'];
+    for (let h = 1; h <= 24; h++) lineas.push(`ES1;01/09/2026;${h};0,5`);
+    lineas.push('Total;;;12,0');
+    lineas.push(';;;3456,7');
+    const res = parse(lineas.join('\n'));
+
+    expect(res.records).toHaveLength(24);
+    expect(res.records[0].kwh).toBe(0.5);
+    expect((res.warnings || []).join(' ')).not.toContain('Wh detectados');
   });
 
   it('avisa si alguien anhade un alias de energia sin unidad ni contrato', () => {

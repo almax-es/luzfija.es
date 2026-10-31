@@ -1874,34 +1874,36 @@
   }
 
   // Cabeceras cuya unidad la fija el contrato de la distribuidora aunque el nombre no la
-  // lleve escrita: UFD publica EHCR y EHEX en kWh (SIMULADOR-BV.md). Son ademas las UNICAS
-  // entradas de HEADER_ALIASES sin marca de unidad, asi que sin esta lista el heuristico de
-  // magnitud de abajo es la unica regla que las mira, y para ellas solo puede acertar por
-  // casualidad: un valor >= 100 se dividiria por 1000. Con datos de 2.0TD no se alcanza
-  // (una hora no pasa de ~15 kWh), por eso es alineacion defensiva y no un bug observable.
+  // lleve escrita: UFD publica EHCR y EHEX en kWh (SIMULADOR-BV.md). Sin esta lista el
+  // heuristico de magnitud de abajo es la unica regla que las mira, y para ellas solo puede
+  // acertar por casualidad: un valor >= 100 se dividiria por 1000. Con datos de 2.0TD no se
+  // alcanza (una hora no pasa de ~15 kWh), por eso es alineacion defensiva y no un bug observable.
+  //
+  // Solo entran aqui CODIGOS propios de una fuente con unidad documentada. Un nombre generico
+  // sin unidad (`consumo`, UFD 31/10/2026) se queda en el heuristico a proposito: cualquier
+  // exportador puede llamar asi a una columna en Wh, y en 2.0TD el heuristico no se equivoca
+  // con kWh (ninguna hora llega a 100 kWh). Todo alias de energia sin `wh` debe ir a esta lista
+  // o registrarse como heuristico en tests/csv-hardening.test.js, que lo exige.
   const CONTRACT_KWH_HEADERS = new Set(['ehcr', 'ehex']);
 
-  // Alias de energia SIN unidad en el nombre y SIN fuente que la fije (p. ej. `consumo`, UFD) se
-  // deciden por el heuristico de magnitud de abajo: forzarlos a kWh lo desactivaria. Todo alias
-  // sin `wh` debe ir a CONTRACT_KWH_HEADERS (con la fuente delante) o registrarse como
-  // heuristico en tests/csv-hardening.test.js, que lo exige.
-
-  function detectUnitFactor(headerNorm, sampleRows, columnIdx, parseNumber) {
+  // `getRecordRows()` devuelve solo las filas con fecha y hora validas: un pie con totales
+  // ("Total;;;3456") no es una hora y, al mirar la columna entera, bastaria para dividir por 1000
+  // un fichero en kWh. Es perezoso: solo se recorre si la cabecera no declara la unidad.
+  function detectUnitFactor(headerNorm, getRecordRows, columnIdx, parseNumber) {
     if (headerNorm.includes('kwh')) return { factor: 1, converted: false };
     if (CONTRACT_KWH_HEADERS.has(headerNorm)) return { factor: 1, converted: false };
     if (headerNorm.includes('wh')) {
       return { factor: 0.001, converted: true };
     }
 
-    const samples = [];
-    for (let i = 0; i < sampleRows.length && samples.length < 20; i++) {
-      const row = sampleRows[i];
-      if (!row || !Array.isArray(row)) continue;
+    // Se mira la columna ENTERA, no una muestra: las primeras horas pueden ser una madrugada o
+    // unas vacaciones por debajo de 100 Wh y hacer pasar un fichero en Wh por kWh (x1000).
+    let max = 0;
+    for (const row of getRecordRows()) {
       const value = parseNumber(row[columnIdx]);
-      if (Number.isFinite(value)) samples.push(value);
+      if (Number.isFinite(value) && value > max) max = value;
     }
-    const max = samples.length ? Math.max(...samples) : 0;
-    // Si el valor máximo es >= 100, es altamente probable que sean Wh (ej: 120Wh vs 0.12kWh)
+    // En 2.0TD (tope 15 kW) ninguna hora llega a 100 kWh: un valor >= 100 solo puede ser Wh.
     if (max >= 100) {
       return { factor: 0.001, converted: true };
     }
@@ -2011,12 +2013,23 @@
       warnings.push('Ajustado cambio horario de marzo (CCH-CONS 1-23 → horas reales).');
     }
 
-    const importRes = detectUnitFactor(headersNorm[mapping.importIdx], dataRows, mapping.importIdx, parseNumber);
+    let recordRows = null;
+    const getRecordRows = () => {
+      if (!recordRows) {
+        recordRows = dataRows.filter((row) => {
+          if (!row || !Array.isArray(row)) return false;
+          const { fecha, hourNum } = getRowDateHour(row, mapping);
+          return Boolean(fecha) && Number.isFinite(hourNum);
+        });
+      }
+      return recordRows;
+    };
+    const importRes = detectUnitFactor(headersNorm[mapping.importIdx], getRecordRows, mapping.importIdx, parseNumber);
     const exportRes = mapping.exportIdx !== null
-      ? detectUnitFactor(headersNorm[mapping.exportIdx], dataRows, mapping.exportIdx, parseNumber)
+      ? detectUnitFactor(headersNorm[mapping.exportIdx], getRecordRows, mapping.exportIdx, parseNumber)
       : { factor: 1, converted: false };
     const autoRes = mapping.autoconsumoIdx !== null
-      ? detectUnitFactor(headersNorm[mapping.autoconsumoIdx], dataRows, mapping.autoconsumoIdx, parseNumber)
+      ? detectUnitFactor(headersNorm[mapping.autoconsumoIdx], getRecordRows, mapping.autoconsumoIdx, parseNumber)
       : { factor: 1, converted: false };
 
     const importFactor = importRes.factor;

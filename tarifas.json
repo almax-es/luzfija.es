@@ -173,28 +173,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Naturgy por uso",
-      "cPunta": 0.123004,
-      "cLlano": 0.123004,
-      "cValle": 0.123004,
-      "p1": 0.12303,
-      "p2": 0.061562,
-      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 10000.0
-    },
-    {
       "nombre": "El Corte Inglés Despreocúpate",
       "cPunta": 0.124579,
       "cLlano": 0.124579,
@@ -553,6 +531,28 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Naturgy por uso",
+      "cPunta": 0.148003,
+      "cLlano": 0.148003,
+      "cValle": 0.148003,
+      "p1": 0.12303,
+      "p2": 0.061562,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnual": 10000.0
     },
     {
       "nombre": "BonArea Relax",
@@ -1545,50 +1545,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Naturgy noche 3P",
-      "cPunta": 0.193007,
-      "cLlano": 0.1201,
-      "cValle": 0.085,
-      "p1": 0.12303,
-      "p2": 0.061562,
-      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 10000.0
-    },
-    {
-      "nombre": "Naturgy Solar 3P",
-      "cPunta": 0.193007,
-      "cLlano": 0.1201,
-      "cValle": 0.085,
-      "p1": 0.12303,
-      "p2": 0.061562,
-      "web": "https://www.naturgy.es/hogar/solar/tarifa_solar",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true,
-      "maxConsumoAnual": 10000.0
-    },
-    {
       "nombre": "Octopus 3P",
       "cPunta": 0.196005,
       "cLlano": 0.143,
@@ -1879,6 +1835,50 @@
         "precioBV": 3.446281
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Naturgy noche 3P",
+      "cPunta": 0.218008,
+      "cLlano": 0.145,
+      "cValle": 0.11,
+      "p1": 0.12303,
+      "p2": 0.061562,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnual": 10000.0
+    },
+    {
+      "nombre": "Naturgy Solar 3P",
+      "cPunta": 0.218008,
+      "cLlano": 0.145,
+      "cValle": 0.11,
+      "p1": 0.12303,
+      "p2": 0.061562,
+      "web": "https://www.naturgy.es/hogar/solar/tarifa_solar",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true,
+      "maxConsumoAnual": 10000.0
     },
     {
       "nombre": "Nexus Eficiente 3P",
@@ -2454,5 +2454,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-30T15:31:07.522Z"
+  "updatedAt": "2026-10-31T10:34:32.771Z"
 }
