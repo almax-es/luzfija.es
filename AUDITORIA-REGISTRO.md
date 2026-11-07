@@ -96,6 +96,14 @@ nuevo no cubierto por sus tests. Cada entrada explica que evidencia haria falta 
  ante cualquier diferencia y el dia del cambio de hora de octubre (hora repetida real o zona mal
  elegida). La matriz horaria y el mensual de Datadis siguen rechazando cualquier repeticion.
  Tests en `tests/csv-parsing.test.js` ("solo absorbe copias identicas celda a celda").
+- **Segunda revision ChatGPT (07/11/2026), aplicada:** (1) una copia PEGADA a su original (misma
+ fecha|hora en la fila valida inmediatamente anterior) NO se absorbe y cancela: es la forma de una
+ curva cuartohoraria sin minutos con cuartos iguales, y absorberla perdia energia. Las copias reales
+ vistas (Viesgo) vienen en bloque aparte (dia completo y despues el dia otra vez). (2) La firma usa
+ `JSON.stringify` del array, no un `join` con separador, para conservar los limites de celda.
+ (3) Independiente y anterior: un autoconsumo no numerico o negativo ya no se pone a 0 en silencio;
+ se avisa (es informativo, solo se muestra en el resumen de la importacion). Una fila con columnas
+ vacias de mas al final no se reconoce como copia y cancela: falso negativo conservador aceptado.
 - La clave de duplicado se registra SOLO cuando la fila ya genero al menos un registro
  importable (despues de superar validaciones de rango/formato), nunca antes: una fila
  descartada por otro motivo (texto invalido, fuera de rango) NO cuenta como "vista" y no

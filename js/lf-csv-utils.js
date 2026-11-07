@@ -2165,6 +2165,12 @@
     // (revision ChatGPT 07/11/2026). Cualquier diferencia sigue cancelando: no se elige cual vale.
     const seenFilaCruda = new Map();
     let duplicadasIdenticasCount = 0;
+    // Clave fecha|hora de la fila valida anterior. Una copia PEGADA a su original (misma hora en
+    // filas consecutivas) no se absorbe: es la forma de una curva cuartohoraria sin minutos con
+    // cuartos iguales, y quedarse con una perderia energia (revision ChatGPT 07/11/2026). Las copias
+    // reales vistas (Viesgo) vienen en bloque aparte: el dia entero y despues el dia otra vez.
+    let claveAnterior = null;
+    let autoconsumoInvalidoCount = 0;
     let totalRows = 0;
     let parsedRows = 0;
     let exportValoresPresentes = 0;
@@ -2219,8 +2225,11 @@
       // Fuera del dia del cambio de hora de octubre: ahi una hora repetida puede ser real o una zona
       // mal elegida, y lo corrige el usuario con el aviso de siempre.
       const dateHourKey = `${ymdLocal(fecha)}|${hora}`;
-      const filaCruda = row.map(cell => String(cell ?? '').trim()).join('');
-      if (seenFilaCruda.get(dateHourKey) === filaCruda && !esDiaCambioHorarioOctubre(fecha)) {
+      // JSON y no un join con separador: conserva los limites de cada celda.
+      const filaCruda = JSON.stringify(row.map(cell => String(cell ?? '').trim()));
+      const pegadaAlOriginal = claveAnterior === dateHourKey;
+      claveAnterior = dateHourKey;
+      if (seenFilaCruda.get(dateHourKey) === filaCruda && !pegadaAlOriginal && !esDiaCambioHorarioOctubre(fecha)) {
         duplicadasIdenticasCount++;
         continue;
       }
@@ -2267,6 +2276,8 @@
       if (mapping.autoconsumoIdx !== null) {
         const auto = parseNumber(row[mapping.autoconsumoIdx]);
         if (Number.isFinite(auto) && auto >= 0) autoconsumoRaw = auto;
+        // Informativo (no entra en el calculo), pero no se pone a 0 en silencio.
+        else if (!isEmptyCell(row[mapping.autoconsumoIdx])) autoconsumoInvalidoCount++;
       }
 
       const importKwh = importRaw * importFactor;
@@ -2460,6 +2471,9 @@
     }
     if (simultaneousCount > 0) {
       warnings.push(`Neteo horario aplicado en ${simultaneousCount} filas con consumo y excedentes simultáneos.`);
+    }
+    if (autoconsumoInvalidoCount > 0) {
+      warnings.push(`Se encontraron ${autoconsumoInvalidoCount} valores no válidos o negativos en la columna ${columnLabel(mapping.autoconsumoIdx)}; interpretados como 0 (el autoconsumo es informativo y no entra en el cálculo).`);
     }
     if (duplicadasIdenticasCount > 0) {
       warnings.push(`Se ignoraron ${duplicadasIdenticasCount} filas repetidas con la misma fecha, hora y valores (el archivo las traía duplicadas); cada hora se ha contado una sola vez.`);

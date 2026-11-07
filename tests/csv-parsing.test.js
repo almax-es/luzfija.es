@@ -946,8 +946,8 @@ describe('Deteccion de periodos duplicados (14/08/2026)', () => {
     const rows = [
       ['FECHA', 'HORA', 'CONSUMO_KWH'],
       ['01/06/2026', '5', '1'],
-      ['01/06/2026', '5', '1'],
-      ['01/06/2026', '6', '2']
+      ['01/06/2026', '6', '2'],
+      ['01/06/2026', '5', '1']
     ];
     const r = csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0 });
     expect(r.records).toHaveLength(2);
@@ -1001,8 +1001,8 @@ describe('Deteccion de periodos duplicados (14/08/2026)', () => {
       const rows = [
         ['FECHA', 'HORA', 'CONSUMO_KWH', 'EXCEDENTE_KWH'],
         ['01/06/2026', '11', '', '0'],
-        ['01/06/2026', '11', '', '0'],
         ['01/06/2026', '12', '1', '0,5'],
+        ['01/06/2026', '11', '', '0'],
         ['01/06/2026', '12', '1', '0,5']
       ];
       const r = parse(rows);
@@ -1017,6 +1017,41 @@ describe('Deteccion de periodos duplicados (14/08/2026)', () => {
       const r = parse([['FECHA', 'HORA', 'CONSUMO_KWH'], ...dia, ...dia, ...dia]);
       expect(r.records).toHaveLength(24);
       expect(r.warnings.some((w) => /Se ignoraron 48 filas repetidas/.test(w))).toBe(true);
+    });
+
+    it('copias pegadas a su original (cuartohoraria sin minutos con cuartos iguales): cancela', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH'],
+        ['01/06/2026', '9', '0,2'],
+        ['01/06/2026', '10', '0,125'],
+        ['01/06/2026', '10', '0,125'],
+        ['01/06/2026', '10', '0,125'],
+        ['01/06/2026', '10', '0,125']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad/i);
+    });
+
+    it('la firma conserva los limites de celda (sin colisiones por separador)', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH', 'NOTA', 'OTRA'],
+        ['01/06/2026', '10', '1', 'A\u0001B', 'C'],
+        ['01/06/2026', '11', '1', 'x', 'x'],
+        ['01/06/2026', '10', '1', 'A', 'B\u0001C']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad/i);
+    });
+
+    it('un autoconsumo no numerico o negativo se avisa en vez de ponerse a 0 en silencio', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH', 'AUTOCONSUMO_KWH'],
+        ['01/06/2026', '10', '1', 'texto'],
+        ['01/06/2026', '11', '1', '-2'],
+        ['01/06/2026', '12', '1', ''],
+        ['01/06/2026', '13', '1', '0,5']
+      ];
+      const r = parse(rows);
+      expect(r.records).toHaveLength(4);
+      expect(r.warnings.some((w) => /Se encontraron 2 valores no válidos o negativos/.test(w))).toBe(true);
     });
 
     it('el dia del cambio de hora de octubre una fila identica repetida sigue cancelando', () => {
