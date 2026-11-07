@@ -2158,6 +2158,11 @@
     // fecha|hora -> minutos explicitos de la primera fila (o null), para distinguir un
     // periodo duplicado de una curva con varias lecturas por hora.
     const seenDateHour = new Map();
+    // fecha|hora -> firma de valores de la primera fila. Una fila repetida con EXACTAMENTE los
+    // mismos valores no suma nada nuevo (Viesgo exporta dias enteros dos veces, 07/11/2026):
+    // se ignora y se avisa. Con valores distintos sigue cancelando, porque no hay forma de saber cual vale.
+    const seenValores = new Map();
+    let duplicadasIdenticasCount = 0;
     let totalRows = 0;
     let parsedRows = 0;
     let exportValoresPresentes = 0;
@@ -2310,8 +2315,16 @@
             ? row[mapping.fechaHoraIdx]
             : row[mapping.horaIdx]
         );
+      const firmaValores = `${kwh}|${excedente}|${autoconsumo}`;
       if (seenDateHour.has(dateHourKey)) {
         const previousMinuteLabel = seenDateHour.get(dateHourKey);
+        // No el dia del cambio de hora de octubre: ahi una hora repetida con igual consumo puede ser
+        // una hora real o una zona mal elegida, y la zona la corrige el usuario, no se absorbe.
+        if (seenValores.get(dateHourKey) === firmaValores && !esDiaCambioHorarioOctubre(fecha) &&
+            (previousMinuteLabel === null || minuteLabel === null || previousMinuteLabel === minuteLabel)) {
+          duplicadasIdenticasCount++;
+          continue;
+        }
         if (previousMinuteLabel !== null && minuteLabel !== null && previousMinuteLabel !== minuteLabel) {
           throw buildImportError(
             `Hay varias lecturas dentro de la misma hora (${ymdLocal(fecha)}, hora ${hora}: ` +
@@ -2346,6 +2359,7 @@
         );
       }
       seenDateHour.set(dateHourKey, minuteLabel);
+      seenValores.set(dateHourKey, firmaValores);
 
       records.push({
         fecha,
@@ -2440,6 +2454,9 @@
     }
     if (simultaneousCount > 0) {
       warnings.push(`Neteo horario aplicado en ${simultaneousCount} filas con consumo y excedentes simultáneos.`);
+    }
+    if (duplicadasIdenticasCount > 0) {
+      warnings.push(`Se ignoraron ${duplicadasIdenticasCount} filas repetidas con la misma fecha, hora y valores (el archivo las traía duplicadas); cada hora se ha contado una sola vez.`);
     }
     if (fechaHoraInvalidaCount > 0) {
       warnings.push(`Se descartaron ${fechaHoraInvalidaCount} filas con fecha u hora no reconocidas.`);

@@ -933,13 +933,26 @@ describe('Deteccion de periodos duplicados (14/08/2026)', () => {
   let csvUtils;
   beforeAll(() => { csvUtils = window.LF.csvUtils; });
 
-  it('rechaza fecha+hora duplicada fuera de cualquier cambio de hora', () => {
+  it('rechaza fecha+hora duplicada con valores distintos fuera de cualquier cambio de hora', () => {
     const rows = [
       ['FECHA', 'HORA', 'CONSUMO_KWH'],
       ['01/06/2026', '5', '1'],
-      ['01/06/2026', '5', '1']
+      ['01/06/2026', '5', '2']
     ];
     expect(() => csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0 })).toThrow(/duplicad/i);
+  });
+
+  it('ignora filas repetidas identicas (Viesgo exporta dias enteros dos veces) y avisa', () => {
+    const rows = [
+      ['FECHA', 'HORA', 'CONSUMO_KWH'],
+      ['01/06/2026', '5', '1'],
+      ['01/06/2026', '5', '1'],
+      ['01/06/2026', '6', '2']
+    ];
+    const r = csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0 });
+    expect(r.records).toHaveLength(2);
+    expect(r.records.reduce((a, x) => a + x.kwh, 0)).toBe(3);
+    expect(r.warnings.some((w) => /Se ignoraron 1 filas repetidas/.test(w))).toBe(true);
   });
 
   it('una fila invalida no bloquea una fila valida posterior con la misma fecha/hora', () => {

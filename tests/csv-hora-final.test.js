@@ -245,7 +245,9 @@ describe('Aviso de duplicados el dia del cambio de hora de octubre', () => {
 
   it('un duplicado en un dia normal conserva el consejo de siempre', () => {
     const rows = buildRows(Date.UTC(2025, 9, 31, 23), Date.UTC(2025, 10, 30, 23), 'end');
-    rows.push([...rows[100]]);
+    const dup = [...rows[100]];
+    dup[dup.length - 1] = String(Number(String(dup[dup.length - 1]).replace(',', '.')) + 1);
+    rows.push(dup);
     const msg = mensaje(rows, 'Península');
     expect(msg).toMatch(/filas duplicadas/);
     expect(msg).not.toMatch(/cambio de hora/);
