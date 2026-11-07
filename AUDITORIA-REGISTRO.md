@@ -104,6 +104,15 @@ nuevo no cubierto por sus tests. Cada entrada explica que evidencia haria falta 
  (3) Independiente y anterior: un autoconsumo no numerico o negativo ya no se pone a 0 en silencio;
  se avisa (es informativo, solo se muestra en el resumen de la importacion). Una fila con columnas
  vacias de mas al final no se reconoce como copia y cancela: falso negativo conservador aceptado.
+- **Tercera revision ChatGPT (07/11/2026):** `claveAnterior` se actualizaba con filas luego descartadas
+ (una fila invalida en medio rompia la proteccion de copias pegadas). Ahora solo la actualizan filas
+ aceptadas o absorbidas como copia; las absorbidas TIENEN que actualizarla (si no, la ultima hora de
+ un bloque copiado parece "pegada" y Viesgo vuelve a fallar: lo cazo el banco real antes de publicar).
+ **Limite aceptado, no reabrir:** cualquier repeticion con valores distintos cancela el fichero entero,
+ asi que solo se perderia energia si TODAS las repeticiones son identicas (curva subhoraria sin minutos
+ y totalmente plana, ordenada por bloques). Es indistinguible de una exportacion duplicada; el aviso
+ de filas ignoradas sugiere descargar la curva horaria. Tambien aceptado: dos exportaciones solapadas
+ concatenadas cuya hora repetida queda pegada en la union cancelan (conservador).
 - La clave de duplicado se registra SOLO cuando la fila ya genero al menos un registro
  importable (despues de superar validaciones de rango/formato), nunca antes: una fila
  descartada por otro motivo (texto invalido, fuera de rango) NO cuenta como "vista" y no

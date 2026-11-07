@@ -1031,6 +1031,16 @@ describe('Deteccion de periodos duplicados (14/08/2026)', () => {
       expect(() => parse(rows)).toThrow(/duplicad/i);
     });
 
+    it('una fila invalida entre el original y su copia no rompe la proteccion de copias pegadas', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH'],
+        ['01/06/2026', '10', '0,125'],
+        ['01/06/2026', '11', 'texto'],
+        ['01/06/2026', '10', '0,125']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad/i);
+    });
+
     it('la firma conserva los limites de celda (sin colisiones por separador)', () => {
       const rows = [
         ['FECHA', 'HORA', 'CONSUMO_KWH', 'NOTA', 'OTRA'],

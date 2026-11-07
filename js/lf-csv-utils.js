@@ -2165,10 +2165,16 @@
     // (revision ChatGPT 07/11/2026). Cualquier diferencia sigue cancelando: no se elige cual vale.
     const seenFilaCruda = new Map();
     let duplicadasIdenticasCount = 0;
-    // Clave fecha|hora de la fila valida anterior. Una copia PEGADA a su original (misma hora en
+    // Clave fecha|hora de la ultima fila ACEPTADA o ABSORBIDA como copia. Una fila invalida en medio
+    // no la cambia, para no romper la secuencia (revision ChatGPT 07/11/2026); las copias absorbidas
+    // si, porque dentro de un bloque copiado cada fila sigue a la anterior del bloque. Una copia PEGADA a su original (misma hora en
     // filas consecutivas) no se absorbe: es la forma de una curva cuartohoraria sin minutos con
     // cuartos iguales, y quedarse con una perderia energia (revision ChatGPT 07/11/2026). Las copias
     // reales vistas (Viesgo) vienen en bloque aparte: el dia entero y despues el dia otra vez.
+    // LIMITE ACEPTADO: cualquier repeticion con valores distintos cancela el fichero entero, asi que
+    // solo se perderia energia si TODAS las repeticiones son identicas (curva subhoraria sin minutos
+    // y totalmente plana, p. ej. un perfil estimado repartido en cuartos iguales y ordenado por
+    // bloques). Ese fichero es indistinguible de una exportacion duplicada; no se persigue mas.
     let claveAnterior = null;
     let autoconsumoInvalidoCount = 0;
     let totalRows = 0;
@@ -2228,9 +2234,9 @@
       // JSON y no un join con separador: conserva los limites de cada celda.
       const filaCruda = JSON.stringify(row.map(cell => String(cell ?? '').trim()));
       const pegadaAlOriginal = claveAnterior === dateHourKey;
-      claveAnterior = dateHourKey;
       if (seenFilaCruda.get(dateHourKey) === filaCruda && !pegadaAlOriginal && !esDiaCambioHorarioOctubre(fecha)) {
         duplicadasIdenticasCount++;
+        claveAnterior = dateHourKey;
         continue;
       }
 
@@ -2374,6 +2380,7 @@
       }
       seenDateHour.set(dateHourKey, minuteLabel);
       seenFilaCruda.set(dateHourKey, filaCruda);
+      claveAnterior = dateHourKey;
 
       records.push({
         fecha,
@@ -2476,7 +2483,7 @@
       warnings.push(`Se encontraron ${autoconsumoInvalidoCount} valores no válidos o negativos en la columna ${columnLabel(mapping.autoconsumoIdx)}; interpretados como 0 (el autoconsumo es informativo y no entra en el cálculo).`);
     }
     if (duplicadasIdenticasCount > 0) {
-      warnings.push(`Se ignoraron ${duplicadasIdenticasCount} filas repetidas con la misma fecha, hora y valores (el archivo las traía duplicadas); cada hora se ha contado una sola vez.`);
+      warnings.push(`Se ignoraron ${duplicadasIdenticasCount} filas repetidas con la misma fecha, hora y valores (el archivo las traía duplicadas); cada hora se ha contado una sola vez. Si tu archivo es de lecturas cada 15 minutos, descarga la curva horaria.`);
     }
     if (fechaHoraInvalidaCount > 0) {
       warnings.push(`Se descartaron ${fechaHoraInvalidaCount} filas con fecha u hora no reconocidas.`);
