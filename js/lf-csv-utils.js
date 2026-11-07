@@ -2173,8 +2173,8 @@
     // reales vistas (Viesgo) vienen en bloque aparte: el dia entero y despues el dia otra vez.
     // LIMITE ACEPTADO: cualquier repeticion con valores distintos cancela el fichero entero, asi que
     // solo se perderia energia si TODAS las repeticiones son identicas (curva subhoraria sin minutos
-    // y totalmente plana, p. ej. un perfil estimado repartido en cuartos iguales y ordenado por
-    // bloques). Ese fichero es indistinguible de una exportacion duplicada; no se persigue mas.
+    // con los cuartos de CADA hora iguales entre si, aunque varien de una hora a otra; p. ej. un
+    // perfil estimado repartido en cuartos iguales y ordenado por bloques). Ese fichero es indistinguible de una exportacion duplicada; no se persigue mas.
     let claveAnterior = null;
     let autoconsumoInvalidoCount = 0;
     let totalRows = 0;

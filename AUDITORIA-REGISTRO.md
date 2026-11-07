@@ -110,7 +110,7 @@ nuevo no cubierto por sus tests. Cada entrada explica que evidencia haria falta 
  un bloque copiado parece "pegada" y Viesgo vuelve a fallar: lo cazo el banco real antes de publicar).
  **Limite aceptado, no reabrir:** cualquier repeticion con valores distintos cancela el fichero entero,
  asi que solo se perderia energia si TODAS las repeticiones son identicas (curva subhoraria sin minutos
- y totalmente plana, ordenada por bloques). Es indistinguible de una exportacion duplicada; el aviso
+ con los cuartos de CADA hora iguales entre si, aunque varien entre horas, ordenada por bloques). Es indistinguible de una exportacion duplicada; el aviso
  de filas ignoradas sugiere descargar la curva horaria. Tambien aceptado: dos exportaciones solapadas
  concatenadas cuya hora repetida queda pegada en la union cancelan (conservador).
 - La clave de duplicado se registra SOLO cuando la fila ya genero al menos un registro
