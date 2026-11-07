@@ -82,6 +82,14 @@ nuevo no cubierto por sus tests. Cada entrada explica que evidencia haria falta 
  ni suma en silencio). Antes de esta fecha, un CSV/XLSX con filas duplicadas (export repetido,
  merge accidental) inflaba el consumo sin ningun aviso — bug real detectado por auditoria
  cruzada externa, verificado y reproducido contra el codigo antes de corregirlo.
+- **Matizado el 07/11/2026 (solo `parseEnergyTableRows`):** una fila repetida con la MISMA
+ fecha, hora resuelta y valores (`kwh|excedente|autoconsumo`, y minutos compatibles) se ignora,
+ se cuenta una vez y se avisa ("Se ignoraron N filas repetidas..."). Motivo: un CSV real de
+ Viesgo traia tres dias enteros exportados dos veces con valores identicos y se cancelaba la
+ importacion completa. No infla el consumo, que era el riesgo original. Sigue cancelando: (1) si
+ los valores difieren (no se elige cual vale) y (2) el dia del cambio de hora de octubre, donde
+ una hora repetida con igual consumo puede ser real o una zona mal elegida. La matriz horaria y
+ el mensual de Datadis siguen rechazando cualquier repeticion. Tests en `tests/csv-parsing.test.js`.
 - La clave de duplicado se registra SOLO cuando la fila ya genero al menos un registro
  importable (despues de superar validaciones de rango/formato), nunca antes: una fila
  descartada por otro motivo (texto invalido, fuera de rango) NO cuenta como "vista" y no
