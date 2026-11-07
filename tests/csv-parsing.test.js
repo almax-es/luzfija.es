@@ -955,6 +955,80 @@ describe('Deteccion de periodos duplicados (14/08/2026)', () => {
     expect(r.warnings.some((w) => /Se ignoraron 1 filas repetidas/.test(w))).toBe(true);
   });
 
+  // Revision ChatGPT 07/11/2026: la identidad es la fila cruda, no los valores interpretados.
+  describe('solo absorbe copias identicas celda a celda', () => {
+    const parse = (rows) => csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'Península' });
+
+    it('minuto vacio frente a minuto conocido con el mismo consumo: cancela, no pierde energia', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'MINUTO', 'CONSUMO_KWH'],
+        ['01/06/2026', '10', '', '0,25'],
+        ['01/06/2026', '10', '15', '0,25'],
+        ['01/06/2026', '10', '30', '0,25'],
+        ['01/06/2026', '10', '45', '0,25']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad|varias lecturas/i);
+    });
+
+    it('mismo consumo con distinto periodo tarifario: cancela', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH', 'PERIODO_TARIFARIO'],
+        ['01/06/2026', '12', '1', 'P1'],
+        ['01/06/2026', '12', '1', 'P3']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad/i);
+    });
+
+    it('mismo consumo con distinta marca real/estimada: cancela', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH', 'METODO_OBTENCION'],
+        ['01/06/2026', '12', '1', 'R'],
+        ['01/06/2026', '12', '1', 'E']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad/i);
+    });
+
+    it('excedente vacio frente a cero explicito: cancela', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH', 'EXCEDENTE_KWH'],
+        ['01/06/2026', '12', '1', ''],
+        ['01/06/2026', '12', '1', '0']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad/i);
+    });
+
+    it('la copia ignorada no infla los avisos de celdas vacias ni de neteo', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH', 'EXCEDENTE_KWH'],
+        ['01/06/2026', '11', '', '0'],
+        ['01/06/2026', '11', '', '0'],
+        ['01/06/2026', '12', '1', '0,5'],
+        ['01/06/2026', '12', '1', '0,5']
+      ];
+      const r = parse(rows);
+      expect(r.records).toHaveLength(2);
+      expect(r.warnings.some((w) => /Se encontraron 1 celdas vacías/.test(w))).toBe(true);
+      expect(r.warnings.some((w) => /Neteo horario aplicado en 1 filas/.test(w))).toBe(true);
+      expect(r.warnings.some((w) => /Se ignoraron 2 filas repetidas/.test(w))).toBe(true);
+    });
+
+    it('tres copias del mismo fichero no caen en el umbral de "la mayoria de filas no se pudo interpretar"', () => {
+      const dia = Array.from({ length: 24 }, (_, i) => ['01/06/2026', String(i + 1), '0,3']);
+      const r = parse([['FECHA', 'HORA', 'CONSUMO_KWH'], ...dia, ...dia, ...dia]);
+      expect(r.records).toHaveLength(24);
+      expect(r.warnings.some((w) => /Se ignoraron 48 filas repetidas/.test(w))).toBe(true);
+    });
+
+    it('el dia del cambio de hora de octubre una fila identica repetida sigue cancelando', () => {
+      const rows = [
+        ['FECHA', 'HORA', 'CONSUMO_KWH'],
+        ['25/10/2026', '5', '1'],
+        ['25/10/2026', '5', '1']
+      ];
+      expect(() => parse(rows)).toThrow(/duplicad/i);
+    });
+  });
+
   it('una fila invalida no bloquea una fila valida posterior con la misma fecha/hora', () => {
     const rows = [
       ['FECHA', 'HORA', 'CONSUMO_KWH'],

@@ -2158,10 +2158,12 @@
     // fecha|hora -> minutos explicitos de la primera fila (o null), para distinguir un
     // periodo duplicado de una curva con varias lecturas por hora.
     const seenDateHour = new Map();
-    // fecha|hora -> firma de valores de la primera fila. Una fila repetida con EXACTAMENTE los
-    // mismos valores no suma nada nuevo (Viesgo exporta dias enteros dos veces, 07/11/2026):
-    // se ignora y se avisa. Con valores distintos sigue cancelando, porque no hay forma de saber cual vale.
-    const seenValores = new Map();
+    // fecha|hora -> contenido ORIGINAL de la fila aceptada (todas las celdas, recortadas). Una fila
+    // repetida identica celda a celda no suma nada nuevo (Viesgo exporta dias enteros dos veces,
+    // 07/11/2026): se ignora y se avisa. Se compara la fila cruda y no los valores interpretados para
+    // que minuto, periodo, real/estimada, celda vacia frente a cero y CUPS cuenten como diferencia
+    // (revision ChatGPT 07/11/2026). Cualquier diferencia sigue cancelando: no se elige cual vale.
+    const seenFilaCruda = new Map();
     let duplicadasIdenticasCount = 0;
     let totalRows = 0;
     let parsedRows = 0;
@@ -2210,6 +2212,16 @@
       // que no puede cruzarse con PVPC y distorsiona la curva importada.
       if (hora === 25 && !esDiaCambioHorarioOctubre(fecha)) {
         h25DiscardedCount++;
+        continue;
+      }
+
+      // Antes de cualquier contador (celdas vacias, neteo): una copia ignorada no debe inflar avisos.
+      // Fuera del dia del cambio de hora de octubre: ahi una hora repetida puede ser real o una zona
+      // mal elegida, y lo corrige el usuario con el aviso de siempre.
+      const dateHourKey = `${ymdLocal(fecha)}|${hora}`;
+      const filaCruda = row.map(cell => String(cell ?? '').trim()).join('');
+      if (seenFilaCruda.get(dateHourKey) === filaCruda && !esDiaCambioHorarioOctubre(fecha)) {
+        duplicadasIdenticasCount++;
         continue;
       }
 
@@ -2307,7 +2319,6 @@
         periodo = getPeriodoHorarioCSV(fecha, hora, zonaFiscal);
       }
 
-      const dateHourKey = `${ymdLocal(fecha)}|${hora}`;
       const minuteLabel = mapping.minutoIdx !== null && mapping.minutoIdx !== undefined
         ? extractMinuteColumnLabel(row[mapping.minutoIdx])
         : extractMinuteLabel(
@@ -2315,16 +2326,8 @@
             ? row[mapping.fechaHoraIdx]
             : row[mapping.horaIdx]
         );
-      const firmaValores = `${kwh}|${excedente}|${autoconsumo}`;
       if (seenDateHour.has(dateHourKey)) {
         const previousMinuteLabel = seenDateHour.get(dateHourKey);
-        // No el dia del cambio de hora de octubre: ahi una hora repetida con igual consumo puede ser
-        // una hora real o una zona mal elegida, y la zona la corrige el usuario, no se absorbe.
-        if (seenValores.get(dateHourKey) === firmaValores && !esDiaCambioHorarioOctubre(fecha) &&
-            (previousMinuteLabel === null || minuteLabel === null || previousMinuteLabel === minuteLabel)) {
-          duplicadasIdenticasCount++;
-          continue;
-        }
         if (previousMinuteLabel !== null && minuteLabel !== null && previousMinuteLabel !== minuteLabel) {
           throw buildImportError(
             `Hay varias lecturas dentro de la misma hora (${ymdLocal(fecha)}, hora ${hora}: ` +
@@ -2359,7 +2362,7 @@
         );
       }
       seenDateHour.set(dateHourKey, minuteLabel);
-      seenValores.set(dateHourKey, firmaValores);
+      seenFilaCruda.set(dateHourKey, filaCruda);
 
       records.push({
         fecha,
@@ -2403,7 +2406,10 @@
       }
     }
 
-    if (totalRows > 0 && parsedRows / totalRows < 0.5) {
+    // Las copias identicas ignoradas son filas BIEN interpretadas: tres copias del mismo fichero no
+    // pueden rechazarse por "la mayoria de filas no se pudo interpretar".
+    const filasInterpretadas = parsedRows + duplicadasIdenticasCount;
+    if (totalRows > 0 && filasInterpretadas / totalRows < 0.5) {
       // Si los contadores explican el rechazo, se dice la causa en vez de culpar al separador.
       // Redaccion elegida para que csvErrorCodeForTracking siga dando 'filas-invalidas': nada
       // de "valores no numericos" ni "columna", que casan antes con otros codigos.
@@ -2415,7 +2421,7 @@
         [h25DiscardedCount, 'con hora 25 fuera del cambio de hora de octubre']
       ].filter(([n]) => n > 0);
       const explicadas = causas.reduce((acc, [n]) => acc + n, 0);
-      const mensaje = explicadas > 0 && explicadas * 2 >= totalRows - parsedRows
+      const mensaje = explicadas > 0 && explicadas * 2 >= totalRows - filasInterpretadas
         ? `La mayoría de filas no se pudo interpretar: ${causas.map(([n, texto]) => `${n} ${texto}`).join(', ')}.`
         : 'La mayoría de filas no se pudo interpretar; probable separador o cabecera incorrecta.';
       throw buildHeaderError(mensaje, headersNorm, { separator });
