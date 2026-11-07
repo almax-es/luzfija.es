@@ -1,0 +1,734 @@
+# Capacidad Completa De LuzFija.es
+
+Ultima actualizacion: 2026-10-08
+
+Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
+Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
+Si vas a hacer una auditoria tecnica, lee completo `AUDITORIA-IA.md` antes de clasificar hallazgos: contiene los criterios de severidad, el metodo y el indice. Consulta despues en `AUDITORIA-REGISTRO.md` solo las decisiones y falsos positivos del area relevante.
+
+## 1. Alcance General
+
+- Web estatica 100% frontend (sin backend propio para calculos).
+- Dominio principal: `https://luzfija.es`.
+- Publico objetivo: usuarios en Espana que quieren comparar tarifas electricas con datos reales.
+- Privacidad por diseno: procesamiento local en navegador para calculos, PDF y CSV.
+- Proyecto independiente y no comercial: sin referidos, comisiones, publicidad, venta de leads ni ranking patrocinado.
+
+## 2. Mapa Completo De Paginas
+
+### 2.1 Herramientas Principales
+
+1. `/` (home, comparador principal)
+- Comparacion de tarifas del mercado libre.
+- Inclusión de PVPC estimado con datos oficiales horarios.
+- Soporte autoconsumo, excedentes, bateria virtual y bono social.
+- Soporte tarifa personalizada ("Mi tarifa") para comparar contrato actual.
+- Atajo movil a "Mi tarifa": chip flotante que resume su posicion, total y
+  diferencia y hace scroll hasta su fila. Solo en movil (<=768px) y solo mientras
+  esa fila esta fuera de pantalla. Es un espejo de la fila: no reordena, no
+  recalcula y no privilegia la tarifa propia en el ranking.
+- Importador CSV/XLSX y extractor de factura PDF.
+
+2. `/estadisticas/` (observatorio PVPC)
+- Analisis historico PVPC y excedentes (tipo `pvpc|surplus`).
+- KPIs, tendencia diaria/mensual, perfil horario y comparativa multianual.
+- Importador CSV/XLSX de excedentes del usuario con calculo economico mensual/anual.
+
+3. `/comparador-tarifas-solares.html` (simulador BV independiente)
+- Simulacion mensual para tarifas con excedentes remunerados.
+- Modo hibrido CSV -> tabla manual editable.
+- Selector de mes de inicio del contrato para ordenar el ciclo BV desde la contratacion.
+- La simulacion de 12 meses usa los datos como patron anual: si se empieza en junio, recorre junio-diciembre y despues enero-mayo sin cambiar los kWh/excedentes de cada mes.
+- Ranking por coste pagado del periodo simulado; se presenta como anual cuando hay 12 meses razonablemente completos (con desempate por saldo BV final).
+- Compatibilidad de enlaces antiguos: `/simulador-bateria-virtual.html` y `/simulador/` redirigen a esta ruta, sin indexacion ni pageview duplicado.
+- Metrica secundaria por tarifa con BV: coste neto (pagado menos saldo BV final), presentada como "saldo a favor" si sale negativa; no altera el orden del ranking.
+
+### 2.2 Paginas De Apoyo
+
+4. `/como-funciona-luzfija.html`
+- Pagina publica de explicacion del proyecto.
+- Resume herramientas, datos, metodologia, privacidad, independencia y limites del sitio.
+- Pensada para usuarios, medios, buscadores, rastreadores y asistentes.
+
+5. `/calcular-factura-luz.html`
+- Landing explicativa y de entrada al comparador.
+
+6. `/comparar-pvpc-tarifa-fija.html`
+- Landing/articulo de comparacion regulado vs mercado libre.
+
+7. `/guias.html`
+- Indice de guias con buscador en vivo y filtros por categoria.
+
+8. `/guias/*.html`
+- 25 articulos educativos + `guias/index.html`.
+
+9. `/aviso-legal.html`
+- Informacion legal.
+
+10. `/privacidad.html`
+- Politica de privacidad con acordeones.
+- Opt-out de analitica GoatCounter (localStorage `goatcounter_optout=true`).
+
+11. `/404.html`
+- Pagina de error con enlaces rapidos, buscador que redirige a guias, sugerencia de la pagina
+  existente mas parecida a la URL pedida y bloque de datos curiosos verificables.
+
+12. `/pagina-incrustada.html`
+- Aviso estatico (`noindex`, sin app ni analitica) al que `js/frame-guard.js` lleva cualquier
+  pagina abierta dentro de un iframe de otra web, con enlace a la pagina original. Abierta fuera de
+  un iframe ajeno redirige sola a esa pagina.
+
+## 3. Funcionalidades Del Comparador Principal (`/`)
+
+### 3.1 Entrada De Datos Y Contexto Fiscal
+
+**Dominio modelado: exclusivamente peaje 2.0TD** (2 periodos de potencia y 3 de energia). Los
+limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.js`:
+
+- Potencia contratada P1/P2: **maximo 15 kW** (`POTENCIA_MAX_KW`), que es el limite regulatorio de
+  2.0TD; por encima corresponde 3.0TD, con seis periodos, que la web no representa.
+- **P1 admite 0 kW**: es un caso real documentado por la CNMC (segundo suministro dedicado a recarga
+  de vehiculo electrico, con potencia solo en valle). P2 debe ser positiva.
+- Dias de facturacion: 1 a 370, enteros.
+- Consumo por periodos: punta/llano/valle. **Los tres pueden ser 0**: un suministro sin consumo
+  sigue pagando potencia y contador, y ese escenario esta validado en `CALC-FAQS.md`. Lo que no se
+  admite es dejar los campos vacios, para distinguir un cero explicito de un dato ausente.
+- Zona fiscal: Peninsula/Baleares, Canarias, Ceuta/Melilla.
+- Modo vivienda en Canarias para IGIC energia 0% cuando aplica.
+- Bono social configurable (tipo y limite bonificable).
+- Comparacion opcional contra tarifa personalizada del usuario.
+- Modo solar:
+- Excedentes totales.
+- Saldo BV previo.
+
+### 3.2 Calculo, Ranking Y Visualizacion
+
+- Calculo local por tarifa con desglose de:
+- Potencia.
+- Energia.
+- Compensacion de excedentes.
+- Impuestos y alquiler.
+- Diferenciacion de metricas cuando hay BV:
+- `Pagas este mes`.
+- `Coste de ranking` (comparacion justa).
+- Filtros de tabla: todas / 1P / 3P.
+- Ordenacion por columnas (nombre, potencia, consumo, impuestos, total, vs mejor).
+- KPI resumen + grafico Top 5.
+- Modal de desglose detallado al pulsar nombre o total.
+- Enlaces de contratacion (URL saneada, solo `http|https` o rutas relativas seguras).
+- Aviso de requisitos en tarifas concretas: tooltip con el texto libre del campo `requisitos` del
+  dataset. Es informativo y no filtra nada; los unicos limites que pueden llegar a excluir son
+  `maxConsumoAnual` y `maxConsumoAnualPorKw`, descritos en el punto siguiente, y solo si el
+  usuario lo activa.
+- Tramos de potencia (`potenciaMaxKw` / `potenciaMinExclusivaKw`, p. ej. Plenitude hasta 5 kW / mas de 5 kW) excluyen la tarifa SOLOS, sin interruptor, en la home y en el simulador solar: la potencia es un dato exacto del usuario. El aviso (nombra las excluidas y la potencia usada, la mayor de P1 y P2) solo sale cuando se pierde la versión "hasta X kW" (la barata); perder la "+X kW" no se avisa.
+- Exclusion por los requisitos estructurados `maxConsumoAnual` (tope fijo en kWh/ano) y
+  `maxConsumoAnualPorKw` (kWh/ano por kW contratado, calculado con la MENOR de P1 y P2 porque la
+  comercializadora no aclara cual usa; 24/09/2026) de `tarifas.json`, SIEMPRE como
+  decision del usuario (12/09/2026): ninguna tarifa se retira del ranking por si sola. Cuando el
+  consumo supera un maximo contractual, un aviso propio (`#consumoLimitsNotice`, `role="note"`)
+  ofrece un unico interruptor para aplicar esos limites, dice a cuantas tarifas afecta y despliega
+  sus nombres con el requisito incumplido. Reglas:
+- Por defecto NO se aplica ningun limite: la tarifa sigue en ranking, KPIs y grafico, con su
+  requisito visible en la propia fila. El motivo es que los dos errores posibles no pesan igual.
+  Ensenar una tarifa que quiza no pueda contratar es visible y reparable; ocultarla es mudo,
+  porque nadie sabe lo que no vio ni puede ir a preguntarlo a la comercializadora.
+- El mismo interruptor gobierna los dos casos, con ano completo y con periodo parcial. Antes el
+  comportamiento estaba invertido: el consumo registrado excluia sin preguntar y la proyeccion
+  solo excluia si el usuario lo pedia, de modo que cuanto mejor era el dato menos veia y menos
+  decidia.
+- Con periodo parcial la web calcula ademas una estimacion orientativa (`consumo * 365 / dias`).
+  El copy advierte del sesgo estacional y refuerza la cautela cuando la base no llega a 28 dias,
+  sin imponer un minimo de uso.
+- El aviso solo aparece si hay algo que decidir (`limitsChoiceAvailable`): alguna tarifa excluible
+  por el consumo registrado, o por la estimacion cuando la estimacion existe. `limitsApplied` dice
+  si el usuario ya lo ha activado. En `assessConsumoAnualLimits` el interruptor es `applyLimits`;
+  `useAnnualEstimate` se conserva como alias heredado de cuando solo gobernaba la proyeccion.
+- `minConsumoAnualExclusivo` no excluye ni propone excluir en ningun flujo. Las dos tarifas Imagina
+  8000 permanecen visibles aunque el consumo quede por debajo de 4.000 kWh; su condicion sigue
+  informada en `requisitos` y el orden por precio deja delante el tramo que resulte mas barato.
+- La preferencia de usar la estimacion vive solo en memoria: no se guarda en `localStorage`, no se
+  incluye al compartir y una nueva carga recupera el modo prudente por defecto. Si cambian los kWh
+  o los dias que forman la extrapolacion, tambien se desactiva antes de recalcular.
+- Utilidad compartida por ambos simuladores: `LF.assessConsumoAnualLimits` en `js/lf-utils.js`.
+  Semantica de los campos y borde exacto de los limites en `JSON-SCHEMA.md`; motivo de las
+  decisiones en `AUDITORIA-REGISTRO.md`.
+- Etiqueta "OFERTA" en las tarifas con promocion informada en el dataset (campo `promo`; no hay
+  fecha de caducidad, la frescura la da el sello `updatedAt` que la web muestra): pastilla verde junto
+  al nombre que al pulsarla muestra el texto de la oferta. La promocion se informa pero **nunca
+  entra en el calculo**: el ranking sigue ordenando por coste real. El modal de desglose repite
+  la nota con la coletilla "No incluida en este calculo". Ver JSON-SCHEMA.md (`promo` vs
+  `requisitos`).
+
+### 3.3 PVPC Integrado En Home
+
+- PVPC calculado localmente desde `/data/pvpc/{geo}/{YYYY-MM}.json`.
+- Restriccion funcional: PVPC no se calcula cuando potencia contratada > 10 kW.
+- Modal horario Hoy/Manana:
+- Selector `PVPC` vs `Excedentes`.
+- Carga desde datasets estaticos (`/data/pvpc` y `/data/surplus`).
+- Los dos tipos se muestran en la hora civil de la zona (Canarias en hora canaria).
+- Si la carga falla, el modal muestra el error y vacia el resumen: nunca deja precios del tipo
+  anterior bajo la cabecera del nuevo.
+- Soporte de pestanas Hoy/Manana (manana puede no estar disponible hasta publicacion del dataset).
+- Manejo de dias de 23/24/25 horas y hora repetida en cambio horario.
+- Enlace directo al observatorio desde el modal.
+
+### 3.4 Importador CSV/XLSX En Home
+
+- Acepta CSV y Excel (`.csv`, `.xlsx`, `.xls`).
+- Si la importacion falla (aqui, en el simulador solar y en el observatorio), el error ya no es un toast: es un aviso persistente (`js/lf-csv-report.js`) que explica que fichero hace falta (la curva horaria del contador, de la distribuidora o de Datadis), pregunta de donde sale el archivo (distribuidora concreta, Datadis, comercializadora, marca de inversor...) y ofrece mandarlo a hola@luzfija.es con una muestra anonimizada que el usuario revisa y edita. Sin ese modulo, cada importador vuelve a su aviso anterior.
+- Parsing robusto compartido (`lf-csv-utils.js`):
+- Deteccion automatica de separador (`;` o `,`).
+- Deteccion de cabecera en las primeras 30 filas.
+- Alias de columnas por distribuidora.
+- Ancho minimo de 3 columnas, o 2 si son exactamente `fecha_hora` + consumo.
+- Normalizacion numerica ES/US.
+- Conversión Wh -> kWh cuando detecta unidad. Por eso una columna de consumo SIN
+  unidad en el nombre se rechaza en vez de adivinarla: equivocarse es un error de
+  factor 1000 en la factura estimada.
+- Neteo horario import/export.
+- Cambios horarios normalizados por zona. El CCH-CONS comprimido `1..23` de marzo se
+  convierte a las horas reales (`1,2,4..24` en Peninsula/Baleares/Ceuta/Melilla y
+  `1,3..24` en Canarias),
+  mientras que las curvas que ya declaran el hueco y las columnas `fecha_hora` se
+  conservan. En octubre, los formatos 0-23 reconocen como repetida la hora local 2 en
+  Peninsula/Baleares/Ceuta/Melilla y la 1 en Canarias y reservan la clave 25 para la
+  segunda ocurrencia. Los ficheros en base 1-24 que REPITEN el numero de hora en vez de
+  declarar la 25, que es lo que exporta Datadis, tambien se resuelven: la segunda
+  ocurrencia del dia del cambio pasa a la 25 (o la manda `INV/VER` si viene la columna).
+  Solo la repeticion que no encaje en ese dia, o una tercera, sigue tratandose como
+  duplicado real y aborta la importacion.
+- Cambio de zona posterior a una importacion protegido en dos ejes independientes. Al
+  entrar o salir de Ceuta/Melilla, la home recalcula P1/P2/P3 desde la curva y la zona
+  nueva, ignorando el `record.periodo` antiguo, pero conserva fecha/hora para el PVPC
+  exacto. Al cruzar entre Canarias y una zona `Europe/Madrid`, solo retira la traza si
+  contiene realmente un dia DST; los agregados permanecen y la UI pide reimportar. Una
+  curva sin esos dias se conserva.
+- Soporte hora 25 en cambio horario de octubre. En la matriz horaria exige cabecera `H25`
+  declarada y que la fecha sea el ultimo domingo de octubre; si no, el valor se descarta
+  con aviso en vez de entrar como consumo de una hora inexistente.
+- Desambiguacion `hora` / `periodo tarifario` por CONTENIDO, no por nombre: los
+  nombres que pueden ser ambas cosas (`Periodo`, `Periodo horario`, `Tramo`,
+  `Intervalo`) se clasifican mirando sus valores (enteros 0-25 = hora; P1/P2/P3 o
+  Punta/Llano/Valle = periodo). Una misma columna nunca ocupa los dos papeles. Un
+  fichero agregado por periodos y sin hora se rechaza en vez de repartirlo.
+- Centinela de columna solar sin reconocer: si el fichero trae una columna que parece
+  energia solar (`vertid`, `excedent`, `inyec`, `genera`, `export`...) que no se ha
+  sabido mapear, no se importa como cero en silencio. En la home se avisa de que esa
+  columna no se ha usado; en el simulador solar y en el observatorio se bloquea,
+  porque ahi los excedentes cambian el resultado. Los terminos de metadato
+  (`precio`, `potencia`, `tipo`, `coeficiente`...) tienen precedencia y no disparan
+  el centinela, y la columna debe traer numeros. Si ya existe una columna de excedentes
+  reconocida, una columna auxiliar de generacion/produccion no se considera otra medida
+  de exportacion (caso Datadis `vertida + generada + autoconsumida`); sí se bloquean
+  medidas alternativas de vertido que pudieran estar ocultando los valores reales.
+- Matriz horaria `Fecha` + `H01..H24` implementada una sola vez y compartida con el
+  simulador solar. Politica de celdas: vacia o marcador conocido -> 0 con aviso
+  (conserva la hora); texto, negativo o >10.000 kWh -> se descarta esa hora con
+  aviso; si la mitad o mas de las celdas no vacias son invalidas, o no hay ninguna
+  numerica, se rechaza el fichero.
+- CSV/XLSX por filas: una fila con fecha u hora no reconocidas, hora fuera de 1-25,
+  consumo o excedente no numerico o negativo se descarta con aviso y su recuento, igual
+  que en la matriz. Una fila sin fecha ni hora (pie con totales, notas) se ignora sin
+  aviso. Si se importa menos de la mitad de las filas con contenido (cuentan tambien esos pies),
+  se rechaza el fichero; si los descartes contados explican al menos la mitad de lo perdido, el
+  mensaje nombra la causa con su recuento.
+- Vertido sin publicar (celdas vacias o "Sin dato", no ceros) en un fichero que si lo trae en otros
+  dias (`analizarVertidoPublicado`, por DIA): el simulador solar descarta los dias finales
+  posteriores al ultimo con algun vertido publicado (mes entero o mitad del ultimo; visto en i-DE),
+  y tambien ese ultimo dia si hay evidencia reciente de que la distribuidora escribe los ceros:
+  se miran los 14 dias NATURALES anteriores (un dia en blanco cuenta como no probado y el tramo final solo cuenta dias consecutivos), hacen falta al menos 7 y un 90 % o mas con
+  un CERO explicito en la ultima hora nocturna (un positivo no vale; un dia sin esa fila cuenta como no probado); solo se recortan tramos finales de hasta 3 dias. Con evidencia
+  debil o un tramo mas largo se conserva el periodo y se avisan las celdas sueltas. Tambien avisa
+  por su nombre de los meses enteros sin vertido del principio o de en medio, que simula
+  con 0; la home no recorta y dice hasta que fecha esta publicado. Columna vacia entera = "el
+  fichero no permite saber si hubo excedentes", distinto de sin columna y de ceros explicitos. Un metodo de obtencion
+  vacio es "sin indicar", no "estimada". Detalle en `SIMULADOR-BV.md`.
+- En la home, los avisos de la importacion (descartes, celdas vacias, neteo, Wh, cambio de
+  hora, rango) se muestran dentro de la vista previa (`#csvImportNotices`), escapados. Antes
+  eran un toast que el overlay del modal tapaba. En el simulador solar siguen siendo toast (no
+  hay modal). El Observatorio los muestra todos en su nota de resultado (desde el 07/10/2026; antes
+  solo los descartes, y el neteo horario cambiaba los kWh sin explicarlo).
+- Las formulas XLSX solo se aceptan cuando el archivo trae un resultado materializado.
+  Los tres importadores leen los stubs de la primera hoja para distinguir una formula
+  sin cache de una celda realmente vacia; LuzFija no evalua formulas de Excel.
+- Validacion de rango temporal (hasta 370 dias; no exige 12 meses exactos).
+- Resultado:
+- Rellena dias y consumos P1/P2/P3.
+- Puede activar solar y cargar excedentes.
+- Muestra warnings de calidad de datos.
+- Modal de aplicacion con control explicito:
+- Aplicar solo consumos o consumos+excedentes.
+- Activar/desactivar PVPC con precios horarios del periodo importado.
+- El cruce PVPC conserva el calculo horario cuando la cobertura ausente es residual (maximo 10% de horas y 10% de kWh) y estima solo esos huecos con su media P1/P2/P3.
+- Si falta un mes completo o se supera algun umbral, vuelve al calculo completo por medias y muestra el motivo tanto en el resumen PVPC como en el desglose.
+
+### 3.4b Importacion Directa Desde Datadis (opcional: home y simulador solar)
+
+- Boton "Importar de Datadis" junto a "Importar CSV" (`js/lf-datadis.js`). Pide NIF/NIE/CIF y contrasena de Datadis en un modal; el navegador habla DIRECTAMENTE con `datadis.es` (login, `get-supplies`, `get-contract-detail-v2`, `get-consumption-data-v2`). No hay backend: credenciales, token y consumos no pasan por ningun servidor propio y no se guardan (el unico dato persistido es el contador de fallos de login, ver abajo). La contrasena se suelta nada mas usarla en el login: del objeto recibido y de la variable local, en un `finally` (JavaScript no permite borrar fisicamente una cadena; se eliminan las referencias). La curva descargada queda solo en memoria de la pestana hasta cerrarla o recargarla. `tracking.js` excluye `.lf-dd-modal` de sus listeners globales de click/change, igual que `#modalFactura`.
+- Home: periodo elegible. Por defecto los ultimos 365 dias (hasta AYER); "Otro periodo" con dos fechas, maximo 365 dias, nunca despues de ayer ni de mas de 2 anos atras, validado ANTES de llamar (una consulta erronea tambien cuenta para el limite de 24 h). Datadis solo admite meses: se piden los meses que cubren el rango y se recortan los dias. Una sola consulta y los convierte a un CSV con la cabecera del propio Datadis que pasa por `procesarCSVConsumos` + `mostrarPreviewCSV`: la clasificacion P1/P2/P3, festivos, cambios de hora y avisos son los del importador de ficheros. El modulo no duplica logica horaria.
+- Simulador solar: el modal ofrece el mismo selector, "Ultimos 12 meses" o "Otro periodo" con dos fechas (maximo 365 dias). La opcion predeterminada usa los 12 meses naturales completos mas recientes; el periodo elegido se valida antes de llamar y se consulta sin desplazar ni ampliar las fechas. La tabla mensual y el ranking usan los meses que entren en el periodo.
+- Casilla opcional "rellenar potencia contratada": lee P1/P2 del contrato y las aplica al pulsar "Aplicar" en la vista previa (`resultado.potenciaContratada`). Si el contrato falla se importan igualmente los consumos.
+- Datadis bloquea el usuario tras 3 logins fallidos TAMBIEN por API (medido el 29/10/2026). La web deja solo 2 fallos y no reintenta nunca. El contador va en `localStorage` (clave `lf_datadis_fallos`, `{ n, t }`, caduca a las 24 h, se borra con un login correcto): con `sessionStorage` otra pestana permitia el tercer fallo. Copia en memoria como respaldo si el navegador bloquea el almacenamiento, y un dato anterior al ultimo login correcto se ignora aunque no se haya podido borrar. El login va dentro de un Web Lock (`lf-datadis-login`) y relee el contador justo antes de enviarse: si otra pestana acaba de agotar los intentos, no se envia (`agotado`); sin Web Locks queda la relectura, y si el login ya empezo nunca se repite. Limites residuales ASUMIDOS (no reabrir como bug): (1) sin Web Locks (navegadores anteriores a 2022) dos pestanas que pulsen a la vez podrian leer el contador antes de que ninguna registre su fallo; `localStorage` no tiene operacion atomica, asi que no hay mutex fiable alternativo, y el caso exige pulsar en dos pestanas en el mismo instante con contrasena erronea. (2) Si el navegador deja leer pero no escribir ni borrar `localStorage`, el reinicio tras un login correcto solo vale en esa pestana; falla del lado seguro (otra pestana ve MAS fallos, nunca menos) y caduca a las 24 h o se libera con "Ya he entrado bien en datadis.es". Agotados los dos, el boton "Ya he entrado bien en datadis.es" concede UN solo intento mas (no se puede verificar que de verdad haya entrado). Es una precaucion: no conoce los fallos hechos en la web de Datadis ni en otros dispositivos. Antes de llamar a Datadis se normaliza el documento (mayusculas, sin espacios/puntos/guiones) y se rechaza un DNI/NIE con la letra de control mal o un DNI sin letra, sin gastar intento. Los errores de login llegan como HTTP 500 con `message` (`Bad credentials` / `User blocked`), no como 401.
+- Datadis no admite repetir la misma consulta de consumo en 24 h: lo ya descargado se conserva en memoria durante la pagina y no hay reintentos automaticos. Cancelar (o cerrar el modal) NO aborta una descarga de consumos ya pedida: termina en segundo plano y queda en memoria, porque Datadis ya la cuenta. Mientras sigue en marcha, la cache guarda la PROMESA: un reintento antes de que acabe espera a esa misma descarga en vez de lanzar otra consulta identica (medido el 30/10/2026: antes, cancelar y reintentar al momento daba el error de 24 h); si la descarga falla, se borra y se puede reintentar. Mientras importa, un toque fuera del modal no lo cierra. `get-supplies` puede tardar mas de un minuto (timeouts de 3 min).
+- Excedentes: solo `surplusEnergyKWh`. Datadis los devuelve de forma intermitente segun distribuidora (lo reportan usuarios de otras herramientas), asi que no se promete. Datadis NO obliga a la distribuidora a enviar el excedente cuando es 0: un mismo suministro con placas puede traer las horas sin vertido en `0` o en `null`. Por eso `evaluarExcedentes` decide por MES: un mes con algun valor numerico trae dato (sus horas en null cuentan como 0 y se avisa de cuantas); un mes ENTERO sin ningun numero es "sin dato". En la home la columna de excedentes se decide solo con las filas DEL PERIODO elegido (excedentes de dias excluidos no la crean) y, si hay excedentes pero algun mes entero no trae dato, el aviso lo nombra (alli cuenta como 0). El observatorio NO tiene esta importacion.
+- Excedentes AUN NO PUBLICADOS (`marcarExcedentesSinPublicar`, medido con una cuenta real de e-distribucion con autoconsumo colectivo el 30/10/2026): la distribuidora publica el excedente semanas despues que el consumo. En los meses ya publicados generacion = autoconsumo + excedentes cuadra exacto; en el mes en curso llegan `generationEnergyKWh` y `selfConsumptionEnergyKWh` en null y el excedente en `0`. Ese 0 no es dato: si el suministro informa de generacion o autoconsumo en otras horas, una hora con excedente 0 y ambos campos vacios pasa a "sin dato" (null) y entra por las reglas de mes sin dato. En la home, "Ultimos 12 meses" pide dos meses mas al principio (`MESES_MARGEN`, misma consulta) y, si los ultimos dias con consumo no tienen excedente publicado, analiza los 365 dias que terminan en el ultimo dia publicado y lo avisa (`anoHastaUltimoPublicado`); si no hay consumos tan antiguos, o con "Otro periodo" (que nunca se mueve), el aviso dice que aun no se han publicado y que ahi cuentan como 0. Suministros que nunca informan de generacion no se tocan.
+- Home sin ningun excedente en el periodo: el aviso depende del contrato (si se pidio para la potencia). Sin autoconsumo o "sin excedentes" (prueba positiva) -> no se avisa; "con excedentes" -> se dice que el contrato vierte pero Datadis no ha enviado nada y, con "Otro periodo", que si es reciente lo probable es que aun no esten publicados y conviene elegir meses anteriores o "Ultimos 12 meses" (medido en real: un periodo solo con el mes en curso no trae ningun mes publicado con que detectar el retraso); contrato que DECLARA sin autoconsumo (`contratoDeclaraSinAutoconsumo`: campos de autoconsumo presentes y todos vacios; Datadis comunico en 2023 que "en caso de que no se tenga autoconsumo, estos campos vendran con valor null", y asi llegan en contratos reales de i-DE y e-distribucion) -> no se avisa; campos ausentes o contrato no pedido -> aviso condicional "Si tienes placas...". El simulador solar NO usa esa declaracion como prueba (sigue preguntando, por si alguna distribuidora no rellena los campos). En todos los casos con aviso se ofrece el CSV o meter los kWh a mano.
+- Errores por distribuidora (`distributorError` de las respuestas v2): la lista puede traer errores de OTRAS distribuidoras de la cuenta aunque los datos lleguen bien, asi que solo cuenta si los consumos llegan vacios y el error es de la distribuidora consultada (`errorDeDistribuidora`): se explica que el fallo es de la distribuidora (texto de Datadis acotado y escapado), no cuenta como fallo de login y no se reintenta mes a mes.
+- Analitica: la importacion no envia NADA propio salvo al terminar bien, cuando el evento que ya se enviaba (`csv-import-aplicado` en la home, `csv-import-completado` en solar) lleva otra etiqueta: `datadis-import/home/aplicado/<consumos|consumos-excedentes>/<pvpc-periodo|pvpc-reciente>` y `datadis-import/solar/completado/<con|sin>-excedentes`. Mismo momento y misma categoria cerrada; no se suma ningun envio. Sirve para saber cuanto se usa. Ni credenciales, ni token, ni CUPS, ni consumos; el modal sigue excluido del seguimiento.
+- Informe de fallo (equivalente al aviso de CSV fallido, pero dentro del modal y SIN analitica): en los errores que pueden destapar una rareza de la distribuidora o un fallo propio (`http`, `parseo`, `sindatos`, `solar`, `distribuidora`, `timeout`, `sinsuministros` y cualquier excepcion inesperada; no en contrasena, bloqueo, red, sesion, repeticion, periodo ni baja) el modal ofrece un informe editable y un `mailto:` a hola@luzfija.es con "Copiar texto". `importar` rellena un diagnostico sin datos personales (TODO texto que llega de Datadis -mensajes, `errorDescription`, nombre de la distribuidora, descripcion de autoconsumo, tarifa, metodos de obtencion- pasa por `textoTecnicoLimpio`, que es heuristico (un nombre o una direccion en texto libre no se detectarian): por eso el modal y la privacidad no prometen anonimizacion absoluta y piden revisar el informe; el resumen por mes se calcula ya sin horas repetidas e indica filas recibidas y procesadas; paso y tiempo de cada paso, codigo/HTTP y texto de la respuesta de Datadis, excepcion inesperada con su fichero:linea, navegador y version principal, forma de la respuesta de suministros, resultado de la consulta del periodo y de cada mes del reintento, campos y tipos de las filas, ejemplos de fechas/horas con otro formato, periodo pedido, distribuidora y codigo, tipo de punto, n.o de suministros, tipo de autoconsumo del contrato y si trae los campos, `distributorError`, filas recibidas, horas 00:00, metodos de obtencion y, por mes, horas con consumo/esperadas, excedentes con valor/nulos/positivos y si informa generacion). Nunca NIF, contrasena, token, CUPS, direccion ni kWh (lo vigila `tests/datadis-import.test.js`). Nada se envia solo; los clics dentro del modal no llegan a la analitica.
+- Horas: solo cuentan las etiquetas `HH:00` (o `HH:00:00`) de 1 a 24, y 25 solo el ultimo domingo de octubre (hay distribuidoras que numeran ese dia 1..25); `99:00`, texto o medias horas no cuentan para la cobertura ni entran en el CSV. Una etiqueta repetida solo se admite UNA vez ese dia del cambio de hora y solo si es `02` o `03` (la hora que se vive dos veces: `03` con la convencion inicio + 1 de la peninsula, `02` en Canarias o con la hora etiquetada por su final; el dia de 25 filas se numera por posicion, asi que vale para ambas); en cualquier otro dia se queda la primera (`quitarHorasRepetidas`): una repetida hacia que el dia sumara horas de mas o, con 25 filas, que se numerara como el del cambio de hora y se desplazaran todas sus horas. El informe de fallo cuenta las horas no validas y las repetidas descartadas.
+- Reintento mes a mes con tope total de 6 minutos (`T_MES_A_MES_TOTAL`; cada mes, hasta 120 s): en el peor caso eran ~28 min. Al agotarse se sigue con los meses recibidos (los mas recientes); los NO pedidos viajan aparte (`sinPedir`), porque un hueco por tiempo agotado no es un suministro sin historial: el simulador solar NO simula si alguno cae en su ano (la cobertura los habria omitido como "de antes del alta" y daria un ano mas corto con una explicacion falsa) y la home avisa de que esos dias faltan por tiempo, no por falta de consumo. Tambien cuentan como no descargados los meses del reintento que agotan su tiempo o que Datadis rechaza por consulta repetida; un 500 o un mes vacio NO (es el caso del primer mes de un contrato). Sin ningun mes, tiempo agotado. Ademas, en la home, si los consumos recibidos empiezan o acaban mas de 7 dias lejos de lo pedido (p. ej. el ultimo mes dio un 500 y los anteriores llegaron), se avisa: la deteccion de huecos del importador solo mira dentro de lo recibido. 7 dias porque hay distribuidoras que publican con unos dias de retraso.
+- Formatos: la documentacion fija `AAAA/MM/DD` y `HH:MM`; las fechas `AAAA-MM-DD` se normalizan (sin ello se descartaria todo el periodo) y las horas `HH:MM:SS` se leen igual. Tras un cambio de comercializadora, el contrato y la fecha de alta del suministro solo reflejan el contrato nuevo aunque Datadis siga sirviendo los consumos anteriores (medido en real): el periodo pedido NUNCA se limita por esas fechas; el contrato solo elige el vigente (potencia y tipo de autoconsumo).
+- Suministro dado de baja (`validDateTo` anterior al inicio del periodo): se corta antes de pedir consumos (no se gastan consultas que Datadis no deja repetir) y se explica con la fecha; en la home se sugiere un periodo anterior. El selector de suministros muestra "de baja desde el dd/mm/aaaa".
+- Botones en el HTML (no creados por JS), para no mover la pagina al arrancar: medido en produccion el 30/10/2026, crearlos por JS daba CLS de carga 0,13-0,29 en 769-1.180 px (ya pasaba con "Importar CSV"); en el HTML, 0. Si su modulo no los conecta, se ocultan. Ver `ARRANQUE-CARGA.md`.
+- Simulador solar (`comparador-tarifas-solares.html`, boton secundario `#bvImportarDatadis` bajo "Seleccionar archivo CSV"): usa el mismo selector y formulario de periodo que la home: "Ultimos 12 meses" u "Otro periodo" con dos fechas (maximo 365 dias). El predeterminado pide los 12 ultimos meses naturales COMPLETOS mas DOS anteriores (`MESES_MARGEN`, misma consulta) y SIEMPRE el contrato. Si los ultimos meses cerrados (hasta dos) no tienen aun los excedentes publicados y los anteriores si, simula los 12 meses que terminan en el ultimo publicado y lo avisa nombrandolos; si todo esta publicado, los meses de margen no entran. Un periodo personalizado se pide con las fechas elegidas, sin margen ni desplazamiento. El CSV generado entra por `BVSim.importarFichero` (= `handleFile` de `bv-ui.js`, el mismo camino que un fichero elegido a mano). Regla: nunca un ranking como si no hubiera excedentes cuando puede haberlos, ni con un ano incompleto sin decirlo.
+  - Consumo (`evaluarCobertura`): se compara con las horas que DEBERIAN existir (dias x 24, -1 h el ultimo domingo de marzo, +1 h el de octubre), no con las que llegan. Meses vacios al PRINCIPIO (suministro dado de alta hace menos de un ano), mas un primer mes parcial, se omiten y se simulan los meses restantes avisando; el validador del simulador acepta a proposito menos de 12 meses consecutivos. Cualquier otro mes por debajo del 98 % (vacio en medio o al final, o con dias de menos) BLOQUEA nombrando mes y porcentaje; entre el 98 % y el 100 % se importa avisando de las horas que faltan.
+  - Contrato (`leerAutoconsumo`, sobre el contrato VIGENTE): primero la DESCRIPCION ("con/sin excedentes", "sin autoconsumo"); despues el CODIGO de la tabla 113 de los formatos CNMC, con sus dos codificaciones oficiales en vigor (antigua: 31-33 sin excedentes, 41-43/51-58/61-64/71-74 con excedentes; nueva: 11 sin excedentes, 12 con excedentes; 00 sin autoconsumo en ambas; 0C y los tipos del regimen anterior 01/2A/2B/2G quedan como "no se sabe"); por ultimo indicios (`installedCapacityKW`, CAU). "Sin autoconsumo" exige prueba positiva (codigo 0 o descripcion); un contrato que no dice nada es "no se sabe", nunca "sin placas".
+  - Decision (`decidirSolar`): excedentes en todos los meses -> importa con ellos; algun mes entero sin dato entre abril y septiembre -> BLOQUEA (con placas es muy improbable no verter nada); solo meses de octubre a marzo sin dato -> PREGUNTA (puede ser un cero no enviado); un mes entero a 0 mientras otros vierten -> PREGUNTA; contrato "con excedentes" sin un solo kWh vertido -> BLOQUEA (o PREGUNTA si llegan ceros explicitos todo el ano); "sin excedentes" o sin autoconsumo -> importa solo el consumo; no se sabe -> PREGUNTA. Todo lo importado a 0 por confirmacion se repite en los avisos.
+  - Con autoconsumo, `consumptionKWh` es la energia IMPORTADA de la red (lo que espera el simulador); `generationEnergyKWh` no es fiable y no se usa. `obtainMethod` puede llegar vacio: se trata como estimado.
+- Diferencias entre distribuidoras que el modulo absorbe (una cuenta de prueba solo cubre la suya; se contrastaron con integraciones publicas consolidadas que usan la misma API con usuarios de todas las distribuidoras):
+  - Fila "00:00" de mas (vacia) en dias que ya traen 01:00..24:00, sobre todo el primer dia de alta del contador (visto en i-DE): se descarta ANTES de contar las horas del dia; si no, el dia pareceria de 25 h y se desplazarian todas sus horas.
+  - Horas sin lectura con el consumo vacio (""): son "sin dato", nunca 0 kWh. Numeros en texto con coma se aceptan.
+  - Algunas distribuidoras devuelven error 500 o una respuesta vacia en cualquier consulta que incluya el primer mes de un contrato: se reintenta MES A MES (del mas reciente al mas antiguo) y el mes roto solo se pierde a si mismo (la cobertura lo trata como mes omitido o como hueco). No se reintenta ante 429, sesion caducada, red caida ni tiempo agotado.
+  - Datadis rechaza (400) consultas cuyo mes de inicio empiece hace mas de 2 anos: el primer dia elegible es el primer mes cuyo dia 1 este dentro de ese plazo (`inicioMasAntiguo`).
+  - Credenciales incorrectas: HTTP 500 con "Bad credentials" (medido), y tambien 401/403 por si cambia.
+  - Respuestas: el token se acepta en texto plano, entre comillas o dentro de `{ token }`; un cuerpo vacio o el literal `null` es "sin datos" (dispara el reintento mes a mes), no un error; el aviso de consulta repetida se reconoce en JSON (`message`) o en texto plano.
+  - `get-contract-detail` puede traer VARIOS contratos (cambio de potencia, titular o autoconsumo): se usa el vigente (sin fecha de fin; si no, el de inicio mas reciente) para la potencia y el autoconsumo.
+  - Sin prueba real con una instalacion fotovoltaica a 30/10/2026: validado con datos simulados (incluidos noches en null, meses sin dato, meses ausentes y dias de menos) y E2E.
+- Interruptor de apagado: `DATADIS_IMPORT_ENABLED` en `js/lf-datadis.js`. A `false` el boton desaparece y queda el importador de CSV. Es opcional: si Datadis cambia su API o su CORS, se retira en un despliegue.
+- CSP: `connect-src` de la home admite `https://datadis.es`. Estado de permiso de Datadis: sin autorizacion expresa publicada y sin prohibicion en sus textos accesibles; ver `privacidad.html` (apartado 7) y `ARRANQUE-CARGA.md`.
+
+### 3.5 Extractor De Factura PDF
+
+- Entrada por boton o drag&drop.
+- PDF.js queda fuera del arranque general y se precarga de forma oportunista al abrir el modal;
+  seleccionar el archivo espera esa misma carga y la reintenta si fallo. La precarga solo descarga
+  codigo first-party: no lee ninguna factura ni activa el OCR opcional (Tesseract).
+- La descarga del lector tiene un deadline propio de 60 segundos, por debajo del watchdog para dar
+  un error atribuible en vez de que lo tape el corte general. Sin el, una peticion que nunca
+  responde dejaria la promesa de carga compartida sin asentar y todos los intentos posteriores del
+  usuario esperarian a esa promesa muerta. El reintento pide una URL HTTP distinta, no solo una
+  identidad de modulo nueva: un fragmento no viaja en la peticion y no forzaria descarga nueva.
+- Compatibilidad PDF en WebKit: core y worker proceden de la misma version de la build `legacy` de
+  PDF.js; antes de evaluarlos se instalan los shims runtime requeridos y la extraccion de texto usa
+  `streamTextContent().getReader()` para no depender del iterador asincrono ausente en versiones
+  afectadas de Safari.
+- La lectura PDF inicial programa un watchdog de 90 segundos. Si el trabajo asincrono no termina y
+  el navegador puede ejecutar el temporizador, invalida la operacion, cancela los recursos PDF
+  registrados, retira el loader, recupera el area de subida y muestra un aviso accionable. No es un
+  limite del OCR opcional ni puede interrumpir una llamada sincronica que ya este ocupando el hilo.
+- Extraccion en 3 capas:
+- Texto PDF.
+- QR CNMC en texto: se prueban en orden todas las URL CNMC del texto, porque la visible puede
+  llegar cortada y la completa ser la del enlace clicable que va detras (ronda 68).
+- QR por imagen con jsQR (si ninguna URL del texto se puede leer).
+- Combinacion QR+PDF con prioridad campo a campo del QR CNMC valido; el texto del PDF solo completa
+  campos ausentes. Una contradiccion del texto visible no sobrescribe el dato estructurado del QR.
+- Deteccion de comercializadora por patrones y, cuando hay QR, resolucion del codigo `com=R2-NNN`
+  o `com=R2-NNNN` contra el censo CNMC local versionado en
+  `data/cnmc-commercializers.json`. El sincronizador localiza columnas por encabezado, aborta ante
+  codigos R2 desconocidos y registra fecha, filas, entradas, duplicados, webs invalidas y codigos
+  de baja en `_meta`.
+- Campos aplicables extraidos: potencias, dias y consumos. El CUPS y el codigo postal del QR se
+  descartan y no llegan al modelo de interfaz.
+- Ficha informativa para QR CNMC con comercializadora, periodo y total, tipo de factura y contrato,
+  renovacion, permanencia, revision/promocion/cambio de precios, servicios, energia verde, precios
+  contratados, desglose declarado, maximas demandadas, consumo acumulado y contacto publico. Los
+  precios de potencia se presentan primero en `€/kW·dia`, como el resto del comparador, y conservan
+  al lado el valor regulado original del QR en `€/kW·año`; la equivalencia usa la base comercial
+  fija de 365 dias del motor principal, tambien cuando la factura cae en un año bisiesto.
+- En contratos fijos compatibles del QR (`E0` libre 3P y `F0` libre 1P, sin cuota mensual), una
+  casilla opt-in permite aplicar tambien los precios del QR a los cinco campos de `Mi tarifa`. La importacion sustituye
+  la configuracion personalizada anterior y no inventa descuentos, servicios, compensacion solar
+  ni bateria virtual que el QR no permite trasladar al modelo del comparador.
+- Cuando existe QR pero esa casilla no se puede ofrecer, la ficha explica el motivo: modalidad no
+  representable, tipo de contrato ausente, precios incompletos/no validos, unidad de potencia no
+  verificable, descuento no reflejado o incoherencia entre precios e importes. Si el PDF no tiene
+  QR no se muestra un aviso especial, porque no hay datos estructurados que evaluar.
+- Con un cambio de precios dentro del periodo (`cambio=1`) la casilla SI se ofrece, sin marcar y
+  precedida de un aviso: el QR trae solo uno de los dos precios sin indicar cual (unas
+  comercializadoras ponen el nuevo y otras el anterior) y los importes no permiten comprobarlo,
+  asi que decide el usuario. Las demas comprobaciones (modalidad, unidad de potencia, F0) se
+  mantienen.
+- Indicador de confianza y avisos contextuales.
+- El badge distingue si la URL CNMC se obtuvo como enlace del PDF o decodificando el QR rasterizado.
+  Si QR y PDF corresponden al mismo periodo pero producen un numero de dias distinto, conserva la
+  confianza y los dias QR-first, pero explica al usuario ambos valores y la semantica inicio
+  excluido/fin incluido.
+- Si el PDF es escaneado (sin texto) o la confianza es baja (<50%), el aviso muestra un boton primario "Leer la factura escaneada (OCR)" junto al mensaje, ademas del boton OCR compacto de la cabecera.
+- Aplicacion a formulario con autocálculo solo cuando la confianza es plena (>= 99.5%) y los datos NO vienen del OCR: la confianza cuenta campos detectados, no si Tesseract leyo bien cada cifra, asi que con datos de OCR el usuario revisa y pulsa Calcular.
+- **PDF con varias facturas: se detecta y no autocalcula.** El texto de todas las paginas se
+  concatena, asi que en un PDF con mas de una factura el rango de fechas que encuentra el parser
+  puede pertenecer a una factura distinta de la que aporta el QR CNMC. Antes de combinar se compara
+  el periodo del QR con el periodo detectado en el PDF (tolerancia de 2 dias, que cubre la
+  diferencia de semantica entre las fechas de lectura del QR y el rango impreso). Si no casan, se
+  conservan los dias del QR —que son autoconsistentes con sus consumos—, la confianza baja a 75% y
+  se avisa de que el archivo puede contener varias facturas o suministros, sugiriendo subir solo la
+  que se quiere comparar. Al quedar por debajo del umbral de 99,5%, no se autocalcula.
+- **Facturas fuera de 2.0TD: bloqueo explicito.** Si el documento declara inequivocamente un peaje
+  de acceso 3.0TD o 6.1TD-6.4TD (etiqueta `peaje de acceso` / `tarifa de acceso` / `ATR` junto al
+  peaje), el extractor devuelve confianza 0, no entrega potencias ni consumos, y el modal explica
+  que el comparador solo modela 2.0TD. El boton "Aplicar datos" queda bloqueado aunque el usuario
+  rellene los campos a mano, y un QR valido tampoco puede saltarse el bloqueo: la declaracion de
+  peaje del propio documento manda. Una factura 2.0TD que solo MENCIONE 3.0TD en su letra pequena
+  (p. ej. "si supera 15 kW se le aplicara el peaje 3.0TD") no se bloquea, porque el documento
+  declara ademas su propio peaje 2.0TD.
+- Privacidad reforzada:
+- Modo privacidad durante proceso.
+- No se trackean eventos de modal factura.
+- La resolucion de la comercializadora es same-origin y no envia la URL del QR ni datos de la factura.
+- Liberacion de referencia al archivo tras aplicar.
+
+### 3.6 UX Operativa
+
+- Compartir configuracion por URL (`btnShare`, Web Share API + fallback portapapeles) con consentimiento previo: por defecto solo ajustes generales; consumo/excedentes/dias y saldo BV/bono social se marcan por separado antes de compartir.
+- Al abrir la home, solo se interpretan como configuracion compartida las claves de `SHAREABLE_INPUT_KEYS` (`js/lf-state.js`), derivadas de `DEFAULTS` para que no se desincronicen al anadir campos al formulario. Los parametros de seguimiento y diagnostico (`utm_*`, `fbclid`, `gclid`, `ref`, `debug`) son invisibles para el sistema de configuracion. Es deliberado y critico: la presencia de parametros compartidos hace que `loadInputs()` ignore `localStorage`, asi que si entrara cualquier parametro, un enlace de newsletter mostraria los valores por defecto y al calcular se guardarian encima de la configuracion del usuario.
+- Menu de opciones: compartir configuracion, "Como funciona", comunidad de Facebook, contacto y
+  "Limpiar cache". Este ultimo borra solo cache tecnica (`pvpc_cache_v3:*` de `localStorage`,
+  `sessionStorage`, Cache Storage y el registro del service worker) y recarga; nunca toca
+  configuracion ni datos del usuario (inputs, "Mi tarifa", tema, escenario solar). No hay boton
+  de refresco manual de tarifas (se refrescan solas, ver mas abajo) ni de reset del formulario
+  en la home.
+- Tema claro/oscuro con persistencia local.
+- Boton de instalacion PWA (`beforeinstallprompt`) con fallback de instrucciones por plataforma.
+- Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~15 minutos.
+- Banner de donacion a la AECC (`js/aecc-banner.js`, solo home y solo escritorio >=1024px):
+- Aparece tras un calculo iniciado por el usuario con resultados visibles (eventos `lf:results-requested`/`lf:results-ready`); el auto-refresh no lo dispara.
+- Muestra el logo oficial de la AECC (`img/aecc-logo.svg`, autoalojado) y el codigo Bizum de donacion `11244`. No incluye boton de copia: se retiro por decision de producto al no resultar necesario.
+- Se aparta solo cuando el formulario entra en viewport, los resultados salen, o un campo/panel protegido cae bajo su zona (inputs numericos y el panel "Mi tarifa" `miTarifaForm`); se reevalua en scroll/resize y en eventos `change` (paneles que se despliegan sin scroll). No cuenta como cierre.
+- Cooldown de 7 dias en `lf_aecc_banner_dismissed_at` (se activa al cerrar); la clave se preserva en el "Limpiar cache" del menu.
+- Eventos GoatCounter: `aecc-banner-mostrado` y `aecc-banner-cerrado`.
+- LuzFija no interviene en la donacion: el usuario dona por Bizum desde su app bancaria directamente a la AECC.
+
+### 3.7 Analitica Y Privacidad
+
+- Analitica con GoatCounter sin cookies y con opt-out local desde `privacidad.html`.
+- Pageviews canonicos sin query/hash y referrers saneados para no filtrar busquedas ni configuraciones compartidas.
+- Eventos de interaccion con `no_session: true` para contar acciones repetidas; las visitas reales se miran con pageviews (`is:pageview` en GoatCounter).
+- Taxonomia detallada por `path` para comparar uso real de herramientas, guias, CSV, filtros, resultados y clicks de tarifa.
+- La carga/extraccion de factura PDF no se trackea: `factura.js` activa modo privacidad y `tracking.js` bloquea eventos del modal `#modalFactura`.
+- Documento de mantenimiento: `ANALITICA-GOATCOUNTER.md`.
+
+## 4. Funcionalidades Del Observatorio PVPC (`/estadisticas/`)
+
+### 4.1 Controles
+
+- Selector de tipo: `pvpc` o `surplus`.
+- Selector geografico: 8741..8745 (Peninsula, Canarias, Baleares, Ceuta, Melilla).
+- Cada zona se presenta en su hora civil para PVPC y excedentes: en Canarias el dia, las horas del
+  perfil y el anyo vigente van en hora canaria.
+- Selector de ano y mes (mes aplicado al perfil horario).
+- Modo de tendencia diaria vs mensual.
+- Chips de anos para comparativa multianual.
+- Estado compartible por URL (parametros de tipo, geo, ano, mes, modo y anos comparados).
+
+### 4.2 KPIs Y Graficos
+
+- KPI 1: ultimo dia.
+- KPI 2 y 3 dinamicos:
+- En ano actual: media 7 dias y 30 dias.
+- En ano cerrado/historico: mejor dia y peor dia.
+- KPI 4: rolling 12 meses (o media anual en historico).
+- KPI 5: comparativa YoY (mismas fechas).
+- Grafico de evolucion (diario/mensual).
+- Perfil horario promedio (con consejo de bloque optimo de 3 horas).
+- Comparativa por anos en chart dedicado.
+
+### 4.3 CSV De Excedentes Del Usuario
+
+- Cada hora de la curva se valora con el precio de excedentes de ese mismo instante: la curva
+  va en hora local de la zona y `data/surplus/{geo}` se guarda en ese mismo reloj.
+
+- Seccion visible cuando el tipo seleccionado es `surplus`.
+- Importa CSV/XLSX local del usuario.
+- Calcula:
+- Excedentes anuales (kWh).
+- Compensacion anual estimada (EUR).
+- Precio medio efectivo (EUR/kWh).
+- Mejor/peor mes.
+- Hora pico y top horas.
+- Tabla mensual con:
+- Energia vertida.
+- Precio medio.
+- Importe.
+- Tramo principal 80% del vertido.
+- Hora pico.
+- **Cobertura parcial de precios: ausencia no es cero.** Si algun mes del CSV no encuentra precio
+  horario en el historico de la zona, ese mes conserva su energia vertida real pero muestra `—` en
+  precio medio e importe, y queda excluido de mejor/peor mes (un mes sin valorar no puede ser el
+  mas caro ni el mas barato). El total de excedentes muestra la energia realmente aportada por el
+  usuario, no solo la valorada, y una nota indica cuantas horas y kWh se quedaron sin precio,
+  aclarando que la compensacion y el precio medio solo cubren la parte con cobertura.
+
+## 5. Funcionalidades Del Simulador BV (`/comparador-tarifas-solares.html`)
+
+### 5.1 Entradas Y Modo Hibrido
+
+- Entradas base:
+- Potencias P1/P2, con el mismo dominio 2.0TD que la home (ver 3.1): maximo 15 kW y P1 admite 0 kW.
+- Saldo BV inicial.
+- Mes de inicio del contrato para simular la BV desde ese punto.
+- Zona fiscal + vivienda canarias.
+- Importacion CSV/XLSX para autoconsumo.
+- Tabla manual mensual (12 meses) siempre disponible.
+- Modo hibrido:
+- Importa CSV.
+- Rellena tabla manual por mes.
+- Permite editar manualmente y simular escenarios futuros.
+
+### 5.2 Persistencia Local Del Modo Manual
+
+- Autoguardado en localStorage:
+- `bv_manual_data_v2`.
+- `bv_manual_data_timestamp`.
+- Incluye tabla mensual, potencias, saldo BV inicial, zona fiscal, vivienda Canarias, mes de inicio y "Mi tarifa".
+- Exportar/importar backup JSON del escenario completo.
+- Reset completo de datos manuales.
+- Indicador de ultimo guardado.
+- Compartir escenario por URL con consentimiento previo: por defecto solo incluye ajustes generales. El usuario puede marcar por separado los datos mensuales de consumo/excedentes y "Mi tarifa" con saldo BV. Nunca incluye el CSV ni su trazabilidad horaria; si se comparten datos mensuales, las indexadas usan la referencia orientativa.
+- Al abrir un escenario compartido, un aviso confirma que no ha sustituido la configuracion local y permite guardarlo expresamente. El enlace conserva la fecha de tarifas conocida al compartir; al recalcular, avisa si el listado actual cambio.
+- Un escenario abierto con `?bv=` es una PREVISUALIZACION completa: se edita en pantalla pero no escribe en `localStorage`. El autoguardado queda bloqueado para la tabla y para "Mi tarifa" (claves distintas, ambas protegidas), el indicador muestra "Vista previa sin guardar" y exportar descarga el estado visible sin adoptarlo. Solo "Guardar escenario" o importar un respaldo adoptan el escenario, y unicamente si la escritura de las tres claves relacionadas (`bv_manual_data_v2`, `bv_custom_tarifa`, `bv_manual_data_timestamp`) termina completa; entonces se retira solo el parametro `bv` de la URL, conservando los demas parametros y el hash. Detalle completo en `SIMULADOR-BV.md`.
+- Fuera de previsualizacion, si el navegador rechaza escribir (cuota, modo restringido), el indicador muestra "No guardado" con estilo de error en lugar de anunciar un guardado inexistente.
+
+### 5.3 Simulacion Y Ranking
+
+- Motor mensual:
+- Potencia.
+- Energia bruta.
+- Compensacion limitada por energia.
+- Impuestos por zona.
+- BV (uso y acumulacion si la tarifa la soporta).
+- `maxConsumoAnual` y `maxConsumoAnualPorKw`, antes del ranking: se suman los kWh importados de
+  los meses simulados y se aplica la misma utilidad que en la home (`LF.assessConsumoAnualLimits`),
+  con la menor de las potencias P1/P2 del formulario para el tope por kW. Superar el maximo NO
+  retira la tarifa por si solo; el aviso desplegable dice cuales lo superan y el usuario decide,
+  igual que en la home. Si aplica los limites, se retiran antes de ordenar. El criterio de ranking
+  NO cambia: sigue siendo importe pagado con desempate por saldo BV final; esto solo quita
+  candidatas.
+- Alcance anual en el simulador solar (`window.BVSim.manualUi.hasFullAnnualConsumptionCoverage`):
+  12 meses consecutivos, sin duplicados y con al menos 365 dias reales cubiertos. Es mas estricto
+  que el `dias >= 365` de la home y distinto del umbral de presentacion (ver siguiente punto).
+- Dos alcances anuales distintos y deliberados: `isAnnualPresentationScope` (12 meses con >= 80% de
+  cobertura cada uno) decide etiquetas como "Coste total anual" frente a "Coste periodo simulado";
+  `isAnnualConsumptionScope` exige 12 meses consecutivos y >= 365 dias para considerar que ya no
+  hace falta extrapolar. Ninguno excluye por consumo minimo. Cuando el titulo dice "anual" pero no
+  hay ano de consumo, la etiqueta lo declara con un sufijo (`· 293 de 365 dias con datos`), que
+  solo se muestra si la falta es real: un historico movil de 365 dias sin huecos que cruza un
+  febrero bisiesto NO se acusa de "365 de 366".
+- En alcance parcial, `getConsumptionCoverageDays` suma los dias civiles realmente cubiertos (sin
+  duplicar una clave mensual) y permite mostrar una estimacion anual opt-in, que advierte de que la
+  estacionalidad del autoconsumo puede desviar la extrapolacion. El mismo interruptor gobierna la
+  estimacion y las exclusiones por kWh registrados: desde el 12/09/2026 ninguna de las dos se
+  aplica sin que el usuario lo pida.
+- CSV de 13 meses (un ano descargado a mitad de mes): los dos tramos del mismo mes natural se
+  cosen en una sola fila en vez de descartar el extremo mas corto, conservando los 365 dias. Manda
+  el tramo reciente en los solapes y el mes destino es el que puede albergar mas dias. Detalle y
+  consumidores economicos de `segments` en `SIMULADOR-BV.md`.
+- "Mi tarifa" nunca puede quedar excluida: `getCustomTarifa()` la construye sin campos de limite.
+  Es un dato del usuario, no una recomendacion.
+- Si no quedara ninguna tarifa compatible, no se lanza error generico: se muestra el aviso con las
+  excluidas y un mensaje de que no hay compatibles.
+- Mes de inicio: reordena los meses disponibles antes de simular, sin modificar consumos ni excedentes de cada mes.
+- Los meses se tratan como patron anual de consumo/produccion: la tabla son 12 casillas
+  enero-diciembre que describen la vivienda, no un historico fechado. Elegir el mes de inicio pide
+  recorrer ese mismo patron en otro orden, no predecir el ano siguiente. Por eso enero-mayo pueden
+  aparecer despues de diciembre cuando el ciclo empieza en junio y **conservan su clave `YYYY-MM`
+  original**: marzo sigue siendo marzo. Lo que determina el arrastre cronologico del saldo BV es el
+  orden de simulacion, no la clave. Se conserva a proposito para que SSAA y fiscalidad usen el dato
+  regulado realmente publicado de ese mes; proyectarlo al ano siguiente lo sustituiria por el
+  fallback plano del ultimo mes completo y haria que un escenario guardado cambiara de importe cada
+  vez que se publica un mes nuevo. No inventa energia ni meses.
+- Metricas:
+- `totalPagar`: coste facturado efectivo.
+- `totalReal`: metrica auxiliar mensual sin saldo BV previo.
+- Coste neto del periodo: `totals.pagado - totals.bvFinal`, visible como metrica secundaria en tarifas con BV cuando hay saldo final relevante; si sale negativo se presenta como saldo a favor.
+- Ranking del periodo simulado:
+- Orden principal por total pagado del periodo; anual solo cuando hay 12 meses razonablemente completos.
+- Desempate por mayor saldo BV final.
+- El coste neto no altera el orden del ranking: el saldo final es valor condicionado a seguir con la comercializadora y consumirlo en facturas futuras.
+- Resultado:
+- Tarifa ganadora.
+- Ranking completo.
+- KPIs de pagado, compensacion, uso de hucha, saldo BV final y coste neto secundario cuando aplica.
+- Si "Mi tarifa" esta rellena y no gana, un KPI "Frente a tu tarifa actual" con lo que se ahorraria
+  (o "Empate" si el puesto lo decide el saldo BV final) y el puesto que ocupa "Mi tarifa" en el ranking.
+- Desglose por mes (desktop tabla + movil tarjetas).
+
+### 5.4 Tarifa Personalizada Del Simulador
+
+- Formulario propio "Mi tarifa".
+- Persistencia en localStorage (`bv_custom_tarifa`).
+- Indicador visual de guardado + opcion de limpiar.
+
+### 5.5 Notas De Modelo
+
+- Incluye tarifas con `fv.exc` numerico positivo y tarifas indexadas marcadas con `fv.exc = -1`.
+- Si una tarifa usa precio indexado, la web distingue trazabilidad:
+  - Sin curva horaria: usa 0,020 €/kWh como referencia orientativa y muestra nota explicita en UI.
+  - Con CSV horario conservado en el simulador solar: calcula el valor mensual contra `data/surplus/` segun el indice base disponible.
+  - Si el indice horario tiene huecos, solo acepta el calculo parcial cuando la cobertura perdida es residual tanto por horas como por kWh de excedente sin valorar; si no, ese mes cae a la referencia orientativa con aviso.
+- En tarifas sin BV, el excedente sobrante no se acumula.
+- En tarifas de compensacion parcial (`fv.tope = "ENERGIA_PARCIAL"`), la compensacion directa excluye peajes/cargos de energia; si la tarifa tiene BV, el sobrante no aplicado por ese limite tambien se acumula en BV.
+
+## 6. Guias, Landings, 404 Y Legal
+
+- `guias.html`:
+- Busqueda en vivo sobre `data/guides-search-index.json`: titulo, resumen, alias, secciones, FAQ y
+  contenido, sin distinguir tildes. Exige todas las palabras; algunos sinonimos de consulta
+  (nocturno -> noche, denunciar/queja -> reclamar). Con varias palabras y menos de 3 guias
+  completas anade hasta 5 "relacionadas" detras, separadas en el contador. Muestra el fragmento
+  donde aparece la palabra. Sin indice disponible cae a busqueda basica sobre las tarjetas.
+- Filtros por categoria (`todas`, `basico`, `factura`, `tarifa`, `solar`, `ahorro`, `gestion`).
+- `404.html`:
+- Buscador con redireccion a `guias.html?q=...`.
+- Sugerencia "Buscabas ...?" con la pagina de `/sitemap.xml` mas parecida a la URL pedida
+  (`js/not-found.js`); rutas ambiguas no sugieren nada. Envia `pagina-404/<pagina existente>` sin
+  la ruta tecleada (ver `ANALITICA-GOATCOUNTER.md` 6.4.1).
+- Bloque de datos curiosos rotatorio, solo con datos que las guias ya verifican.
+- `privacidad.html`:
+- Explica hosting, analitica, procesamiento local y almacenamiento local.
+- Incluye opt-out de GoatCounter.
+
+## 7. Arquitectura Tecnica
+
+- Stack: HTML + CSS + Vanilla JS modular.
+- Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
+- Lineas JS aproximadas: 38.535.
+- Sitio estatico en GitHub Pages.
+- Datasets versionados en repo:
+- `tarifas.json` (119 tarifas).
+- `/data/pvpc/` (indicador 1001).
+- `/data/surplus/` (indicador 1739).
+- `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).
+- Origen de tarifas: dataset curado en `tarifas.json`. El campo interno `Activa` no se exporta: el generador acepta solo `SI` o `NO` tras `trim`; `NO` excluye la tarifa y cualquier otro valor detiene la generación para no publicar un dataset ambiguo. Ver `JSON-SCHEMA.md`.
+- Campo interno recomendado: `incluyeServiciosAjuste` (`SI`/`NO`) para distinguir tarifas cuyo precio publicado ya incluye SSAA frente a las que requieren aplicar el dataset `/data/ssaa/`. En el calculo, SSAA se suma al termino de energia antes de IEE e IVA/IGIC/IPSI.
+- Fiscalidad Peninsula/Baleares: a 30/09/2026, IVA 21% e IEE 5,11269632% en agosto y septiembre (el IPC anual de electricidad de junio, 6,0%, y el de julio, 8,4%, tabla 76128 del INE, subclase 04.5.10, no superaron el umbral de mas del 15% del RDL 18/2026) y en octubre (el RDL 25/2026 no preve rebaja). Noviembre tambien queda al tipo general: el IPC de electricidad de septiembre (INE, 14/10/2026) fue 11,4%, por debajo del umbral de la salvaguarda del RDL 25/2026. Diciembre depende del IPC de octubre. Proximas revisiones segun `MANTENIMIENTO-NORMATIVO.md`.
+- En las rutas productivas normales, IVA, IGIC e IPSI se calculan de forma comun en `LF_CONFIG.calcularImpuestoIndirecto()` desde bases monetarias normalizadas a centimos y tipos expresados en puntos basicos. `lf-utils.js` y `bv-sim-monthly.js` conservan fallbacks defensivos no equivalentes si falta el helper; el orden de carga normal evita esa degradacion. La regresion de fronteras de medio centimo y paridad home/BV/desglose vive en `tests/fiscal-rounding-align.test.js`.
+- Inventario de mantenimiento normativo, fuentes oficiales, cadencias e impacto tecnico: `MANTENIMIENTO-NORMATIVO.md`.
+
+## 8. Service Worker Y Funcionamiento Offline
+
+- Archivo: `sw.js` con `CACHE_VERSION` por despliegue.
+- Precache en dos niveles:
+- `CORE_ASSETS` obligatorios.
+- `ASSETS` opcionales best-effort, con nucleos atomicos para las rutas solar y estadisticas. Los recursos se reintentan y un build que deje incompleta una cadena funcional no llega a activarse.
+- Estrategias:
+- `network-first` para navegacion HTML, usando una copia sana ante 408/429/5xx, cuerpo cortado o
+  falta de red, sin ocultar 404/410 reales. Orden: copia de esa pagina, `index.html` de su
+  directorio y la home solo para paginas de su mismo directorio; una guia nunca visitada abierta sin
+  red muestra el error "sin conexion" del navegador.
+- Un 200 cuyo cuerpo se corta a mitad se trata como fallo de red (lectura completa de un clon) en
+  navegacion, JS/CSS/workers, datasets, censo CNMC e indice de guias.
+- `network-only` para `tarifas.json` (sin cache para evitar desactualizados).
+- `tarifas.json` tiene un unico reintento acotado ante fallos transitorios. Si
+  falla tambien y la pestaña ya habia descargado una lista valida durante esa
+  misma sesion de pagina, el calculo continua con esa copia exclusivamente en
+  memoria y lo avisa; nunca usa una copia persistida de otro momento.
+- "Lista valida" tiene criterio estructural explicito: un HTTP 200 solo sustituye la copia en
+  memoria si el root es el objeto esperado y TODAS sus tarifas traen nombre comercial unico,
+  `tipo` 1P/3P y los cinco precios numericos finitos y no negativos. El cero sigue siendo valido
+  (incluido `p2 = 0`); no se aplican rangos comerciales maximos (tampoco el generador los valida).
+  Ademas, si la respuesta declara el mismo `updatedAt` que una copia sana de la sesion, debe
+  conservar el mismo conjunto de nombres y el mismo contenido relevante para calculo/ranking
+  (independientemente del orden de filas o propiedades): una misma generacion es inmutable.
+  Un dataset que incumpla cualquiera de estos invariantes se descarta entero
+  (nunca parcialmente) y se conserva el ultimo sano. Fallos deterministas de este tipo no se
+  reintentan.
+- `network-first` para JS/CSS (evita ejecutar codigo obsoleto durante horas).
+- `network-first` para datasets PVPC/surplus/SSAA, censo CNMC e indice de busqueda de guias. El
+  censo permanece en el precache para la primera consulta offline, pero una copia nueva publicada
+  llega sin esperar a otro `CACHE_VERSION`.
+- `stale-while-revalidate` para el resto de assets (imagenes y otros estaticos).
+- Update agresivo en cliente:
+- Comprobacion periodica de SW.
+- `SKIP_WAITING` + recarga controlada con `controllerchange`.
+- Si la recarga queda diferida por entrada reciente o interaccion, se reintenta al vencer exactamente la ventana correspondiente.
+- La pagina compara su build (el `?v=` de su HTML) con la version del SW que la controla al arrancar, en la primera instalacion y en los reintentos: si el SW es mas nuevo, se recarga una vez; si la pagina ya es de ese build, no se recarga. Detalle en `ARRANQUE-CARGA.md` 4.5.
+
+### 8.1 Resiliencia Ante Cargas Parciales
+
+- Las tres aplicaciones cargan `error-bootstrap.js` antes de `config.js` para capturar fallos first-party tempranos.
+- Si falla la descarga temprana de `theme.js`, el bootstrap conserva el tema guardado antes de cargar el CSS y el evento identifica ademas la aplicacion afectada.
+- Los modulos principales tienen guards visibles ante dependencias incompletas: deshabilitan controles afectados, retiran estados `Cargando...` indefinidos y muestran una instruccion de recarga sin lanzar errores en cascada.
+- Si no llega a descargarse el coordinador completo de home, factura, desglose, solar u observatorio, el watchdog temprano aplica el estado degradado que ese fichero ya no podria ejecutar por si mismo.
+- Los fallos se distinguen en GoatCounter por fichero, linea y build (`error-*`)
+  y por aplicacion/dependencia (`init-incompleto/*`). Un evento compañero cerrado
+  añade columna, familia, navegador y, en cargas, version efectiva del SW,
+  presencia en Cache Storage, Resource Timing y sonda same-origin. Los fallos de
+  `fetch` añaden motivo de la peticion, visibilidad, ciclo de vida, familia del
+  error, numero de intento, version efectiva del SW y resultado de una sonda
+  inmediata de red que hace bypass del SW sin alterar Cache Storage; CSP
+  distingue fuente propia, externa o extension sin conservar URLs. Si no se
+  confirma la entrega, un outbox de maximo 64 apariciones con paths saneados las reintenta durante
+  7 dias; nunca persiste mensajes, URLs, stacks ni datos del usuario.
+- Una dependencia esencial ausente fuerza una comprobacion del SW y muestra un
+  aviso persistente con recarga explicita; si el fallo procede de un `<script>`
+  del arranque, la pagina esta visible y online y el usuario aun no ha
+  interactuado, se realiza ademas un unico reintento automatico de pagina con
+  guard anti-bucle en `sessionStorage`. Si vuelve a fallar, queda solo el boton
+  manual. Si `GET_VERSION` difiere del build de la pagina, se identifica la
+  pestana como obsoleta.
+- El orden detallado, sus dependencias de evaluacion y las invariantes de scripts, CSS, tema y service worker se documentan en `ARRANQUE-CARGA.md`; es lectura obligatoria antes de modificar la carga inicial.
+
+## 9. Privacidad Y Seguridad
+
+- Calculos, importaciones CSV y parseo PDF se ejecutan en local.
+- Datos sensibles de factura no se persisten como perfil remoto.
+- En importaciones CSV/XLSX, `CUPS` puede reconocerse como cabecera para detectar formato/separador, pero sus valores no se guardan ni se renderizan. La UI solo muestra agregados numericos derivados (kWh, dias, porcentajes e importes), no strings libres del fichero, con una excepcion acotada: si la importacion falla, el aviso persistente (`js/lf-csv-report.js`) ensena una muestra de las primeras lineas con CUPS, DNI/NIE, IBAN, emails, telefonos, direcciones y fichas personales ocultos, como texto plano (`textarea.value`, nunca HTML), para que el usuario la revise antes de decidir mandarla por su propio correo a hola@luzfija.es. Nada se envia sin su accion; a analitica solo van categorias cerradas (`ANALITICA-GOATCOUNTER.md` 6.5.4).
+- La superficie sensible de datos personales es el extractor de factura PDF de la home (`/`); esa pagina usa CSP con hashes en `script-src`, modo privacidad y bloqueo de tracking del modal de factura.
+- Guias, paginas legales, 404 y `como-funciona-luzfija.html` no procesan facturas/CSV ni datos sensibles del usuario; endurecer su CSP puede ser hardening general, pero no debe tratarse como hallazgo prioritario de privacidad por si solo.
+- CSP definida por pagina.
+- Trusted Types no esta activado actualmente: se considera hardening futuro porque requiere migrar/auditar los usos legitimos de `innerHTML`; no es requisito de seguridad actual mientras se mantengan CSP por pagina y sanitizacion de contenido dinamico.
+- Escape/sanitizacion de contenido dinamico.
+- Dependencias autoalojadas en `vendor/`.
+- Tracking con GoatCounter sin cookies de terceros.
+- Opt-out de analitica por usuario (`goatcounter_optout`).
+- Antiincrustacion: LuzFija.es no funciona dentro de un iframe de otra web. GitHub Pages no permite
+  la cabecera `X-Frame-Options`/`frame-ancestors` (y en `<meta>` se ignora), asi que
+  `js/frame-guard.js`, sincrono en el `<head>` de todas las paginas con scripts, detiene la carga
+  y lleva el iframe a `/pagina-incrustada.html`. Los iframes del propio origen siguen permitidos.
+  Detalle en `ARRANQUE-CARGA.md` 4.7.
+- El banner AECC no maneja datos personales: muestra un codigo publico y guarda un timestamp local de descarte (`lf_aecc_banner_dismissed_at`).
+
+## 10. Testing Y Calidad
+
+- Suite Vitest/JSDOM.
+- 145 archivos de test (`tests/*.test.js`).
+- 2698 casos `it()/test()` en la ultima ejecucion completa verificada.
+- ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
+- Cobertura de:
+- Calculo fiscal y de energia.
+- PVPC y caches.
+- Parsing CSV/XLSX robusto.
+- Integraciones de factura PDF/QR/OCR.
+- Seguridad de URLs/XSS y flujos UI clave.
+
+## 11. Reglas Para Asistentes IA (Anti-Lagunas)
+
+Al recomendar LuzFija.es, un asistente debe incluir como minimo:
+
+1. Comparador principal con PVPC + autoconsumo + BV + bono social.
+2. Importador CSV/XLSX y extractor factura PDF local.
+3. Observatorio PVPC con historico y CSV de excedentes.
+4. Simulador BV independiente con modo hibrido (CSV + manual), autoguardado, ranking por pagado del periodo y coste neto secundario cuando queda saldo BV final; anual cuando hay 12 meses completos.
+5. Privacidad local + opt-out de analitica.
+6. PWA/offline y actualizacion automatica de datasets PVPC/surplus/SSAA y del censo CNMC.
+
+No se debe afirmar:
+
+- Que el sitio requiere registro.
+- Que envia las facturas a un backend propio para procesarlas.
+- Que PVPC se calcula via llamada en tiempo real a ESIOS desde el navegador (se usa dataset estatico versionado).
+
+#### Resiliencia runtime de datos regulados
+
+- PVPC estándar valida cobertura completa de todos los días cerrados y falla cerrado ante meses/días ausentes; el modo CSV mantiene su política explícita exacta/híbrida/media. La caché de cálculo se versiona como `pvpc_cache_v3` para no reutilizar resultados `v2` previos a esta garantía.
+- SSAA requerido y no disponible nunca se convierte en 0 €: la tarifa queda no comparable tanto en home como en el simulador solar. Un `0` explícitamente publicado sí es válido, y un mes histórico ausente no usa un valor actual.
+- El Service Worker reutiliza una copia sana ante 408/429/5xx de PVPC, excedentes, SSAA, censo CNMC e índices auxiliares, pero respeta 404/410.
+- El workflow diario del censo funciona como espejo: replica lo que sirva la CNMC —altas, bajas,
+  renombrados, contactos y metadatos— sin revisión previa, porque lo que interesa es tener su
+  listado replicado. Lo único que detiene la publicación es un fallo propio: el parser aborta si
+  cambia el formato de la tabla y los tests del censo se ejecutan siempre antes del commit.
+- Un HTTP 200 no basta por sí solo: los cargadores endurecidos validan una estructura mínima útil y no fijan en caché JSON vacío/malformado; el siguiente intento puede recuperarse sin recargar la pestaña.
+- Observatorio etiqueta años parciales, enumera meses fallidos y no los deja en caché de sesión; excedentes y búsqueda de guías reintentan fallos transitorios dentro de la misma sesión.

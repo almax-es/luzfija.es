@@ -1,0 +1,900 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
+(function (root, factory) {
+  const api = factory(root);
+  if (typeof module === 'object' && module.exports) {
+    module.exports = api;
+  }
+  root.LFGuideSearch = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
+  const DEFAULT_INDEX_URL = '/data/guides-search-index.json';
+  const DEFAULT_INDEX_TIMEOUT_MS = 15000;
+  // La busqueda se pinta con un debounce de 80 ms, asi que tecleando a ritmo normal cada letra es
+  // una busqueda completa. La analitica no debe contar esos prefijos a medio escribir: el evento
+  // espera a que la consulta se asiente (o a que el usuario actue sobre ella) y sale una sola vez.
+  const DEFAULT_SEARCH_TRACK_SETTLE_MS = 1500;
+  const STOP_WORDS = new Set([
+    'a', 'al', 'algo', 'como', 'con', 'cual', 'cuales', 'cuanto', 'cuantos', 'de',
+    'del', 'donde', 'el', 'en', 'es', 'esta', 'este', 'esto', 'hay', 'la', 'las',
+    'lo', 'los', 'mas', 'mi', 'mis', 'o', 'para', 'por', 'que', 'se', 'si', 'sin',
+    'su', 'sus', 'te', 'tu', 'tus', 'un', 'una', 'uno', 'unos', 'unas', 'y'
+  ]);
+
+  // Sinonimos de CONSULTA: palabras que la gente teclea y las guias no usan. Sin ellos, al exigir
+  // todas las palabras, "horario nocturno" o "denunciar comercializadora" se quedaban en un solo
+  // resultado tangencial (revision externa del 24/09/2026). Hasta la ronda 51 "funcionaban" por
+  // accidente: "nocturno" y "denunciar" casaban con las palabras "no" y "de" de cualquier guia.
+  // Claves y valores normalizados (sin tildes, minusculas).
+  const QUERY_SYNONYMS = {
+    nocturno: ['noche'], nocturna: ['noche'], nocturnos: ['noche'], nocturnas: ['noche'],
+    denunciar: ['reclamar', 'reclamacion'], denuncia: ['reclamar', 'reclamacion'], denuncias: ['reclamar', 'reclamacion'],
+    queja: ['reclamar', 'reclamacion'], quejas: ['reclamar', 'reclamacion'], quejarse: ['reclamar', 'reclamacion'],
+    vender: ['venta', 'compensacion']
+  };
+  // Un sinonimo cuenta algo menos que la palabra tecleada.
+  const SYNONYM_WEIGHT = 0.85;
+  // Por debajo de este numero de guias con TODAS las palabras, se anaden detras las parciales.
+  const PARTIAL_FALLBACK_BELOW = 3;
+  // Como mucho estas guias parciales ("relacionadas") detras de las completas.
+  const MAX_PARTIAL_RESULTS = 5;
+  // Palabras que salen en casi todas las guias: validas en una busqueda completa, pero por si
+  // solas no hacen "relacionada" a una guia ("precio luz hoy" colaba cualquier titulo con "luz").
+  const GENERIC_TERMS = new Set(['luz', 'tarifa', 'tarifas', 'factura', 'facturas', 'precio', 'precios', 'energia', 'electricidad']);
+  const INITIALIZED_INPUTS = new WeakSet();
+
+  const STEM_SUFFIXES = [
+    'aciones', 'uciones', 'imiento', 'imientos', 'amiento', 'amientos', 'adoras',
+    'adores', 'adora', 'ador', 'ancias', 'ancia', 'logias', 'logia', 'mente',
+    'ciones', 'cion', 'siones', 'sion', 'ismos', 'ismo', 'istas', 'ista',
+    'idades', 'idad', 'anzas', 'anza', 'adoras', 'adores', 'adora', 'ador',
+    'ados', 'adas', 'idos', 'idas', 'ando', 'iendo', 'ante', 'able', 'ible',
+    'icos', 'icas', 'ico', 'ica', 'ivos', 'ivas', 'ivo', 'iva', 'oras', 'ores',
+    'ora', 'or', 'es', 's', 'ar', 'er', 'ir'
+  ];
+
+  const FIELD_RULES = [
+    { key: 'title', label: 'título', token: 52, prefix: 38, contains: 32, stem: 24, phrase: 90 },
+    { key: 'description', label: 'resumen', token: 28, prefix: 20, contains: 16, stem: 12, phrase: 38 },
+    { key: 'cardDescription', label: 'resumen', token: 24, prefix: 18, contains: 14, stem: 10, phrase: 28 },
+    { key: 'aliases', label: 'alias', token: 30, prefix: 22, contains: 18, stem: 14, phrase: 34 },
+    { key: 'categories', label: 'categoría', token: 26, prefix: 20, contains: 16, stem: 12, phrase: 26 },
+    { key: 'level', label: 'nivel', token: 20, prefix: 14, contains: 10, stem: 8, phrase: 18 },
+    { key: 'slug', label: 'URL', token: 18, prefix: 14, contains: 12, stem: 10, phrase: 18 },
+    { key: 'headings', label: 'sección', token: 26, prefix: 20, contains: 16, stem: 12, phrase: 34, list: true },
+    { key: 'faq', label: 'FAQ', token: 24, prefix: 18, contains: 14, stem: 10, phrase: 30, list: true },
+    { key: 'content', label: 'contenido', token: 10, prefix: 8, contains: 6, stem: 5, phrase: 14 }
+  ];
+
+  async function fetchJsonWithTimeout(resource, options = {}, timeoutMs = DEFAULT_INDEX_TIMEOUT_MS) {
+    if (typeof root.fetch !== 'function') throw new Error('Fetch unavailable');
+    const parsedTimeout = Number(timeoutMs);
+    const effectiveTimeout = Number.isFinite(parsedTimeout) && parsedTimeout > 0
+      ? parsedTimeout
+      : DEFAULT_INDEX_TIMEOUT_MS;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+    try {
+      const response = await root.fetch(resource, { ...options, signal: controller.signal });
+      if (!response || !response.ok) {
+        throw new Error(`Index request failed with ${response ? response.status : 'unknown'}`);
+      }
+      const payload = await response.json();
+      return payload;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  function normalizeWhitespace(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function normalizeText(value) {
+    const text = String(value == null ? '' : value).toLowerCase();
+    let normalized = text;
+    try {
+      normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    } catch (_) {}
+    return normalized.replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function unique(items) {
+    return [...new Set(items.filter(Boolean))];
+  }
+
+  function stemToken(token) {
+    let stem = String(token || '');
+    for (const suffix of STEM_SUFFIXES) {
+      if (stem.length > suffix.length + 3 && stem.endsWith(suffix)) {
+        stem = stem.slice(0, -suffix.length);
+        break;
+      }
+    }
+    return stem;
+  }
+
+  function tokenizeQuery(query) {
+    const allTokens = normalizeText(query).split(' ').filter(Boolean);
+    const filtered = allTokens.filter((token) => token.length > 1 && !STOP_WORDS.has(token));
+    return filtered.length ? unique(filtered) : unique(allTokens);
+  }
+
+  function buildTextValue(rawValue) {
+    const raw = normalizeWhitespace(rawValue);
+    const normalized = normalizeText(raw);
+    const tokens = unique(normalized.split(' ').filter(Boolean));
+    const stems = unique(tokens.map(stemToken));
+    return { raw, normalized, tokens, stems };
+  }
+
+  function buildListValue(items) {
+    return (items || [])
+      .map((item) => buildTextValue(item))
+      .filter((value) => value.normalized);
+  }
+
+  function canonicalPath(href, baseUrl) {
+    try {
+      const base = baseUrl || root.location?.origin || 'https://luzfija.es';
+      return new URL(String(href || ''), base).pathname;
+    } catch {
+      return null;
+    }
+  }
+
+  function prepareGuideEntry(entry) {
+    const prepared = {
+      ...entry,
+      path: canonicalPath(entry.path || '') || entry.path,
+      _fields: {
+        title: buildTextValue(entry.title),
+        description: buildTextValue(entry.description),
+        cardDescription: buildTextValue(entry.cardDescription),
+        aliases: buildTextValue((entry.aliases || []).join(' ')),
+        categories: buildTextValue((entry.categories || []).join(' ')),
+        level: buildTextValue(entry.level),
+        slug: buildTextValue(entry.slug),
+        content: buildTextValue(entry.content),
+        headings: buildListValue(entry.headings),
+        faq: buildListValue(entry.faq)
+      }
+    };
+
+    prepared._aggregate = buildTextValue([
+      entry.title,
+      entry.description,
+      entry.cardDescription,
+      (entry.aliases || []).join(' '),
+      (entry.categories || []).join(' '),
+      entry.level,
+      entry.slug,
+      (entry.headings || []).join(' '),
+      (entry.faq || []).join(' '),
+      entry.content
+    ].join(' '));
+
+    return prepared;
+  }
+
+  function prepareGuidesIndex(guides) {
+    return (guides || []).map((entry) => prepareGuideEntry(entry));
+  }
+
+  // Prefijo inverso: "facturas" encuentra "factura" y "reclamaciones" encuentra "reclamacion".
+  // Solo vale para una forma algo mas corta de la misma palabra. Sin los limites, cualquier token
+  // de una o dos letras del contenido era prefijo de la consulta: "aerotermia" casaba con "a",
+  // "alquiler" con "al" y "estafa" con la stopword "esta", y las tres devolvian las 25 guias.
+  function isShorterFormOf(term, token) {
+    return term.length >= 5
+      && token.length >= 4
+      && term.length - token.length <= 3
+      && !STOP_WORDS.has(token)
+      && term.startsWith(token);
+  }
+
+  function matchScalarField(fieldValue, term, stem, rule) {
+    if (!fieldValue || !fieldValue.normalized) return null;
+
+    if (fieldValue.tokens.includes(term)) {
+      return { score: rule.token + Math.min(term.length, 8), snippet: fieldValue.raw };
+    }
+
+    if (fieldValue.tokens.some((token) => token.startsWith(term) || isShorterFormOf(term, token))) {
+      return { score: rule.prefix + Math.min(term.length, 6), snippet: fieldValue.raw };
+    }
+
+    if (fieldValue.normalized.includes(term)) {
+      return { score: rule.contains + Math.min(term.length, 4), snippet: fieldValue.raw };
+    }
+
+    if (fieldValue.stems.includes(stem)) {
+      return { score: rule.stem + Math.min(stem.length, 4), snippet: fieldValue.raw };
+    }
+
+    return null;
+  }
+
+  function matchListField(listValues, term, stem, rule) {
+    let bestMatch = null;
+    for (const value of listValues || []) {
+      const match = matchScalarField(value, term, stem, rule);
+      if (!match) continue;
+      if (!bestMatch || match.score > bestMatch.score) {
+        bestMatch = match;
+      }
+    }
+    return bestMatch;
+  }
+
+  function scoreGuideEntry(preparedEntry, query, options) {
+    const normalizedQuery = normalizeText(query);
+    if (!normalizedQuery) return null;
+
+    const queryTokens = tokenizeQuery(normalizedQuery);
+    if (!queryTokens.length) return null;
+
+    const queryStems = queryTokens.map(stemToken);
+    let score = 0;
+    const reasons = [];
+    let primaryMatch = null;
+
+    let matchedTerms = 0;
+    const termMatches = [];
+    for (let index = 0; index < queryTokens.length; index += 1) {
+      const term = queryTokens[index];
+      const stem = queryStems[index];
+      let bestTermMatch = null;
+
+      // El termino tal cual y, con algo menos de peso, sus sinonimos de consulta.
+      const variants = [{ term, stem, weight: 1 }]
+        .concat((QUERY_SYNONYMS[term] || []).map((syn) => ({ term: syn, stem: stemToken(syn), weight: SYNONYM_WEIGHT })));
+
+      for (const variant of variants) {
+        for (const rule of FIELD_RULES) {
+          const fieldValue = preparedEntry._fields[rule.key];
+          const match = rule.list
+            ? matchListField(fieldValue, variant.term, variant.stem, rule)
+            : matchScalarField(fieldValue, variant.term, variant.stem, rule);
+
+          if (!match) continue;
+
+          const candidate = {
+            score: match.score * variant.weight,
+            label: rule.label,
+            snippet: match.snippet
+          };
+
+          if (!bestTermMatch || candidate.score > bestTermMatch.score) {
+            bestTermMatch = candidate;
+          }
+        }
+      }
+
+      if (!bestTermMatch) {
+        if (!options?.allowPartial) return null;
+        continue;
+      }
+      matchedTerms += 1;
+      termMatches.push({ term, label: bestTermMatch.label });
+
+      score += bestTermMatch.score;
+      if (!primaryMatch || bestTermMatch.score > primaryMatch.score) {
+        primaryMatch = bestTermMatch;
+      }
+
+      const reasonKey = `${bestTermMatch.label}:${bestTermMatch.snippet}`;
+      if (!reasons.some((item) => item.key === reasonKey)) {
+        reasons.push({
+          key: reasonKey,
+          label: bestTermMatch.label,
+          snippet: bestTermMatch.snippet
+        });
+      }
+    }
+
+    // El bonus de frase premia que varias palabras aparezcan juntas. Con una sola palabra no hay
+    // frase: sumarlo en cada campo que contiene el literal primaba a la guia que repite la forma
+    // exacta tecleada, y "facturas" ponia la de aerotermia por delante de las guias de factura.
+    const phraseRules = queryTokens.length > 1 ? FIELD_RULES : [];
+    for (const rule of phraseRules) {
+      const fieldValue = preparedEntry._fields[rule.key];
+      if (!fieldValue) continue;
+
+      if (rule.list) {
+        const phraseMatch = (fieldValue || []).find((value) => value.normalized.includes(normalizedQuery));
+        if (phraseMatch) {
+          score += rule.phrase;
+          if (!primaryMatch || rule.phrase > primaryMatch.score) {
+            primaryMatch = {
+              score: rule.phrase,
+              label: rule.label,
+              snippet: phraseMatch.raw
+            };
+          }
+        }
+        continue;
+      }
+
+      if (fieldValue.normalized.includes(normalizedQuery)) {
+        score += rule.phrase;
+        if (!primaryMatch || rule.phrase > primaryMatch.score) {
+          primaryMatch = {
+            score: rule.phrase,
+            label: rule.label,
+            snippet: fieldValue.raw
+          };
+        }
+      }
+    }
+
+    if (!matchedTerms) return null;
+
+    return {
+      entry: preparedEntry,
+      score,
+      primaryMatch,
+      reasons: reasons.slice(0, 3),
+      matchedTerms,
+      totalTerms: queryTokens.length,
+      termMatches
+    };
+  }
+
+  function sortResults(results) {
+    return results.sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score;
+      return String(left.entry.title || '').localeCompare(String(right.entry.title || ''), 'es');
+    });
+  }
+
+  function searchGuides(preparedGuides, query) {
+    const guides = preparedGuides || [];
+    const full = sortResults(guides.map((entry) => scoreGuideEntry(entry, query)).filter(Boolean));
+    if (full.length >= PARTIAL_FALLBACK_BELOW || tokenizeQuery(query).length < 2) return full;
+
+    // Busqueda de varias palabras con casi ningun resultado completo: una palabra que las guias
+    // no usan ("horario nocturno", "darse de baja") no debe dejar al usuario sin nada. Se anaden
+    // DETRAS las guias que contienen parte de la consulta, mas palabras primero. Una busqueda que
+    // ya encuentra guias con todas sus palabras no cambia.
+    const fullPaths = new Set(full.map((result) => result.entry.path));
+    const partial = guides
+      .filter((entry) => !fullPaths.has(entry.path))
+      .map((entry) => scoreGuideEntry(entry, query, { allowPartial: true }))
+      // Solo parciales con alguna coincidencia en un campo fuerte (titulo, resumen, alias,
+      // seccion, FAQ...). Coincidir unicamente en el cuerpo de la guia no basta: "baja" o
+      // "servicio" sueltos en el texto llenaban la lista de relleno (revision del 24/09/2026).
+      // Y esa coincidencia fuerte tiene que ser de una palabra distintiva, no de "luz" o "tarifa".
+      .filter((result) => result && result.termMatches.some((m) => m.label !== 'contenido' && !GENERIC_TERMS.has(m.term)));
+    const byMatched = new Map();
+    for (const result of partial) {
+      if (!byMatched.has(result.matchedTerms)) byMatched.set(result.matchedTerms, []);
+      byMatched.get(result.matchedTerms).push(result);
+    }
+    const ordered = [...byMatched.keys()].sort((a, b) => b - a).flatMap((k) => sortResults(byMatched.get(k)));
+    return full.concat(ordered.slice(0, MAX_PARTIAL_RESULTS));
+  }
+
+  function countCompleteResults(results) {
+    return (results || []).filter((result) => !result.totalTerms || result.matchedTerms === result.totalTerms).length;
+  }
+
+  // Terminos de la consulta mas sus sinonimos, para localizar el fragmento de contenido.
+  function expandQueryTerms(query) {
+    const terms = tokenizeQuery(query);
+    return unique(terms.concat(terms.flatMap((term) => QUERY_SYNONYMS[term] || [])));
+  }
+
+  const ACCENT_CLASSES = {
+    a: '[aáàäâ]', e: '[eéèëê]', i: '[iíìïî]', o: '[oóòöô]', u: '[uúùüû]', n: '[nñ]', c: '[cç]'
+  };
+
+  // Los terminos ya vienen normalizados (solo [a-z0-9]): basta con admitir las tildes del texto.
+  function accentInsensitiveRegex(term) {
+    return new RegExp(term.split('').map((ch) => ACCENT_CLASSES[ch] || ch).join(''), 'i');
+  }
+
+  // Ventana del texto alrededor de la primera aparicion literal de algun termino, cortada en
+  // espacios. Devuelve null si ningun termino aparece tal cual (coincidencia solo por raiz).
+  function snippetAround(raw, terms, maxLength = 120) {
+    const text = normalizeWhitespace(raw);
+    let index = -1;
+    let length = 0;
+    for (const term of terms || []) {
+      if (!term) continue;
+      const found = accentInsensitiveRegex(term).exec(text);
+      if (found && (index < 0 || found.index < index)) {
+        index = found.index;
+        length = found[0].length;
+      }
+    }
+    if (index < 0) return null;
+
+    let start = Math.max(0, index - 45);
+    let end = Math.min(text.length, start + maxLength);
+    if (end - start < maxLength) start = Math.max(0, end - maxLength);
+    if (start > 0) {
+      const space = text.indexOf(' ', start);
+      if (space >= 0 && space < index) start = space + 1;
+    }
+    if (end < text.length) {
+      const space = text.lastIndexOf(' ', end);
+      if (space > index + length) end = space;
+    }
+    return `${start > 0 ? '…' : ''}${text.slice(start, end).trim()}${end < text.length ? '…' : ''}`;
+  }
+
+  function formatMatch(match, queryTerms) {
+    if (!match) return 'Coincide en el contenido de la guía';
+
+    // El contenido es el cuerpo entero de la guia: recortarlo desde el principio mostraba texto
+    // sin la palabra buscada en 219 de 240 tarjetas (23/09/2026). Se muestra la zona donde
+    // aparece y, si solo coincide por raiz, ningun fragmento antes que uno sin relacion.
+    if (match.label === 'contenido' && Array.isArray(queryTerms)) {
+      const around = snippetAround(match.snippet, queryTerms);
+      return around ? `Coincide en contenido: ${around}` : 'Coincide en el contenido de la guía';
+    }
+
+    if (match.label === 'título') {
+      return 'Coincide en el título';
+    }
+    if (match.label === 'resumen') {
+      return 'Coincide en el resumen';
+    }
+    if (match.label === 'categoría') {
+      return `Coincide en la categoría: ${match.snippet}`;
+    }
+    if (match.label === 'nivel') {
+      return `Coincide en el nivel: ${match.snippet}`;
+    }
+    if (match.label === 'URL') {
+      return `Coincide en la URL: ${match.snippet}`;
+    }
+
+    const clipped = normalizeWhitespace(match.snippet || '');
+    if (!clipped) return `Coincide en ${match.label}`;
+    const snippet = clipped.length > 120 ? `${clipped.slice(0, 117).trim()}…` : clipped;
+    return `Coincide en ${match.label}: ${snippet}`;
+  }
+
+  function buildFallbackCard(documentRef, entry) {
+    const card = documentRef.createElement('a');
+    card.className = 'guide-card search-result-card';
+    card.href = entry.path || '#';
+
+    const header = documentRef.createElement('div');
+    header.className = 'guide-header';
+
+    const icon = documentRef.createElement('span');
+    icon.className = 'guide-icon';
+    icon.textContent = entry.icon || '📚';
+
+    const body = documentRef.createElement('div');
+    body.style.flex = '1';
+
+    if (entry.level) {
+      const meta = documentRef.createElement('div');
+      meta.className = 'guide-meta';
+      const tag = documentRef.createElement('span');
+      tag.className = 'guide-tag';
+      tag.textContent = entry.level;
+      meta.appendChild(tag);
+      body.appendChild(meta);
+    }
+
+    const title = documentRef.createElement('h3');
+    title.textContent = entry.title || 'Guía';
+    body.appendChild(title);
+
+    header.appendChild(icon);
+    header.appendChild(body);
+    card.appendChild(header);
+
+    const description = documentRef.createElement('p');
+    description.textContent = entry.cardDescription || entry.description || '';
+    card.appendChild(description);
+
+    const arrow = documentRef.createElement('span');
+    arrow.className = 'guide-arrow';
+    arrow.textContent = '→';
+    card.appendChild(arrow);
+
+    return card;
+  }
+
+  function renderSearchResults(config, results, rawQuery) {
+    const {
+      documentRef,
+      resultsContainer,
+      statusElement,
+      noResults,
+      templateMap
+    } = config;
+
+    resultsContainer.innerHTML = '';
+
+    if (!results.length) {
+      if (statusElement) {
+        statusElement.hidden = false;
+        statusElement.textContent = `0 resultados para "${normalizeWhitespace(rawQuery)}"`;
+        statusElement.dataset.state = 'empty';
+      }
+      noResults.classList.add('show');
+      return;
+    }
+
+    if (statusElement) {
+      statusElement.hidden = false;
+      const completos = countCompleteResults(results);
+      const relacionados = results.length - completos;
+      statusElement.textContent = `${completos} resultado${completos === 1 ? '' : 's'} para "${normalizeWhitespace(rawQuery)}"`
+        + (relacionados ? ` · ${relacionados} relacionado${relacionados === 1 ? '' : 's'}` : '');
+      statusElement.dataset.state = 'ready';
+    }
+
+    noResults.classList.remove('show');
+
+    const queryTerms = expandQueryTerms(rawQuery);
+    for (const result of results) {
+      const template = templateMap.get(result.entry.path);
+      const card = template ? template.cloneNode(true) : buildFallbackCard(documentRef, result.entry);
+      card.classList.add('search-result-card');
+
+      card.querySelectorAll('.search-match').forEach((node) => node.remove());
+
+      const match = documentRef.createElement('div');
+      match.className = 'search-match';
+      match.textContent = formatMatch(result.primaryMatch, queryTerms);
+
+      const paragraph = card.querySelector('p');
+      if (paragraph) {
+        paragraph.after(match);
+      } else {
+        card.appendChild(match);
+      }
+
+      resultsContainer.appendChild(card);
+    }
+  }
+
+  function trackGuideEvent(eventName, detail, title) {
+    try {
+      if (typeof root.__LF_trackDetail === 'function') {
+        root.__LF_trackDetail(eventName, detail, { title });
+      }
+    } catch (_) {}
+  }
+
+  function resultBucket(count) {
+    const n = Number(count) || 0;
+    if (n <= 0) return '0';
+    if (n === 1) return '1';
+    if (n <= 5) return '2-5';
+    if (n <= 10) return '6-10';
+    return '10-plus';
+  }
+
+  function queryLengthBucket(query) {
+    const len = normalizeWhitespace(query).length;
+    if (len <= 0) return 'vacia';
+    if (len <= 3) return '1-3';
+    if (len <= 8) return '4-8';
+    if (len <= 16) return '9-16';
+    return '17-plus';
+  }
+
+  function updateUrlQuery(query) {
+    if (!root.history || !root.location) return;
+    try {
+      const url = new URL(root.location.href);
+      const value = normalizeWhitespace(query);
+      if (value) url.searchParams.set('q', value);
+      else url.searchParams.delete('q');
+      root.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch (_) {}
+  }
+
+  function init(options) {
+    const documentRef = options?.document || root.document;
+    if (!documentRef) return;
+
+    const searchInput = options?.searchInput || documentRef.getElementById('searchInput');
+    const guidesGrid = options?.guidesGrid || documentRef.getElementById('guidesGrid');
+    const featuredBlock = options?.featuredBlock || documentRef.querySelector('.featured');
+    const noResults = options?.noResults || documentRef.getElementById('noResults');
+    const resultsContainer = options?.resultsContainer || documentRef.getElementById('searchResults');
+    const statusElement = options?.statusElement || documentRef.getElementById('searchStatus');
+    const categoryButtons = options?.categoryButtons || [...documentRef.querySelectorAll('.category-btn')];
+    if (!searchInput || !guidesGrid || !noResults || !resultsContainer) return;
+    // Idempotente por campo de busqueda: un segundo init() sobre el mismo buscador duplicaba los
+    // listeners de input, click y pagehide, y cada instancia podia enviar su propio evento de
+    // analitica. Hoy guias.html lo llama una vez; esto evita que un cambio futuro lo rompa.
+    if (INITIALIZED_INPUTS.has(searchInput)) return;
+    INITIALIZED_INPUTS.add(searchInput);
+
+    const allCards = [...documentRef.querySelectorAll('.guide-card[href]')];
+    const gridCards = [...guidesGrid.querySelectorAll('.guide-card[href]')];
+    const templateMap = new Map();
+    for (const card of allCards) {
+      const pathname = canonicalPath(card.getAttribute('href'));
+      if (pathname) templateMap.set(pathname, card.cloneNode(true));
+    }
+
+    const config = {
+      documentRef,
+      searchInput,
+      guidesGrid,
+      featuredBlock,
+      noResults,
+      resultsContainer,
+      statusElement,
+      categoryButtons,
+      allCards,
+      gridCards,
+      templateMap
+    };
+
+    let preparedGuides = null;
+    let indexPromise = null;
+
+    function setActiveCategory(category) {
+      categoryButtons.forEach((button) => {
+        const active = button.dataset.category === category;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    function restoreFeaturedCards() {
+      if (!featuredBlock) return;
+      featuredBlock.querySelectorAll('.guide-card').forEach((card) => {
+        card.style.display = 'flex';
+      });
+    }
+
+    // Testigo de la ultima accion del usuario. El indice de guias se pide por red, y hasta que
+    // llega el usuario puede haber hecho otra cosa: sin esto, una busqueda abandonada pintaba sus
+    // resultados encima de la categoria recien elegida, dejaba tarjetas en un contenedor oculto y
+    // anunciaba un recuento que no correspondia a lo que se veia.
+    let accionVigente = 0;
+
+    // Evento de busqueda pendiente de enviar. Medido el 23/09/2026 con el indice real: escribir
+    // "reclamacion" a 200 ms por tecla mandaba 11 eventos (8 de ellos en los buckets 1-3 y 4-8
+    // con "10-plus" resultados) en vez de uno. Se envia al asentarse la consulta, al pulsar un
+    // resultado o una categoria, o al abandonar la pagina; se descarta si el usuario la borra.
+    const trackSettleMs = Number.isFinite(Number(options?.searchTrackSettleMs))
+      ? Math.max(0, Number(options.searchTrackSettleMs))
+      : DEFAULT_SEARCH_TRACK_SETTLE_MS;
+    let pendingSearchTrack = null;
+    let searchTrackTimer = null;
+
+    function flushSearchTrack() {
+      root.clearTimeout(searchTrackTimer);
+      searchTrackTimer = null;
+      const pending = pendingSearchTrack;
+      pendingSearchTrack = null;
+      if (pending) trackGuideEvent('guias-busqueda', pending.detail, pending.title);
+    }
+
+    function discardSearchTrack() {
+      root.clearTimeout(searchTrackTimer);
+      searchTrackTimer = null;
+      pendingSearchTrack = null;
+    }
+
+    function scheduleSearchTrack(detail, title) {
+      root.clearTimeout(searchTrackTimer);
+      pendingSearchTrack = { detail, title };
+      searchTrackTimer = root.setTimeout(flushSearchTrack, trackSettleMs);
+    }
+
+    function applyCategory(category) {
+      accionVigente += 1;
+      setActiveCategory(category);
+      updateUrlQuery('');
+      searchInput.value = '';
+
+      if (statusElement) {
+        statusElement.hidden = true;
+        statusElement.textContent = '';
+        statusElement.dataset.state = '';
+      }
+
+      resultsContainer.hidden = true;
+      resultsContainer.innerHTML = '';
+      guidesGrid.hidden = false;
+      if (featuredBlock) featuredBlock.hidden = false;
+      restoreFeaturedCards();
+
+      let visibleCount = 0;
+      gridCards.forEach((card) => {
+        const matches = category === 'todas'
+          ? true
+          : String(card.dataset.categories || '')
+              .split(/\s+/)
+              .filter(Boolean)
+              .includes(category);
+
+        card.style.display = matches ? 'flex' : 'none';
+        if (matches) visibleCount += 1;
+      });
+
+      noResults.classList.toggle('show', category !== 'todas' && visibleCount === 0);
+    }
+
+    async function ensureIndex() {
+      if (preparedGuides) return preparedGuides;
+      if (!indexPromise) {
+        indexPromise = fetchJsonWithTimeout(
+          options?.indexUrl || DEFAULT_INDEX_URL,
+          { cache: 'no-store' },
+          options?.indexTimeoutMs
+        )
+          .then((payload) => {
+            const guides = Array.isArray(payload?.guides) ? payload.guides : null;
+            const usable = guides && guides.length > 0 && guides.every((entry) => (
+              entry && typeof entry === 'object'
+              && typeof entry.path === 'string' && entry.path.trim()
+              && typeof entry.title === 'string' && entry.title.trim()
+            ));
+            if (!usable) throw new Error('Guide index payload is malformed');
+            preparedGuides = prepareGuidesIndex(guides);
+            return preparedGuides;
+          })
+          .catch((error) => {
+            // No conservar una Promise rechazada: un 503 puntual no debe dejar
+            // la búsqueda degradada hasta la siguiente recarga de página.
+            indexPromise = null;
+            throw error;
+          });
+      }
+      return indexPromise;
+    }
+
+    function fallbackSearch(term) {
+      const normalizedTerm = normalizeText(term);
+      if (!normalizedTerm) {
+        discardSearchTrack();
+        applyCategory('todas');
+        return;
+      }
+
+      setActiveCategory('todas');
+      if (featuredBlock) featuredBlock.hidden = false;
+      guidesGrid.hidden = false;
+      resultsContainer.hidden = true;
+      resultsContainer.innerHTML = '';
+
+      let visibleCount = 0;
+      for (const card of allCards) {
+        const title = normalizeText(card.querySelector('h3')?.textContent || '');
+        const description = normalizeText(card.querySelector('p')?.textContent || '');
+        const matches = title.includes(normalizedTerm) || description.includes(normalizedTerm);
+        card.style.display = matches ? 'flex' : 'none';
+        if (matches) visibleCount += 1;
+      }
+
+      if (featuredBlock) {
+        const anyFeaturedVisible = [...featuredBlock.querySelectorAll('.guide-card')]
+          .some((card) => card.style.display !== 'none');
+        featuredBlock.hidden = !anyFeaturedVisible;
+      }
+
+      if (statusElement) {
+        statusElement.hidden = false;
+        statusElement.dataset.state = 'fallback';
+        statusElement.textContent = visibleCount
+          ? `${visibleCount} resultado${visibleCount === 1 ? '' : 's'} para "${normalizeWhitespace(term)}" (modo básico)`
+          : `0 resultados para "${normalizeWhitespace(term)}"`;
+      }
+
+      noResults.classList.toggle('show', visibleCount === 0);
+      updateUrlQuery(term);
+      scheduleSearchTrack(['fallback', resultBucket(visibleCount), queryLengthBucket(term)], 'Búsqueda guías fallback: ' + resultBucket(visibleCount));
+    }
+
+    async function applySearch(term) {
+      const rawQuery = normalizeWhitespace(term);
+      const normalizedQuery = normalizeText(rawQuery);
+      accionVigente += 1;
+      const miTurno = accionVigente;
+
+      setActiveCategory('todas');
+
+      if (!normalizedQuery) {
+        // Consulta borrada antes de asentarse: el usuario no llego a buscar eso.
+        discardSearchTrack();
+        applyCategory('todas');
+        return;
+      }
+
+      if (statusElement) {
+        statusElement.hidden = false;
+        statusElement.dataset.state = 'loading';
+        statusElement.textContent = 'Buscando en títulos, FAQs y contenido…';
+      }
+
+      noResults.classList.remove('show');
+      if (featuredBlock) featuredBlock.hidden = true;
+      guidesGrid.hidden = true;
+      resultsContainer.hidden = false;
+      updateUrlQuery(rawQuery);
+
+      try {
+        const guides = await ensureIndex();
+        // Si mientras viajaba el indice el usuario hizo otra cosa (otra busqueda, o pulsar una
+        // categoria), esta respuesta ya no describe la pantalla: se descarta entera, incluida la
+        // analitica, para no contar una busqueda que el usuario no llego a ver.
+        if (miTurno !== accionVigente) return;
+        const results = searchGuides(guides, rawQuery);
+        renderSearchResults(config, results, rawQuery);
+        // El bucket cuenta solo guias con TODAS las palabras: las relacionadas no son aciertos.
+        const completos = countCompleteResults(results);
+        scheduleSearchTrack(['index', resultBucket(completos), queryLengthBucket(rawQuery)], 'Búsqueda guías: ' + resultBucket(completos));
+      } catch (_) {
+        if (miTurno !== accionVigente) return;
+        fallbackSearch(rawQuery);
+      }
+    }
+
+    let searchTimer = null;
+    searchInput.addEventListener('input', (event) => {
+      root.clearTimeout(searchTimer);
+      const term = event.target.value;
+      searchTimer = root.setTimeout(() => {
+        applySearch(term);
+      }, 80);
+    });
+
+    categoryButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const category = button.dataset.category || 'todas';
+        // Los resultados ya estaban a la vista: la busqueda cuenta antes de pasar a la categoria.
+        flushSearchTrack();
+        applyCategory(category);
+        trackGuideEvent('guias-categoria', category, 'Categoría guías: ' + category);
+      });
+    });
+
+    // Abrir un resultado o salir de la pagina antes del asentamiento no debe perder la busqueda.
+    documentRef.addEventListener('click', (event) => {
+      if (pendingSearchTrack && event.target?.closest?.('a[href]')) flushSearchTrack();
+    }, true);
+    if (typeof root.addEventListener === 'function') {
+      root.addEventListener('pagehide', flushSearchTrack);
+    }
+
+    const initialQuery = new URLSearchParams(root.location?.search || '').get('q');
+    if (initialQuery) {
+      searchInput.value = initialQuery;
+      applySearch(initialQuery);
+    } else {
+      applyCategory('todas');
+    }
+
+    const warmIndex = () => {
+      ensureIndex().catch(() => {});
+    };
+    if (typeof root.requestIdleCallback === 'function') {
+      root.requestIdleCallback(warmIndex, { timeout: 1500 });
+    } else {
+      root.setTimeout(warmIndex, 300);
+    }
+  }
+
+  return {
+    canonicalPath,
+    formatMatch,
+    init,
+    normalizeText,
+    prepareGuidesIndex,
+    scoreGuideEntry,
+    searchGuides,
+    stemToken,
+    tokenizeQuery
+  };
+});
