@@ -10,11 +10,22 @@ import { JSDOM } from 'jsdom';
 const bootstrapCode = fs.readFileSync(path.resolve(__dirname, '../js/error-bootstrap.js'), 'utf8');
 const trackingCode = fs.readFileSync(path.resolve(__dirname, '../js/tracking.js'), 'utf8');
 
+function setReadyState(isolatedWindow, value) {
+  Object.defineProperty(isolatedWindow.document, 'readyState', {
+    configurable: true,
+    value
+  });
+}
+
 function isolatedPage(bodyHtml) {
   const dom = new JSDOM(`<!doctype html><body>${bodyHtml}</body>`, {
     url: 'https://luzfija.es/',
     runScripts: 'outside-only'
   });
+  // error-bootstrap.js corre en <head>, con el documento aun en "loading". jsdom 31 entrega el
+  // documento ya en "interactive": sin fijarlo, el bootstrap no engancharia DOMContentLoaded y
+  // estos tests dejarian de ejercitar el camino real de la pagina.
+  setReadyState(dom.window, 'loading');
   dom.window.eval(bootstrapCode);
   return dom.window;
 }
@@ -27,6 +38,7 @@ function failScript(isolatedWindow, src) {
 }
 
 function finishDom(isolatedWindow) {
+  setReadyState(isolatedWindow, 'interactive');
   isolatedWindow.document.dispatchEvent(new isolatedWindow.Event('DOMContentLoaded'));
 }
 
