@@ -1133,7 +1133,7 @@
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
-        "exc": 0.069,
+        "exc": 0.064,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -2164,7 +2164,7 @@
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
-        "exc": 0.069,
+        "exc": 0.064,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -2524,5 +2524,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-09T10:04:29.188Z"
+  "updatedAt": "2026-11-09T13:17:07.195Z"
 }
