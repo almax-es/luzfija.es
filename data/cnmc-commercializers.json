@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-06",
+    "syncedAt": "2026-11-10",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -1057,7 +1057,7 @@
     },
     "R2-1103": {
       "name": "NUKIK ENERGY, S.L.",
-      "phone": "900 732 852",
+      "phone": "900 470 820",
       "website": "https://oleenergia.eu/"
     },
     "R2-1104": {
@@ -3335,7 +3335,7 @@
     },
     "R2-666": {
       "name": "AUSARTA PRIMA, S.L.",
-      "phone": "800 760 065",
+      "phone": "900 001 160",
       "website": "http://www.ausarta.com/"
     },
     "R2-667": {
@@ -3510,7 +3510,7 @@
     },
     "R2-701": {
       "name": "ELECTRICITAT D'ALMENAR, S.L.",
-      "phone": "900 905 330",
+      "phone": "900 730 010",
       "website": "http://www.eda.cat/"
     },
     "R2-702": {
