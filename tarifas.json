@@ -135,6 +135,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "OCU Tarifa 24 horas",
+      "cPunta": 0.126,
+      "cLlano": 0.126,
+      "cValle": 0.126,
+      "p1": 0.077,
+      "p2": 0.077,
+      "web": "https://www.ocu.org/especiales/quieropagarmenosluz/",
+      "tipo": "1P",
+      "requisitos": "Requiere registrarse gratis en la compra colectiva de OCU.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Repsol Waylet Luz Precio Fijo",
       "cPunta": 0.129,
       "cLlano": 0.129,
@@ -1532,6 +1553,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "OCU Tarifa 3 tramos 3P",
+      "cPunta": 0.186,
+      "cLlano": 0.136,
+      "cValle": 0.077,
+      "p1": 0.098,
+      "p2": 0.067,
+      "web": "https://www.ocu.org/especiales/quieropagarmenosluz/",
+      "tipo": "3P",
+      "requisitos": "Requiere registrarse gratis en la compra colectiva de OCU.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iberdrola Online +10kW 3P",
       "cPunta": 0.186286,
       "cLlano": 0.160702,
@@ -2484,5 +2526,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-10T08:00:16.562Z"
+  "updatedAt": "2026-11-10T12:00:10.119Z"
 }
