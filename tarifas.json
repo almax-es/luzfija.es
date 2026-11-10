@@ -156,26 +156,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "CEA Estable 24h",
-      "cPunta": 0.1295,
-      "cLlano": 0.1295,
-      "cValle": 0.1295,
-      "p1": 0.074794,
-      "p2": 0.074794,
-      "web": "https://www.electricadealginet.com/tarifas-20td/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.068795,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 1.65
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Loviluz Tarifa 2.0TD",
       "cPunta": 0.1299,
       "cLlano": 0.1299,
@@ -1805,26 +1785,6 @@
       "potenciaMaxKw": 10.0
     },
     {
-      "nombre": "CEA Estable 3P",
-      "cPunta": 0.211843,
-      "cLlano": 0.13673,
-      "cValle": 0.105516,
-      "p1": 0.101929,
-      "p2": 0.030754,
-      "web": "https://www.electricadealginet.com/tarifas-20td/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.068795,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 1.65
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "DISA Optimiza 3P",
       "cPunta": 0.214207,
       "cLlano": 0.138359,
@@ -2524,5 +2484,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-09T18:29:57.327Z"
+  "updatedAt": "2026-11-10T08:00:16.562Z"
 }
