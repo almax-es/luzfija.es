@@ -711,6 +711,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Chippio Constante",
+      "cPunta": 0.159,
+      "cLlano": 0.159,
+      "cValle": 0.159,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://chippio.es/tarifa-constante",
+      "tipo": "1P",
+      "requisitos": "No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "BonArea Relax",
       "cPunta": 0.159,
       "cLlano": 0.159,
@@ -1103,27 +1124,6 @@
       "minConsumoAnualExclusivo": 4000.0
     },
     {
-      "nombre": "Chippio Constante",
-      "cPunta": 0.189,
-      "cLlano": 0.189,
-      "cValle": 0.189,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://chippio.es/tarifa-constante",
-      "tipo": "1P",
-      "requisitos": "No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
-      "fv": {
-        "exc": -1.0,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Bassols Hogar Solar 24 horas",
       "cPunta": 0.189,
       "cLlano": 0.189,
@@ -1469,6 +1469,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Chippio Presente 3P",
+      "cPunta": 0.179,
+      "cLlano": 0.159,
+      "cValle": 0.139,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://chippio.es/tarifa-presente",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Octopus 3P",
       "cPunta": 0.183,
       "cLlano": 0.155,
@@ -1783,26 +1803,6 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 4000.0
-    },
-    {
-      "nombre": "Chippio Presente 3P",
-      "cPunta": 0.209,
-      "cLlano": 0.189,
-      "cValle": 0.149,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://chippio.es/tarifa-presente",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": -1.0,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
     },
     {
       "nombre": "Iberdrola Online 3P",
@@ -2526,5 +2526,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-10T12:00:10.119Z"
+  "updatedAt": "2026-11-10T12:19:03.114Z"
 }
