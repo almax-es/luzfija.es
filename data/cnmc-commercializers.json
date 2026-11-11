@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-10",
+    "syncedAt": "2026-11-11",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -2782,7 +2782,7 @@
       "website": "http://www.energysaveprojects.com/"
     },
     "R2-555": {
-      "name": "LOOP ELECTRICIDAD Y GAS, S.L",
+      "name": "ENGIE CLIENTES, S.L.",
       "phone": "900 525 534",
       "website": "https://ignisluz.es/"
     },
@@ -3639,7 +3639,7 @@
     },
     "R2-728": {
       "name": "ELECTRICA DE VINALESA SOCIEDAD COOPERATIVA VALENCIANA",
-      "phone": "900 907 718",
+      "phone": "900 901 068",
       "website": "http://www.coop-vinalesa.com/"
     },
     "R2-729": {
@@ -4258,7 +4258,7 @@
     },
     "R2-852": {
       "name": "TELECOR S.A. UNIPERSONAL",
-      "phone": "900 818 143",
+      "phone": "900 300 370",
       "website": "http://www.telecor.es/"
     },
     "R2-853": {
