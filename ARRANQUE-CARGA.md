@@ -726,7 +726,8 @@ mismas condiciones):
   al del script.
 
 **Fuera de alcance**: los scripts sincronos del `<body>` de `/estadisticas/` y de solar
-(en solar van antes de `</main>`) siguen descubriendose en serie. Precargarlos adelanta la
+(en ambas al final del `<body>`, detras de `</main>`; en solar tambien detras del pie)
+siguen descubriendose en serie. Precargarlos adelanta la
 red, no su ejecucion, y puede competir con CSS y fuentes: se evalua aparte, empezando por
 Chart.js y `lf-csv-utils.js`, y no se convierten a `defer` sin redisenar 2.2-2.3.
 
