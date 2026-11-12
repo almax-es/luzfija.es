@@ -2609,6 +2609,10 @@ html.light-mode .custom-tariff-highlight {
 .modal-content{ position: relative; }
 .modal-x{
   position: absolute;
+  /* Por encima de la cabecera: en movil `.modal-content .head` es sticky con z-index 2 y,
+     sin esto, tapaba la X (factura, placas y PVPC no se cerraban con ella; medido el
+     12/11/2026 con elementFromPoint en Pixel 5). La cabecera ya reserva 56 px a la derecha. */
+  z-index: 3;
   top: 14px;
   right: 14px;
   width: 40px;

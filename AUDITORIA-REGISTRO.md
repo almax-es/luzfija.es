@@ -7517,3 +7517,9 @@ con `false` y borraba el `.is-error` y la altura de un intento anterior; ahora e
 `reservaIntentada`. Precisado que los 100 ms son un respaldo minimo, no una garantia. Anotado y NO cambiado: al
 aplicar un CSV, `calculate()` ya arrancaba hasta ~1 s despues del clic por su espera de campos; eso es anterior y
 este cambio solo le suma un frame.
+
+**7. X de los modales en movil: CORREGIDO** (anterior a hoy; lo destapo la QA completa del 12/11/2026). En <= 768 px
+`.modal-content .head` es sticky con z-index 2 y la X (`.modal-x`, absolute sin z-index) quedaba debajo: en factura,
+placas y PVPC el toque lo recibia la cabecera y no se podia cerrar con la X (si tocando fuera o con "Cerrar"). Ahora
+`.modal-x` lleva z-index 3; medido con elementFromPoint y toque real en Pixel 5 y escritorio, claro y oscuro: los cinco
+modales con X (factura, placas, PVPC, CSV y Datadis) cierran. Test: `tests/modal-x-encima-cabecera.test.js`.
