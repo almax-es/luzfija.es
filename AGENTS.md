@@ -180,7 +180,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   computa `light` limpio; la asimetria es solo del modo oscuro.
 - **Los resultados de la home se abren justo despues del primer pintado tras el clic en
   Calcular, con espacio reservado.** `calculate()` (`js/lf-app.js`) pinta "Calculando..." y,
-  tras `afterNextPaint()` (siguiente frame; como mucho 100 ms), llama a `reserveResultsSpace()`
+  tras `afterNextPaint()` (siguiente frame; respaldo programado a 100 ms), llama a `reserveResultsSpace()`
   (`js/lf-render.js`) ANTES de pedir `tarifas.json`: abre `#seccionResultados`, pasa `.grid` a dos columnas y fija un
   `min-height` hasta 160 px por debajo del borde inferior de la ventana. En el `finally` llama a
   `releaseResultsSpace()`, que quita esa altura; si el calculo no llego a pintar resultados
@@ -205,7 +205,9 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   del clic; pasarlo detras del primer pintado bajo el INP de Calcular de 112-120 a 40-48 ms (CPU
   4x) con el mismo CLS (clic real, tarifas a 1,5 s, arriba, bajada 500 px, al fondo y monitor
   alto). No la muevas detras de la descarga ni dentro de `renderAll()`, no alargues la espera
-  mas alla de un frame (el limite de 100 ms existe por eso), no quites el `finally` y no
+  mas alla de un frame (el respaldo de 100 ms es un minimo, no una garantia: con el hilo
+  ocupado o la pestana oculta el navegador lo retrasa), no quites el `finally` (que solo libera
+  si este calculo llego a reservar: `reservaIntentada`) y no
   conviertas el aviso en un elemento en flujo: cualquiera de ellas reintroduce el salto. Sustituye al hueco permanente
   `.grid:not(.has-results){min-height:100vh}` del 22/10, que no cubria a quien scrollea antes
   de calcular (0,22 con scroll 500); no lo reintroduzcas. Tampoco ocultes el footer hasta

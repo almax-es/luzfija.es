@@ -1001,7 +1001,7 @@
   // Chrome lo contaba como salto de layout: 0,155 con el footer asomando 182 px y 0,43 con 488
   // px, medidos con clic real. Chrome NO cuenta los saltos de los 500 ms posteriores a una
   // entrada del usuario, asi que calculate() abre la seccion justo despues del primer pintado
-  // tras el clic (como mucho 100 ms; antes del 12/11/2026, en el mismo tick) con una
+  // tras el clic (un frame; antes del 12/11/2026, en el mismo tick) con una
   // altura minima que deja el footer por debajo del borde de la ventana: lo que crezca despues
   // ya no mueve nada visible. Sustituye al hueco permanente bajo el formulario
   // (`.grid:not(.has-results){min-height:100vh}`, 22/10/2026), que no cubria a quien scrollea.

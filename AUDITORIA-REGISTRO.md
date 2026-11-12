@@ -7507,8 +7507,13 @@ datasets identicos. Adelantar tambien los anhos de la comparativa no mejoro nada
 
 **6. INP de Calcular: CORREGIDO.** El clic abria el bloque de resultados en el mismo tick (pasar el grid a dos
 columnas y medir la altura reservada), y ese layout de pagina entera entraba en el INP. Ahora `calculate()` pinta
-"Calculando..." y abre/reserva el bloque tras el siguiente pintado (`afterNextPaint()`, como mucho 100 ms), siempre
+"Calculando..." y abre/reserva el bloque tras el siguiente pintado (`afterNextPaint()`, con respaldo programado a 100 ms), siempre
 antes de pedir `tarifas.json`. INP de Calcular 112-128 -> 48-56 ms con CPU 4x (movil y escritorio); CLS igual con
 clic real, tarifas a 1,5 s, pagina arriba, bajada 500 px, al fondo y monitor alto. Invariante actualizada en
 `AGENTS.md`; tests en `tests/cls-reserva-resultados.test.js`. Probablemente pesa mas en el INP de campo que el
 cambio de tema: Calcular lo pulsa casi todo el mundo.
+Revision de ChatGPT del mismo dia: CORREGIDO que un fallo ANTES de reservar (`saveInputs`, `setStatus`) liberaba
+con `false` y borraba el `.is-error` y la altura de un intento anterior; ahora el `finally` solo libera si
+`reservaIntentada`. Precisado que los 100 ms son un respaldo minimo, no una garantia. Anotado y NO cambiado: al
+aplicar un CSV, `calculate()` ya arrancaba hasta ~1 s despues del clic por su espera de campos; eso es anterior y
+este cambio solo le suma un frame.

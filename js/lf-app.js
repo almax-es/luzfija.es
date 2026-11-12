@@ -316,9 +316,10 @@
   }
 
   // Resuelve justo despues del siguiente pintado (rAF + tarea), para que el navegador muestre
-  // antes la respuesta al clic. Sin frames (pestana oculta, rAF ausente) o si el pintado
-  // tarda, el temporizador lo resuelve a los 100 ms: el bloque se abre igualmente mucho antes
-  // de los 500 ms del clic que Chrome excluye del CLS.
+  // antes la respuesta al clic. Si no llega el frame (rAF ausente o suspendido), hay un
+  // respaldo programado a 100 ms. Es un minimo, no una garantia: con el hilo principal ocupado
+  // o la pestana oculta el navegador puede retrasarlo. Entre el clic y la reserva no se ejecuta
+  // nada pesado (la descarga empieza despues), y con la pestana oculta tampoco se pintaba antes.
   const NEXT_PAINT_FALLBACK_MS = 100;
   function afterNextPaint() {
     return new Promise((resolve) => {
@@ -363,6 +364,10 @@
     if (window.__LF_CALC_INFLIGHT) return;
     window.__LF_CALC_INFLIGHT = true;
     let resultadosAbiertos = false;
+    // Solo se libera la reserva si ESTE calculo llego a gestionarla. Si algo lanza antes
+    // (saveInputs, setStatus), liberar con `false` borraria la altura y el aviso `.is-error`
+    // que dejo un intento anterior fallido (revision de ChatGPT, 12/11/2026).
+    let reservaIntentada = false;
 
     try {
       saveInputs();
@@ -371,11 +376,13 @@
       // despues se abre y se reserva el bloque de resultados. Abrirlo en el mismo tick metia
       // en el clic su layout de pagina entera (pasar el grid a dos columnas + medir la altura):
       // INP de Calcular 112-120 ms -> 40-48 ms con CPU 4x, movil y escritorio (12/11/2026).
-      // Sigue siendo antes de la primera descarga y a menos de 100 ms del clic, dentro de los
-      // 500 ms que Chrome no cuenta como CLS: medido con clic real, tarifas a 1,5 s, pagina
-      // arriba, bajada 500 px, al fondo y monitor alto, el CLS no cambia. Acceso opcional y en
-      // tiempo de llamada: no cambia el contrato de carga. Detalle en reserveResultsSpace().
+      // Sigue siendo antes de la primera descarga y, en condiciones normales, un frame despues
+      // del clic, dentro de los 500 ms que Chrome no cuenta como CLS: medido con clic real,
+      // tarifas a 1,5 s, pagina arriba, bajada 500 px, al fondo y monitor alto, el CLS no cambia.
+      // Acceso opcional y en tiempo de llamada: no cambia el contrato de carga. Detalle en
+      // reserveResultsSpace() y en afterNextPaint().
       await afterNextPaint();
+      reservaIntentada = true;
       resultadosAbiertos = Boolean(window.LF.reserveResultsSpace?.());
 
       const loaded = await fetchTarifas(forceRefresh, {
@@ -456,7 +463,7 @@
       setStatus('No se ha podido calcular. Inténtalo de nuevo.', 'err');
     } finally {
       window.__LF_CALC_INFLIGHT = false;
-      window.LF.releaseResultsSpace?.(resultadosAbiertos);
+      if (reservaIntentada) window.LF.releaseResultsSpace?.(resultadosAbiertos);
 
       const queued = __lf_queuedCalculation;
       __lf_queuedCalculation = null;

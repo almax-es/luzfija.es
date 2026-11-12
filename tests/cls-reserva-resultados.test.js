@@ -23,8 +23,8 @@ import path from 'path';
  * 112-120 -> 40-48 ms con CPU 4x, mismo CLS) y siempre antes de pedir tarifas.json.
  *
  * Nada falla en consola si se rompe: solo empeora el CLS de campo semanas despues. Estos tests
- * vigilan las tres piezas: la reserva/liberacion, que calculate() reserve ANTES del primer
- * await, y que no vuelva el hueco permanente.
+ * vigilan las tres piezas: la reserva/liberacion, que calculate() pinte primero y reserve
+ * ANTES de pedir tarifas.json, y que no vuelva el hueco permanente.
  */
 
 const read = (rel) => fs.readFileSync(path.resolve(__dirname, '..', rel), 'utf8');
@@ -270,7 +270,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
 });
 
 // ---------------------------------------------------------------------------------------
-// 2) lf-app.js: calculate() reserva ANTES del primer await y libera en el finally
+// 2) lf-app.js: calculate() reserva tras el primer pintado, ANTES de la descarga, y libera en el finally
 // ---------------------------------------------------------------------------------------
 const appCode = read('js/lf-app.js');
 
@@ -338,8 +338,8 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
 
   it('pinta primero el estado del boton y reserva justo despues, antes de la primera descarga', async () => {
     // INP (12/11/2026): abrir el bloque en el mismo tick metia su layout en el clic. Ahora se
-    // reserva tras el siguiente pintado, pero SIEMPRE antes de pedir tarifas.json y como mucho
-    // a 100 ms del clic (dentro de los 500 ms que Chrome excluye del CLS).
+    // reserva tras el siguiente pintado, pero SIEMPRE antes de pedir tarifas.json (normalmente un
+    // frame despues del clic, dentro de los 500 ms que Chrome excluye del CLS).
     vi.useFakeTimers();
     const frames = [];
     const realRaf = window.requestAnimationFrame;
@@ -369,7 +369,7 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     }
   });
 
-  it('sin frames (pestana oculta) reserva igualmente a los 100 ms, antes de la descarga', async () => {
+  it('sin frames, el respaldo programado a 100 ms reserva igualmente, antes de la descarga', async () => {
     vi.useFakeTimers();
     const realRaf = window.requestAnimationFrame;
     window.requestAnimationFrame = () => 0; // nunca llega un frame
@@ -409,6 +409,16 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     bootApp({ calculateLocal: vi.fn(async () => { throw new Error('boom'); }) });
     await window.calculate(true, false);
     expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true);
+  });
+
+  it('si algo falla ANTES de reservar, no libera: conserva el aviso de error de un intento anterior', async () => {
+    // Revision de ChatGPT (12/11/2026): liberar con `false` borraria la altura y `.is-error`
+    // que dejo un intento fallido previo, aunque este calculo nunca llego a reservar.
+    bootApp({ saveInputs: vi.fn(() => { throw new Error('boom antes de reservar'); }) });
+    await window.calculate(true, false);
+    expect(window.LF.reserveResultsSpace).not.toHaveBeenCalled();
+    expect(window.LF.releaseResultsSpace).not.toHaveBeenCalled();
+    expect(window.__LF_CALC_INFLIGHT).toBe(false);
   });
 
   it('no reserva nada si los datos no validan (no se abre un ranking que no va a llegar)', async () => {
