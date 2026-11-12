@@ -752,26 +752,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz Clásica",
-      "cPunta": 0.159,
-      "cLlano": 0.159,
-      "cValle": 0.159,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Relax",
       "cPunta": 0.159,
       "cLlano": 0.159,
@@ -833,6 +813,26 @@
       },
       "requiereFV": false,
       "potenciaMinExclusivaKw": 10.0
+    },
+    {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.163,
+      "cLlano": 0.163,
+      "cValle": 0.163,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Repsol Sin Horarios",
@@ -2526,5 +2526,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-12T13:42:52.663Z"
+  "updatedAt": "2026-11-12T13:53:18.497Z"
 }
