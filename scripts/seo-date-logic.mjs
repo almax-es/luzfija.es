@@ -60,6 +60,14 @@ export function maskVolatileSeoChanges(text) {
     // ocultaria un cambio real (revision de ChatGPT, 12/11/2026). El fallo que se acepta es el
     // inofensivo: tocar solo un comentario fecha la pagina.
     .replace(/[ \t]*<link\b[^>]*\brel=["']preload["'][^>]*>[ \t]*\n?/gi, '')
+    // Cabecera no fija en movil (12/11/2026): en guias y paginas editoriales la cabecera sticky
+    // ocupaba 22-40 % de una pantalla de 640 px. Es presentacion, no contenido: darla de alta
+    // en 27 paginas las habria fechado todas. Se quita solo esa linea exacta.
+    .replace(/[ \t]*@media \(max-width:640px\),\(max-height:500px\)\{\.header\{position:static\}\}[ \t]*\n?/g, '')
+    // Corte de palabras largas en los desplegables de privacidad (12/11/2026, a 320 px
+    // "(preferencias/estado/cache)" se salia 4 px). Sin esto la politica mostraria una
+    // "Ultima actualizacion" nueva sin que el texto legal haya cambiado.
+    .replace(/[ \t]*\.accordion-item \.accordion-content\{overflow-wrap:anywhere\}[ \t]*\n?/g, '')
     // Semantica de accesibilidad: nombres de landmarks, roles y el NIVEL de un encabezado cuyo
     // texto no cambia. Afectan a como se navega con lector de pantalla, no a lo que se lee: la
     // pasada axe del 24/09/2026 los toco en 25 guias y 3 aplicaciones y, sin esto, las habria

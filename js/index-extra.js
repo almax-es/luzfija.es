@@ -631,10 +631,13 @@
         else col2 += item;
       });
 
+      // Cada hora necesita ~160 px (64 + barra + 80). Con `1fr 1fr` fijo, por debajo de
+      // ~430 px de pantalla la columna 12:00-23:00 se salia del modal y quedaba cortada
+      // (360 px: 38 px fuera; medido el 12/11/2026). Con auto-fit pasa a una columna.
       const html = `
         ${avisoParcial}
         ${observatorioLink}
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="pvpc-horas-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
           <div>${col1}</div>
           <div>${col2}</div>
         </div>

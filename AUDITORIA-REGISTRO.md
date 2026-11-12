@@ -7526,3 +7526,29 @@ modales con X (factura, placas, PVPC, CSV y Datadis) cierran. Test: `tests/modal
 Misma QA: en tema claro el modal se transparentaba (se leia la pagina a traves en movil, donde el overlay no lleva
 blur). `html.light-mode .modal-content` pedia `#FFFFFF`, pero `html.light-mode .card` (blanco al 90 %) le ganaba por orden
 con la misma especificidad. CORREGIDO subiendo la especificidad del modal; tema oscuro sin cambios.
+
+**8. Auditoria visual absoluta (no comparativa) del 12/11/2026: 6 defectos CORREGIDOS, todos anteriores a hoy.**
+Chrome real en 320, 393, 768, 1366 y 1920 px x claro/oscuro, 17 estados de la home, 7 de estadisticas, 8 del solar y
+las 34 paginas restantes (830 registros); por estado: errores JS, red, desborde horizontal, controles tapados
+(elementFromPoint), texto recortado por su contenedor, X montada sobre el contenido, modales translucidos y axe
+(contraste, nombres). WebKit (iPhone 15 y escritorio, ambos temas) sin errores ni desbordes.
+- Modal PVPC: la rejilla de horas era `1fr 1fr` con ~160 px minimos por hora; por debajo de ~430 px la columna
+  12:00-23:00 se salia del modal (38 px a 360). Ahora `repeat(auto-fit, minmax(160px, 1fr))`: una columna en movil.
+- Modal de consumos CSV: la X pisaba el recuadro de avisos (titulo sin hueco reservado), "Hora a hora" se cortaba a
+  360 px y varios textos `--muted2` sobre fondo tintado daban 4,1-4,4:1 en claro (pasan a `--muted`).
+- Aviso de importacion fallida en solar (`.lf-csv-report`, hijo de un flex en columna): media lo que su contenido mas
+  ancho y a 320 px se salia 11 px de la tarjeta, que recortaba la X. `width:100%` + botones que parten texto.
+- Boton "Comparar Tarifas y Ver Ahorro" en claro: heredaba `color: var(--text)` de `.btn` (azul marino) sobre violeta,
+  2,5:1. Texto blanco (7,1:1). Detectado con un barrido propio de texto sobre degradados (axe no los evalua).
+- Cabecera sticky de 25 guias, `como-funciona-luzfija.html` y `comparar-pvpc-tarifa-fija.html`: en movil ocupaba
+  142-253 px de 640 (22-40 %) toda la lectura. `position:static` con `max-width:640px` o `max-height:500px`.
+- Privacidad a 320 px: "(preferencias/estado/cache)" se salia 4 px del desplegable. `overflow-wrap:anywhere`.
+Las dos ultimas tocan paginas con fecha visible: `maskVolatileSeoChanges` ignora esas dos lineas exactas, asi que no
+fechan ninguna guia ni la politica de privacidad (comprobado: 28 HTML modificados, 0 refechados).
+NO son bugs (verificados): `#scrollToResults` tapa el enlace del pie 5 s tras calcular a 320 px (se oculta solo); el
+`summary` "Opciones avanzadas" del solar esta dentro de un `details` cerrado; `aurora-*` del 404 son decorativos sin
+desborde; `nested-interactive` de axe en `.tarifa-cell` (tooltips con rol boton dentro de la celda que abre el
+desglose) es un patron de accesibilidad conocido, no un fallo visual; un 429 aislado venia de GoatCounter (las
+visitas automatizadas llevan `b=153` y no cuentan). Conservados por la decision de contraste del 25/07/2026: los
+colores de periodo en la guia P1/P2/P3 en claro y los enlaces violeta de las paginas editoriales en oscuro.
+Tests: `tests/auditoria-visual-20261112.test.js`, `tests/header-movil-no-fija.test.js` y `tests/seo-date-logic.test.js`.

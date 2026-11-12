@@ -188,6 +188,32 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
+  it('treats the mobile non-sticky header rule as presentation, but not other CSS changes', () => {
+    const committed = [
+      '<style>',
+      '.header{position:sticky;top:0;padding:16px 0;z-index:100}',
+      '.card{color:red}',
+      '</style>',
+      '<p>Texto de la guia.</p>'
+    ].join('\n');
+    const withRule = committed.replace('z-index:100}\n', 'z-index:100}\n@media (max-width:640px),(max-height:500px){.header{position:static}}\n');
+    const dirty = (current) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: current, committedContent: committed });
+    expect(dirty(withRule)).toBe(false);
+    expect(dirty(withRule.replace(/\n/g, '\r\n'))).toBe(false);
+    // Otra regla, aunque sea parecida, sigue contando.
+    expect(dirty(withRule.replace('(max-height:500px)', '(max-height:600px)'))).toBe(true);
+    expect(dirty(withRule.replace('.card{color:red}', '.card{color:blue}'))).toBe(true);
+  });
+
+  it('does not re-date the privacy policy for the accordion word-wrap rule', () => {
+    const committed = '<style>\n.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}\n</style>\n<p>Texto legal.</p>';
+    const withRule = committed.replace('var(--muted)}\n', 'var(--muted)}\n.accordion-item .accordion-content{overflow-wrap:anywhere}\n');
+    const dirty = (current) => isSignificantlyDirty({ status: ' M privacidad.html', currentContent: current, committedContent: committed });
+    expect(dirty(withRule)).toBe(false);
+    expect(dirty(withRule.replace('Texto legal.', 'Texto legal nuevo.'))).toBe(true);
+    expect(dirty(withRule.replace('overflow-wrap:anywhere', 'overflow-wrap:break-word'))).toBe(true);
+  });
+
   it('does not ignore HTML comments: a regex cannot tell them from text in style, textarea, title or attributes', () => {
     // Revision de ChatGPT del 12/11/2026: una mascara de comentarios por regex ocultaba cambios
     // reales. Se retiro; el fallo aceptado es el inofensivo (tocar un comentario fecha la pagina).

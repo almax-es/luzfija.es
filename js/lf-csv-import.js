@@ -765,9 +765,12 @@
       `;
     }
 
+    // El titulo reserva el hueco de la X (absoluta, 14 px + 40 px) y se alinea con ella: sin
+    // eso la X pisaba el recuadro de avisos. La etiqueta "Hora a hora" puede bajar de linea:
+    // a 360 px se cortaba por la derecha (medido el 12/11/2026).
     content.innerHTML = `
       <button class="modal-x" id="btnCerrarCSVX" type="button" aria-label="Cerrar">✕</button>
-      <h3 id="lfCsvPreviewTitle" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">
+      <h3 id="lfCsvPreviewTitle" style="margin: 14px 0 16px 0; padding-right: 52px; min-height: 40px; display: flex; align-items: center; font-size: 18px; font-weight: 900; color: var(--text);">
         📊 Consumos detectados${resultado.tieneExcedentes ? ' ☀️' : ''}
       </h3>
       ${discontinuityHTML}
@@ -775,21 +778,21 @@
       <div style="background: ${isLightMode ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.06)'}; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border);">
         <div style="display: grid; gap: 12px;">
           <div>
-            <div style="font-size: 12px; color: var(--muted2); margin-bottom: 4px;">Periodo analizado</div>
+            <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">Periodo analizado</div>
             <div style="font-size: 16px; font-weight: 700; color: var(--text);">${resultado.dias} días (${resultado.formato})</div>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
-            <div><div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Punta</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.punta} kWh</div><div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.punta}%</div></div>
-            <div><div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Llano</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.llano} kWh</div><div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.llano}%</div></div>
-            <div><div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Valle</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.valle} kWh</div><div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.valle}%</div></div>
+            <div><div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Punta</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.punta} kWh</div><div style="font-size: 10px; color: var(--muted);">${resultado.porcentajes.punta}%</div></div>
+            <div><div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Llano</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.llano} kWh</div><div style="font-size: 10px; color: var(--muted);">${resultado.porcentajes.llano}%</div></div>
+            <div><div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">Valle</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.valle} kWh</div><div style="font-size: 10px; color: var(--muted);">${resultado.porcentajes.valle}%</div></div>
           </div>
           <div style="padding-top: 12px; border-top: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 12px; color: var(--muted2);">Total consumo</span>
+              <span style="font-size: 12px; color: var(--muted);">Total consumo</span>
               <span style="font-size: 15px; font-weight: 700; color: var(--text);">${resultado.totalKwh} kWh</span>
             </div>
           </div>
-          ${(resultado.datosReales + resultado.datosEstimados) > 0 ? `<div style="font-size: 10px; color: var(--muted2); padding-top: 8px; border-top: 1px solid var(--border);">
+          ${(resultado.datosReales + resultado.datosEstimados) > 0 ? `<div style="font-size: 10px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--border);">
             ${resultado.datosReales} lecturas reales • ${resultado.datosEstimados} estimadas${(resultado.horasTotales - resultado.datosReales - resultado.datosEstimados) > 0 ? ` • ${resultado.horasTotales - resultado.datosReales - resultado.datosEstimados} sin indicar` : ''}
           </div>` : ''}
         </div>
@@ -797,12 +800,12 @@
       ${excedenteHTML}
 
       <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; ${resultado.isDatadisMonthly ? 'opacity: 0.5;' : ''}">
-        <label style="display: flex; align-items: center; gap: 10px; ${resultado.isDatadisMonthly ? 'cursor: not-allowed;' : 'cursor: pointer;'} user-select: none;">
+        <label style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; ${resultado.isDatadisMonthly ? 'cursor: not-allowed;' : 'cursor: pointer;'} user-select: none;">
           <input type="checkbox" id="csvPvpcPeriodo" ${__pvpcPeriodoCheckedAttr} ${resultado.isDatadisMonthly ? 'disabled' : ''} style="${resultado.isDatadisMonthly ? 'cursor: not-allowed;' : 'cursor: pointer;'} width: 18px; height: 18px; accent-color: #6366f1;">
           <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">📅 PVPC con precios del período</span>
-          <span style="font-size: 11px; color: var(--muted2); background: rgba(99, 102, 241, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">Hora a hora</span>
+          <span style="font-size: 11px; color: var(--muted); background: rgba(99, 102, 241, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600; white-space: nowrap;">Hora a hora</span>
         </label>
-        <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted2); line-height: 1.4;">
+        <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted); line-height: 1.4;">
           ${resultado.isDatadisMonthly
             ? 'No disponible con datos mensuales de Datadis (no hay traza horaria). El PVPC se calculará con precios recientes.'
             : 'Activado: usa los precios PVPC de cuando consumiste (impuestos y costes regulados se calculan con los valores actuales). Desactivado: usa los precios PVPC de hoy (para comparar opciones).'}

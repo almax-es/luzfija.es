@@ -4166,7 +4166,7 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
    el boton de subida) y observatorio (bajo la nota del CSV). Sustituye al toast, que se
    cerraba solo y no dejaba pulsar ni copiar nada. Solo variables de tema: funciona igual
    en claro y oscuro. */
-.lf-csv-report{ box-sizing:border-box; max-width:880px; margin:12px auto 16px; padding:14px 16px; border:1px solid color-mix(in srgb, var(--danger) 40%, var(--border)); border-left:4px solid var(--danger); border-radius:14px; background:color-mix(in srgb, var(--danger) 6%, var(--bg1)); color:var(--text); font-size:14px; line-height:1.55; text-align:left; box-shadow:var(--shadow2); }
+.lf-csv-report{ box-sizing:border-box; width:100%; min-width:0; max-width:880px; margin:12px auto 16px; padding:14px 16px; border:1px solid color-mix(in srgb, var(--danger) 40%, var(--border)); border-left:4px solid var(--danger); border-radius:14px; background:color-mix(in srgb, var(--danger) 6%, var(--bg1)); color:var(--text); font-size:14px; line-height:1.55; text-align:left; box-shadow:var(--shadow2); }
 .lf-csv-report__head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .lf-csv-report__title{ margin:0; font-size:16px; font-weight:800; line-height:1.35; }
 /* El titulo recibe el foco por script (tabindex=-1, para que el lector de pantalla lo anuncie);
@@ -4192,14 +4192,18 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
 .lf-csv-report__send.is-disabled{ opacity:.6; }
 .lf-csv-report__status{ margin:8px 0 0; font-weight:700; }
 .lf-csv-report__status:empty{ display:none; }
-.lf-csv-report__fine{ margin:8px 0 0; color:var(--muted2); font-size:12px; }
+.lf-csv-report__fine{ margin:8px 0 0; color:var(--muted); font-size:12px; }
 @media (max-width: 480px){
   /* En solar el bloque va dentro de dos tarjetas con su propio padding: se recorta el interior
      para no dejar una columna de texto de 200 px. */
   .lf-csv-report{ padding:12px 10px; }
   .lf-csv-report__ask{ padding:12px 10px; }
-  .lf-csv-report__actions .btn{ flex:1 1 100%; justify-content:center; }
+  .lf-csv-report__actions .btn{ flex:1 1 100%; justify-content:center; white-space:normal; overflow-wrap:anywhere; text-align:center; }
 }
+/* En solar el bloque es hijo de `.bv-upload-compact` (flex en columna):
+   sin `width:100%` medía lo que su contenido más ancho ("Enviar a hola@luzfija.es", que no se
+   partia) y a 320 px se salia 11 px de la tarjeta, que lo recortaba con la X (12/11/2026).
+   `--muted` y no `--muted2` en la letra pequena: sobre el fondo tintado daba 4,2:1 en claro. */
 
 /* ===== Importar desde Datadis (js/lf-datadis.js) =====
    Solo variables del tema: vale en claro y oscuro sin reglas por tema. */

@@ -1910,6 +1910,12 @@ html.light-mode .bv-tip-card {
   overflow: hidden;
 }
 
+/* El fondo es violeta oscuro tambien en tema claro, pero `.btn` le daba `color: var(--text)`
+   (azul marino en claro): 2,5:1 medido el 12/11/2026. En oscuro ya era blanco. */
+html.light-mode #bv-simulate {
+  color: #FFFFFF;
+}
+
 #bv-simulate::before {
   content: '';
   position: absolute;
