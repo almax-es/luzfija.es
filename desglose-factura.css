@@ -189,7 +189,7 @@
 .desglose-importe-header {
   font-size: 16px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   transition: color 0.3s ease;
 }
 
@@ -241,7 +241,7 @@
 
 .desglose-importe-final {
   font-size: 22px;
-  color: var(--accent);
+  color: var(--accent-text);
   transition: color 0.3s ease;
 }
 
@@ -329,14 +329,16 @@
 
 /* Precio clickable - estilo link */
 #table tbody tr td:nth-child(6) {
-  color: #8b5cf6;
+  /* --accent-text: #5B21B6 en claro, #BBA7FC en oscuro (>= 4,5:1 tambien sobre las filas
+     tintadas; #8b5cf6/#a78bfa daban 3,9/4,0:1, medido a pixel el 12/11/2026). */
+  color: var(--accent-text);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 #table tbody tr td:nth-child(6):hover {
-  color: #a78bfa;
+  color: #4C1D95;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
@@ -345,17 +347,22 @@
 
 /* Touch feedback para móvil */
 #table tbody tr td:nth-child(6):active {
-  color: #c4b5fd;
+  color: #4C1D95;
   transform: scale(0.97);
 }
 
 /* Dark mode */
 html:not(.light-mode) #table tbody tr td:nth-child(6) {
-  color: #a78bfa;
+  /* Un punto mas claro que --accent-text: las tarjetas de tablet en oscuro son mas claras (4,46:1). */
+  color: #CEC2FE;
 }
 
 html:not(.light-mode) #table tbody tr td:nth-child(6):hover {
-  color: #c4b5fd;
+  color: #DDD6FE;
+}
+
+html:not(.light-mode) #table tbody tr td:nth-child(6):active {
+  color: #DDD6FE;
 }
 
 
@@ -481,7 +488,7 @@ html.light-mode .desglose-close:hover{
 .desglose-solar-simulator strong{ display:block; }
 .desglose-solar-simulator p{ margin: 3px 0 0; }
 .desglose-solar-simulator a{
-  color: var(--warn);
+  color: var(--warn-text);
   font-weight: 800;
   text-decoration-thickness: 2px;
   text-underline-offset: 2px;
@@ -523,7 +530,7 @@ html:not(.light-mode) .desglose-ayuda{
   border-color: rgba(245,158,11,0.25);
 }
 
-.desglose-importe--accent{ color: var(--accent); transition: color 0.3s ease; }
+.desglose-importe--accent{ color: var(--accent-text); transition: color 0.3s ease; }
 
 /* ===== Eliminación de estilos inline (CSP-friendly) ===== */
 .desglose-linea--hl-green{ background: rgba(34,197,94,0.10); }

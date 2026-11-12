@@ -52,18 +52,18 @@
        especulativo y cada recurso del head se pediria en serie. frame-guard se
        adelanta porque se descarga igualmente dentro de un iframe ajeno; el resto
        va detras de frame-guard para no descargarlo alli. Ver ARRANQUE-CARGA.md 4.8. -->
-  <link rel="preload" href="/js/frame-guard.js?v=20261112-153711" as="script">
-  <script src="/js/error-bootstrap.js?v=20261112-153711"></script>
-  <script src="/js/frame-guard.js?v=20261112-153711"></script>
-  <link rel="preload" href="/js/config.js?v=20261112-153711" as="script">
-  <link rel="preload" href="/js/theme.js?v=20261112-153711" as="script">
-  <link rel="preload" href="/styles.css?v=20261112-153711" as="style">
-  <link rel="preload" href="/pro.css?v=20261112-153711" as="style">
-  <link rel="preload" href="/desglose-factura.css?v=20261112-153711" as="style">
-  <link rel="preload" href="/fonts.css?v=20261112-153711" as="style">
+  <link rel="preload" href="/js/frame-guard.js?v=20261112-200224" as="script">
+  <script src="/js/error-bootstrap.js?v=20261112-200224"></script>
+  <script src="/js/frame-guard.js?v=20261112-200224"></script>
+  <link rel="preload" href="/js/config.js?v=20261112-200224" as="script">
+  <link rel="preload" href="/js/theme.js?v=20261112-200224" as="script">
+  <link rel="preload" href="/styles.css?v=20261112-200224" as="style">
+  <link rel="preload" href="/pro.css?v=20261112-200224" as="style">
+  <link rel="preload" href="/desglose-factura.css?v=20261112-200224" as="style">
+  <link rel="preload" href="/fonts.css?v=20261112-200224" as="style">
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/outfit-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <script src="/js/config.js?v=20261112-153711"></script>
+  <script src="/js/config.js?v=20261112-200224"></script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz sin Registro ni Comisiones">
   <meta property="og:description" content="Compara precios de luz de las principales compañías, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario.">
@@ -274,16 +274,16 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20261112-153711"></script>
+  <script src="/js/theme.js?v=20261112-200224"></script>
 
-    <link rel="stylesheet" href="/styles.css?v=20261112-153711">
-    <link rel="stylesheet" href="/pro.css?v=20261112-153711">
+    <link rel="stylesheet" href="/styles.css?v=20261112-200224">
+    <link rel="stylesheet" href="/pro.css?v=20261112-200224">
   <!-- CSS del desglose (solo se usa al abrir el modal) -->
-  <link rel="stylesheet" href="/desglose-factura.css?v=20261112-153711" media="all">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20261112-200224" media="all">
 
 
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
-  <link rel="stylesheet" href="/fonts.css?v=20261112-153711">
+  <link rel="stylesheet" href="/fonts.css?v=20261112-200224">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -616,7 +616,7 @@
           <div id="resultsLiveStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
           <div id="solarHomeEstimatorNotice" hidden role="note" aria-label="Recomendación para autoconsumo" style="margin-bottom:14px; padding:12px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(217, 119, 6, 0.3); border-left: 3px solid var(--warn); border-radius: 10px; font-size: 13px; line-height: 1.55; color: var(--text);">
-            ☀️ <strong>¿Tienes placas solares?</strong> Este ranking estima los excedentes con el total del periodo. Para autoconsumo, usa el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 800;">Simulador Solar</a>: calcula mes a mes con batería virtual, mes de inicio y tu CSV de consumo.
+            ☀️ <strong>¿Tienes placas solares?</strong> Este ranking estima los excedentes con el total del periodo. Para autoconsumo, usa el <a href="/comparador-tarifas-solares.html" style="color: var(--warn-text); font-weight: 800;">Simulador Solar</a>: calcula mes a mes con batería virtual, mes de inicio y tu CSV de consumo.
           </div>
 
           <div id="consumoLimitsNotice" class="consumo-limits-notice" hidden role="note" aria-label="Límites y estimación anual de consumo"></div>
@@ -756,7 +756,7 @@
         <div>
           <h2 class="u-h3-strong-10">Sobre el Comparador</h2>
           <p class="u-m-0">
-            <a href="/como-funciona-luzfija.html" style="color:var(--accent2); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
+            <a href="/como-funciona-luzfija.html" style="color:var(--ok-text); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
               🧭 Qué hace LuzFija.es y cómo funciona
               <span style="font-size:10px;">→</span>
             </a>
@@ -769,9 +769,9 @@
         <div>
           <h2 class="u-h3-strong-10">Horarios 2.0TD</h2>
           <ul class="u-list-muted-12">
-            <li><strong style="color:var(--danger);">Punta:</strong> 10–14 h y 18–22 h laborables</li>
-            <li><strong style="color:var(--warn);">Llano:</strong> 8–10 h, 14–18 h y 22–24 h laborables</li>
-            <li><strong style="color:var(--accent2);">Valle:</strong> 0–8 h + fines de semana y festivos nacionales</li>
+            <li><strong style="color:var(--danger-text);">Punta:</strong> 10–14 h y 18–22 h laborables</li>
+            <li><strong style="color:var(--warn-text);">Llano:</strong> 8–10 h, 14–18 h y 22–24 h laborables</li>
+            <li><strong style="color:var(--ok-text);">Valle:</strong> 0–8 h + fines de semana y festivos nacionales</li>
             <li><em>En Ceuta y Melilla, punta es 11–15 h y 19–23 h; llano, 8–11 h, 15–19 h y 23–24 h.</em></li>
           </ul>
         </div>
@@ -1011,7 +1011,7 @@
 
         <div style="margin-top: 14px; padding: 12px 14px; background: rgba(245, 158, 11, 0.08); border-left: 3px solid var(--warn); border-radius: 10px;">
           <p class="u-text-muted-13-16" style="margin: 0;">
-            💡 Esta vista es una estimación rápida con el total del periodo. La herramienta específica para autoconsumo es el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 800;">Simulador Solar</a>: cálculo mes a mes con batería virtual, mes de inicio y tu CSV de consumo.
+            💡 Esta vista es una estimación rápida con el total del periodo. La herramienta específica para autoconsumo es el <a href="/comparador-tarifas-solares.html" style="color: var(--warn-text); font-weight: 800;">Simulador Solar</a>: cálculo mes a mes con batería virtual, mes de inicio y tu CSV de consumo.
           </p>
         </div>
 
@@ -1024,43 +1024,43 @@
 
     <!-- LuzFija Modular Architecture -->
     <!-- Tracking primero para capturar errores de scripts posteriores -->
-    <script src="/js/tracking.js?v=20261112-153711" defer></script>
+    <script src="/js/tracking.js?v=20261112-200224" defer></script>
 
     <!-- 1. Módulos base (orden importante) -->
-    <script src="js/lf-config.js?v=20261112-153711" defer></script>
-    <script src="js/lf-utils.js?v=20261112-153711" defer></script>
-    <script src="js/lf-ssaa.js?v=20261112-153711" defer></script>
-    <script src="js/lf-csv-utils.js?v=20261112-153711" defer></script>
-    <script src="js/lf-csv-report.js?v=20261112-153711" defer></script>
-    <script src="js/lf-state.js?v=20261112-153711" defer></script>
-    <script src="js/lf-ui.js?v=20261112-153711" defer></script>
-    <script src="js/lf-tooltips.js?v=20261112-153711" defer></script>
-    <script src="js/lf-cache.js?v=20261112-153711" defer></script>
-    <script src="js/lf-inputs.js?v=20261112-153711" defer></script>
-    <script src="js/lf-calc.js?v=20261112-153711" defer></script>
-    <script src="js/lf-render.js?v=20261112-153711" defer></script>
-    <script src="js/lf-csv-import.js?v=20261112-153711" defer></script>
-    <script src="js/lf-datadis.js?v=20261112-153711" defer></script>
-    <script src="js/lf-tarifa-custom.js?v=20261112-153711" defer></script>
+    <script src="js/lf-config.js?v=20261112-200224" defer></script>
+    <script src="js/lf-utils.js?v=20261112-200224" defer></script>
+    <script src="js/lf-ssaa.js?v=20261112-200224" defer></script>
+    <script src="js/lf-csv-utils.js?v=20261112-200224" defer></script>
+    <script src="js/lf-csv-report.js?v=20261112-200224" defer></script>
+    <script src="js/lf-state.js?v=20261112-200224" defer></script>
+    <script src="js/lf-ui.js?v=20261112-200224" defer></script>
+    <script src="js/lf-tooltips.js?v=20261112-200224" defer></script>
+    <script src="js/lf-cache.js?v=20261112-200224" defer></script>
+    <script src="js/lf-inputs.js?v=20261112-200224" defer></script>
+    <script src="js/lf-calc.js?v=20261112-200224" defer></script>
+    <script src="js/lf-render.js?v=20261112-200224" defer></script>
+    <script src="js/lf-csv-import.js?v=20261112-200224" defer></script>
+    <script src="js/lf-datadis.js?v=20261112-200224" defer></script>
+    <script src="js/lf-tarifa-custom.js?v=20261112-200224" defer></script>
     
     <!-- 2. Módulos externos -->
-    <script src="js/pvpc.js?v=20261112-153711" defer></script>
-    <script src="js/factura-parsers.js?v=20261112-153711" defer></script>
-    <script src="js/factura.js?v=20261112-153711" defer></script>
+    <script src="js/pvpc.js?v=20261112-200224" defer></script>
+    <script src="js/factura-parsers.js?v=20261112-200224" defer></script>
+    <script src="js/factura.js?v=20261112-200224" defer></script>
     <!-- 2b. Sistema de desglose de factura -->
-    <script src="js/desglose-calculo.js?v=20261112-153711" defer></script>
-    <script src="js/desglose-render.js?v=20261112-153711" defer></script>
-    <script src="js/desglose-factura.js?v=20261112-153711" defer></script>
-    <script src="js/desglose-integration.js?v=20261112-153711" defer></script>
+    <script src="js/desglose-calculo.js?v=20261112-200224" defer></script>
+    <script src="js/desglose-render.js?v=20261112-200224" defer></script>
+    <script src="js/desglose-factura.js?v=20261112-200224" defer></script>
+    <script src="js/desglose-integration.js?v=20261112-200224" defer></script>
 
     <!-- 3. Coordinador principal -->
     <!-- XLSX se carga bajo demanda cuando se necesita -->
-    <script src="js/lf-sw-update.js?v=20261112-153711" defer></script>
-    <script src="js/lf-app.js?v=20261112-153711" defer></script>
+    <script src="js/lf-sw-update.js?v=20261112-200224" defer></script>
+    <script src="js/lf-app.js?v=20261112-200224" defer></script>
 
 
-    <script src="js/index-extra.js?v=20261112-153711" defer></script>
-    <script src="js/aecc-banner.js?v=20261112-153711" defer></script>
+    <script src="js/index-extra.js?v=20261112-200224" defer></script>
+    <script src="js/aecc-banner.js?v=20261112-200224" defer></script>
 
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">
@@ -1074,7 +1074,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, rgba(245,158,11,.15) 0%, rgba(217,119,6,.08) 100%); border-radius: 12px; border: 1px solid rgba(217,119,6,.3);">
           <div>
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.5px; margin-bottom: 4px;" id="modalPVPCLabel">Ahora</div>
-            <div style="font-size: 24px; font-weight: 800; color: var(--accent);" id="modalPVPCNow">—</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--accent-text);" id="modalPVPCNow">—</div>
             <div style="font-size: 11px; opacity: 0.7;" id="modalPVPCNowHour">—</div>
           </div>
           <div class="u-text-right">

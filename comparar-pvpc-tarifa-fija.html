@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/frame-guard.js?v=20261112-153711"></script>
-<script src="/js/config.js?v=20261112-153711"></script>
-<script src="/js/theme.js?v=20261112-153711"></script>
+<script src="/js/frame-guard.js?v=20261112-200224"></script>
+<script src="/js/config.js?v=20261112-200224"></script>
+<script src="/js/theme.js?v=20261112-200224"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
   <meta name="color-scheme" content="dark light"/>
@@ -91,7 +91,7 @@
 body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden;min-height:100vh}
 /* Color base de enlace: sin esto los <a> sin regla propia caen al azul por defecto del navegador,
    que sigue al tema del SO y no al de la web (ilegible cuando no coinciden). */
-a{color:var(--accent)}
+a{color:var(--accent-text)}
 .header{position:sticky;top:0;background:rgba(11,16,32,.98);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:20px 0;z-index:100}
 @media (max-width:640px),(max-height:500px){.header{position:static}}
 .header-container{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
@@ -126,12 +126,12 @@ a{color:var(--accent)}
 .guide-card:hover{background:rgba(139,92,246,.15);transform:translateX(4px)}
 .guide-icon{font-size:24px}
 .guide-title{font-weight:600;flex:1}
-.guide-arrow{color:var(--accent);font-size:20px}
+.guide-arrow{color:var(--accent-text);font-size:20px}
 .footer{background:rgba(11,16,32,.95);border-top:1px solid var(--border);padding:40px 24px;margin-top:80px}
 .footer-content{max-width:1200px;margin:0 auto;text-align:center;color:var(--muted);font-size:14px}
 .footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
 .footer-links a{color:var(--muted);text-decoration:none;transition:color .2s}
-.footer-links a:hover{color:var(--accent)}
+.footer-links a:hover{color:var(--accent-text)}
 @media (max-width:768px){
   .header-container{padding:0 16px;flex-direction:column;justify-content:center;gap:12px}
   .nav-buttons{width:100%;justify-content:center;flex-wrap:wrap;gap:8px}
@@ -216,17 +216,21 @@ html.light-mode .btn-small:hover{
   padding: 0 10px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent2);
+  color: var(--ok-text);
   border: 1px solid var(--accent2);
   border-radius: 100px;
 }
-.key-takeaway strong { color: var(--accent2); }
+.key-takeaway strong { color: var(--ok-text); }
 .skip-link{position:absolute;top:-999px;left:-999px;background:var(--accent);color:#fff;padding:12px 20px;text-decoration:none;border-radius:0 0 8px 0;z-index:10000;font-weight:700}
 .skip-link:focus{top:0;left:0;z-index:10002}
 
+/* Colores de TEXTO con contraste AA (12/11/2026), medidos a pixel en claro y oscuro: el
+   violeta y los verdes/ambar/rojos de marca se quedan para fondos y bordes. */
+:root{--accent-text:#B39DFB;--ok-text:#4ADE80;--warn-text:#FBBF24;--danger-text:#FCA5A5}
+html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--danger-text:#B91C1C}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20261112-153711">
+  <link rel="stylesheet" href="/fonts.css?v=20261112-200224">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -358,6 +362,6 @@ html.light-mode .btn-small:hover{
 <p>© 2026 LuzFija.es · Comparador independiente de tarifas de luz</p>
 </div>
 </footer>
-<script src="/js/tracking.js?v=20261112-153711" defer></script>
+<script src="/js/tracking.js?v=20261112-200224" defer></script>
 </body>
 </html>

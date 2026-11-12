@@ -124,7 +124,7 @@ describe('regresiones de accesibilidad detectadas en la auditoría', () => {
     const css = read('styles.css');
 
     expect(css).toMatch(/\.share-config-modal \.modal-content\s*\{[^}]*padding:\s*24px;[^}]*border-radius:\s*24px;[^}]*background:\s*linear-gradient\(145deg, #0f172a, #1e293b\);/);
-    expect(css).toMatch(/\.share-config-modal \.modal-content \.head h2\s*\{[^}]*margin:\s*0 0 10px;[^}]*color:\s*var\(--accent\);[^}]*font-size:\s*1\.3rem;/);
+    expect(css).toMatch(/\.share-config-modal \.modal-content \.head h2\s*\{[^}]*margin:\s*0 0 10px;[^}]*color:\s*var\(--accent-text\);[^}]*font-size:\s*1\.3rem;/);
     expect(css).toMatch(/#shareConfigDescription\s*\{\s*margin:\s*0 0 16px;\s*line-height:\s*1\.5;/);
     expect(css).toMatch(/html\.light-mode \.share-config-modal \.modal-content\s*\{[^}]*background:\s*linear-gradient\(145deg, #ffffff, #f8fafc\);/);
   });
@@ -216,13 +216,18 @@ describe('regresiones de accesibilidad detectadas en la auditoría', () => {
     const guideFiles = fs.readdirSync(path.join(ROOT, 'guias'))
       .filter((file) => file.endsWith('.html') && file !== 'index.html');
 
-    // #2C2856 aproxima el peor fondo implicado: accent al 20 % sobre la superficie oscura.
-    expect(contrastRatio('#A78BFA', '#2C2856')).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio('#6D28D9', '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+    // #2C2856 aproxima el peor fondo implicado: accent al 20 % sobre la superficie oscura; #393E46,
+    // la tarjeta gris del modo oscuro; #D0C0F8, el tinte lavanda del claro (medidos a pixel el
+    // 12/11/2026, cuando #A78BFA/#6D28D9 se quedaban en 3,9-4,4:1 sobre ellos).
+    expect(contrastRatio('#B39DFB', '#2C2856')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio('#B39DFB', '#393E46')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio('#5B21B6', '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio('#5B21B6', '#D0C0F8')).toBeGreaterThanOrEqual(4.5);
     guideFiles.forEach((file) => {
       const html = read(path.join('guias', file));
-      expect(html, file).toContain('--accent:#8B5CF6;--accent-text:#A78BFA;');
-      expect(html, file).toContain('--accent:#6D28D9;--accent-text:#6D28D9; /* mejor contraste en modo claro */');
+      expect(html, file).toContain('--accent:#8B5CF6;--accent-text:#B39DFB;');
+      expect(html, file).toContain('--accent:#6D28D9;--accent-text:#5B21B6; /* mejor contraste en modo claro */');
+      expect(html, file).toContain('html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--danger-text:#B91C1C}');
       expect(html, file).toContain('color:var(--accent-text)');
       expect(html, file).not.toMatch(/(?:^|[;{])color:\s*var\(--accent\)/m);
       expect(html, file).toMatch(/border-color\s*:\s*var\(--accent\)/);

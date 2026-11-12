@@ -22,7 +22,9 @@
   --obs-soft-2: rgba(255,255,255,0.08);
 
   /* Gradientes Premium */
-  --grad-purple: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  /* Fondo de chips y botones activos con texto blanco: #8b5cf6->#6366f1 daba 4,2-4,4:1;
+     un paso mas profundo de los mismos tonos da 5,7-6,3:1 (12/11/2026). */
+  --grad-purple: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
   --grad-purple-glow: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #6d28d9 100%);
   --grad-card: linear-gradient(145deg, rgba(139, 92, 246, 0.03) 0%, rgba(99, 102, 241, 0.02) 100%);
   --grad-shine: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
@@ -326,7 +328,7 @@
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
   border: 2px solid rgba(139, 92, 246, 0.3);
-  color: var(--obs-accent);
+  color: var(--accent-text);
   font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -413,7 +415,7 @@
   position: absolute;
   right: 16px;
   font-size: 1rem;
-  color: var(--obs-accent);
+  color: var(--accent-text);
   pointer-events: none;
   font-weight: 900;
   transition: transform 0.3s ease;
@@ -551,7 +553,7 @@
 }
 
 .kpi__icon {
-  color: var(--obs-accent);
+  color: var(--accent-text);
   opacity: 0.9;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
   padding: 9px;
@@ -869,7 +871,7 @@
 .insight__k {
   font-size: 1.25rem;
   font-weight: 900;
-  color: var(--obs-accent);
+  color: var(--accent-text);
   margin-bottom: 8px;
   position: relative;
   z-index: 1;
@@ -907,7 +909,7 @@
 }
 
 .callout strong {
-  color: var(--obs-accent);
+  color: var(--accent-text);
   font-weight: 800;
 }
 
@@ -1160,7 +1162,7 @@
 .faq summary::after {
   content: '▾';
   font-size: 1.05rem;
-  color: var(--obs-accent);
+  color: var(--accent-text);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1170,7 +1172,7 @@
 
 .faq summary:hover {
   opacity: 1;
-  color: var(--obs-accent);
+  color: var(--accent-text);
 }
 
 .faq__body {
@@ -1374,7 +1376,7 @@
     grid-template-columns: unset !important;
     font-weight: 900 !important;
     font-size: 1.3rem !important;
-    color: var(--accent) !important;
+    color: var(--accent-text) !important;
     margin-bottom: 12px !important;
     padding: 12px 0 !important;
     border-bottom: 2px solid var(--hairline) !important;

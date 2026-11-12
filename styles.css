@@ -1,5 +1,5 @@
     /* === TU DISEÑO ORIGINAL EXACTO (NO TOCAR) === */
-    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#7C3AED; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card);
+    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.66); --accent:#7C3AED; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card);
       /* Sombras simplificadas (para móvil/coarse) — se sobreescriben por tema */
       --shadowMobile: 0 4px 12px rgba(0,0,0,.30);
       --shadowBtnMobile: 0 2px 8px rgba(0,0,0,.20);
@@ -17,7 +17,7 @@
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
       --muted: rgba(15, 23, 42, .75);
-      --muted2: rgba(15, 23, 42, .58);
+      --muted2: rgba(15, 23, 42, .66); /* .58 daba 4,1-4,4:1 sobre las tarjetas tintadas (12/11/2026) */
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
       /* Colores optimizados para contraste WCAG AA en modo claro */
@@ -30,6 +30,12 @@
       --shadowBtnMobile: 0 2px 8px rgba(2,6,23,.10);
       --rowMobileBg: rgba(15, 23, 42, .03);
     }
+    /* Colores de TEXTO con contraste AA (12/11/2026). El violeta de marca (--accent) sigue
+       siendo el de fondos, bordes y botones; como LETRA sobre fondo oscuro daba 2,4-3,3:1.
+       Medidos a pixel contra el fondo real mas desfavorable de cada tema (tarjeta gris del
+       modo oscuro, tintes lavanda/verde/ambar del claro): todos >= 4,5:1. */
+    :root{ --accent-text:#C4B5FD; --ok-text:#4ADE80; --warn-text:#FBBF24; --danger-text:#FCA5A5; }
+    html.light-mode{ --accent-text:#5B21B6; --ok-text:#166534; --warn-text:#92400E; --danger-text:#B91C1C; }
     *{box-sizing:border-box; margin:0; padding:0}
     /* Los controles de formulario NO heredan la tipografia del documento en ningun
        navegador: sin esto, botones, campos y desplegables salen con la fuente por defecto
@@ -413,6 +419,17 @@
       transition: width 0.6s, height 0.6s;
     }
 
+    /* Tema oscuro (12/11/2026): el blanco sobre el rosa central del degradado se quedaba en
+       3,3:1 en los botones de texto normal (Cerrar, Entendido, Aplicar consumos). Mismos tonos un
+       paso mas profundos (>= 4,6:1 bajo el texto). En claro el texto es oscuro y el degradado
+       original ya cumple. Fuera de forced-colors para no pisar los colores de sistema. */
+    /* En el modal PVPC el bloque Min/Max iba al 80 % de opacidad: en claro dejaba el verde, el
+       rojo y las horas en 3,6-4,4:1 sobre el recuadro ambar (12/11/2026). */
+    #modalPVPCInfo .u-opacity-80{ opacity: 1 !important; }
+    @media (forced-colors: none){
+      html:not(.light-mode) .btn.primary{ background-image: linear-gradient(135deg, #7C3AED 0%, #DB2777 50%, #D97706 100%); }
+      html:not(.light-mode) .btn.primary::before{ background-image: linear-gradient(135deg, #7C3AED, #DB2777, #D97706, #7C3AED); }
+    }
     .btn.primary #btnText {
       display: inline-block;
       font-size: 26px;
@@ -609,7 +626,7 @@
     @media (max-width: 520px){ .form{grid-template-columns: 1fr;} }
     .group{display:flex; flex-direction:column; gap: 7px;}
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
-    .tooltip{ --tt-size:16px; position: relative; cursor: pointer; display: grid; place-items: center; width: var(--tt-size); height: var(--tt-size); border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; line-height: 1; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; padding: 0; }
+    .tooltip{ --tt-size:16px; position: relative; cursor: pointer; display: grid; place-items: center; width: var(--tt-size); height: var(--tt-size); border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent-text); font-size: 10px; font-weight: 900; line-height: 1; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; padding: 0; }
     .tooltip:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,.25); transform: translateY(-1px); }
     /* Tooltips más grandes en dispositivos táctiles */
     @media (pointer: coarse) {
@@ -944,16 +961,18 @@
       transform: translateY(-2px) translateZ(0);
       box-shadow: 0 8px 20px rgba(139,92,246,0.15);
     }
-    .statCard:nth-child(1) .statValue { color: #22C55E; }
-    .statCard:nth-child(2) .statValue { color: #F59E0B; }
-    .statCard:nth-child(3) .statValue { color: #EF4444; }
+    .statCard:nth-child(1) .statValue { color: var(--ok-text); }
+    .statCard:nth-child(2) .statValue { color: var(--warn-text); }
+    .statCard:nth-child(3) .statValue { color: var(--danger-text); }
     .statCard:nth-child(1) { animation-delay: 0.2s; } .statCard:nth-child(2) { animation-delay: 0.3s; } .statCard:nth-child(3) { animation-delay: 0.4s; }
     .statLabel{ color: var(--muted2); letter-spacing: 1px; text-transform: uppercase; font-size: 10px; font-weight: 900; }
     .statValue{ font-size: clamp(18px, 1.5vw, 24px); font-weight: 900; letter-spacing: -0.4px; white-space: nowrap; }
     .badge{ display:inline-flex; align-items:center; justify-content:center; padding: 3px 6px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); font-weight: 900; font-size: 11px; letter-spacing: .3px; transition: transform .15s ease, box-shadow .15s ease; }
-    .badge.b1{ border: none; background: linear-gradient(135deg, rgba(59,130,246,.9), rgba(96,165,250,.8)); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,.3); }
+    /* 1P/3P (12/11/2026): blanco sobre el azul claro daba 3:1 y sobre el ambar 2:1. Azul mas
+       profundo (blanco 5,2-6,7:1) y texto marron oscuro sobre el ambar de siempre (6,7-8,6:1). */
+    .badge.b1{ border: none; background: linear-gradient(135deg, #1D4ED8, #2563EB); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,.3); }
     .badge.b1:hover{ transform: scale(1.05); box-shadow: 0 6px 16px rgba(59,130,246,.4); }
-    .badge.b3{ border: none; background: linear-gradient(135deg, rgba(245,158,11,.9), rgba(251,191,36,.8)); color: #fff; box-shadow: 0 4px 12px rgba(245,158,11,.3); }
+    .badge.b3{ border: none; background: linear-gradient(135deg, rgba(245,158,11,.9), rgba(251,191,36,.8)); color: #422006; box-shadow: 0 4px 12px rgba(245,158,11,.3); }
     .badge.b3:hover{ transform: scale(1.05); box-shadow: 0 6px 16px rgba(245,158,11,.4); }
     /* Etiqueta de promocion: marca un beneficio que NO esta incluido en el precio de la fila.
        Reutiliza .tooltip para el binding del texto, pero anula su forma circular fija.
@@ -1072,8 +1091,8 @@
     tbody td.rank-3 { color: #CD7F32; font-weight: 900; font-size: 1.2em; text-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
     td.vs{white-space: nowrap; position:relative; padding-left: 24px;}
     .vs-text{ font-weight: 900; min-width: 40px; text-align: right; }
-    .vs-text.pos{color: rgba(239,68,68,.95);}
-    .vs-text.neg{color: rgba(34,197,94,.95);}
+    .vs-text.pos{color: var(--danger-text);}
+    .vs-text.neg{color: var(--ok-text);}
     .vs-text.zero{color: var(--muted2);}
     .web{ display:inline-flex; width: 38px; height:38px; border-radius: 12px; border: 1px solid var(--border); background: linear-gradient(135deg, rgba(139,92,246,.18), rgba(34,197,94,.10)); align-items:center; justify-content:center; text-decoration:none; transition: transform .15s ease, border-color .15s ease, background .15s ease; color: var(--text); }
     .web:hover{transform: translateY(-1px) scale(1.04); border-color: var(--border2); background: linear-gradient(135deg, rgba(139,92,246,.30), rgba(34,197,94,.16));}
@@ -1172,7 +1191,7 @@
     .dot{width:10px; height:10px; border-radius:999px; background: var(--accent);}
     .dot.ok{background: var(--accent2)}
     .dot.err{background: var(--danger)}
-    .scroll-btn{ position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: 9998; animation: none; transition: transform .2s ease, box-shadow .2s ease; }
+    .scroll-btn{ position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), #15803D) /* el verde claro del final dejaba el blanco en 2,3:1 */; color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: 9998; animation: none; transition: transform .2s ease, box-shadow .2s ease; }
     .scroll-btn:hover{ transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 32px rgba(139,92,246,.6); }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @media (max-width: 768px) {
@@ -1192,7 +1211,7 @@
       tbody td:nth-of-type(3)::before { content: "Potencia"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(4)::before { content: "Consumo"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(5)::before { content: "Impuestos*"; font-weight:900; color:var(--muted); }
-      tbody td:nth-of-type(6)::before { content: "TOTAL"; font-weight:900; color:var(--accent); font-size:1.2em; }
+      tbody td:nth-of-type(6)::before { content: "TOTAL"; font-weight:900; color:var(--accent-text); font-size:1.2em; }
       tbody td:nth-of-type(7)::before { content: "Diferencia"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(8)::before { content: "Tipo"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(9)::before { content: "Contratar"; font-weight:900; color:var(--muted); }
@@ -1374,7 +1393,7 @@
       border-radius: 4px;
       font-family: var(--mono);
       font-size: 12px;
-      color: var(--accent);
+      color: var(--accent-text);
     }
 
     @media (max-width: 768px){
@@ -1448,6 +1467,7 @@
 
     html.light-mode .menuItem .mi-right{
       color: var(--muted);
+      opacity: 1; /* con la opacity .6 general se quedaba en 2,9:1 (12/11/2026) */
     }
 
     html.light-mode .menuHint{
@@ -1634,12 +1654,12 @@
     }
 
     html.light-mode .input-validacion .check{
-      color: var(--accent2);
+      color: var(--ok-text);
       opacity: 1;
     }
 
     html.light-mode .input-validacion .warning{
-      color: var(--warn);
+      color: var(--warn-text);
       opacity: 1;
     }
 
@@ -1655,7 +1675,7 @@
     }
 
     html.light-mode #modalFactura .help a{
-      color: var(--accent);
+      color: var(--accent-text);
       font-weight: 600;
     }
 
@@ -1712,7 +1732,7 @@ body.lf-share-open { overflow: hidden; }
 }
 .share-config-modal .modal-content .head h2 {
   margin: 0 0 10px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 1.3rem;
 }
 .share-config-modal .modal-content .body { padding: 0; overflow: visible; flex: none; }
@@ -1768,9 +1788,9 @@ body.lf-share-open { overflow: hidden; }
   border:1px solid var(--border);
   margin-bottom:0;
 }
-.confianza-badge.alta{ background:rgba(34,197,94,.18); color:var(--accent2); border-color:var(--accent2); }
-.confianza-badge.media{ background:rgba(245,158,11,.18); color:var(--warn); border-color:var(--warn); }
-.confianza-badge.baja{ background:rgba(239,68,68,.18); color:var(--danger); border-color:var(--danger); }
+.confianza-badge.alta{ background:rgba(34,197,94,.18); color:var(--ok-text); border-color:var(--accent2); }
+.confianza-badge.media{ background:rgba(245,158,11,.18); color:var(--warn-text); border-color:var(--warn); }
+.confianza-badge.baja{ background:rgba(239,68,68,.18); color:var(--danger-text); border-color:var(--danger); }
 
 .qr-factura-info{
   margin:10px 0 14px;
@@ -1789,7 +1809,7 @@ body.lf-share-open { overflow: hidden; }
 }
 .qr-factura-eyebrow{
   display:block;
-  color:var(--accent2);
+  color:var(--ok-text);
   font-size:10px;
   font-weight:900;
   letter-spacing:.08em;
@@ -1801,7 +1821,7 @@ body.lf-share-open { overflow: hidden; }
   padding:4px 7px;
   border:1px solid rgba(34,197,94,.4);
   border-radius:999px;
-  color:var(--accent2);
+  color:var(--ok-text);
   font-size:9px;
   font-weight:800;
   white-space:nowrap;
@@ -1869,7 +1889,7 @@ body.lf-share-open { overflow: hidden; }
   font-weight:900;
   line-height:1;
 }
-.qr-factura-import-aviso--warning .qr-factura-import-aviso-icono{ color:#fbbf24; }
+.qr-factura-import-aviso--warning .qr-factura-import-aviso-icono{ color:var(--warn-text); }
 .qr-factura-import-aviso-cuerpo{ min-width:0; }
 .qr-factura-import-aviso-cuerpo strong{
   display:block;
@@ -1893,7 +1913,7 @@ body.lf-share-open { overflow: hidden; }
   border-top:1px solid var(--border);
   font-size:11px;
 }
-.qr-factura-contact a{ color:var(--accent2); font-weight:800; }
+.qr-factura-contact a{ color:var(--ok-text); font-weight:800; }
 .qr-factura-note{ margin:10px 0 0; color:var(--muted); font-size:9px; line-height:1.35; }
 
 html.light-mode .qr-factura-info{ background:linear-gradient(145deg, rgba(34,197,94,.10), rgba(59,130,246,.06)); }
@@ -1941,6 +1961,14 @@ html.light-mode .qr-factura-import-aviso--warning .qr-factura-import-aviso-icono
   color: inherit;
   text-decoration: underline;
 }
+
+/* Pie (12/11/2026): los textos se atenuaban con opacity (0,4-0,65) y en claro con #9CA3AF:
+   2,2-3,6:1, y los enlaces de privacidad/aviso legal se quedaban en 1,9:1 en oscuro. Se
+   mantiene la jerarquia con colores de texto secundario, sin transparencia. */
+html.light-mode .footer-credits{ color: #4B5563; }
+footer.footer-container .u-opacity-40,
+footer.footer-container .u-opacity-65,
+footer.footer-container p[style*="opacity:0.5"]{ opacity: 1 !important; color: var(--muted2); }
 
 
 
@@ -2467,7 +2495,7 @@ html.light-mode .custom-tariff-highlight {
 
 #table td.total-cell .total-bv-saldo{
   display: block;
-  color: #fbbf24;
+  color: var(--warn-text);
   font-size: 0.72em;
   font-weight: 800;
   line-height: 1.1;
@@ -2948,13 +2976,13 @@ html.light-mode, html.light-mode{
 /* Utilities (extracted from repeated inline styles) */
 .u-h3-strong-10{ font-size:14px !important; font-weight:900 !important; margin-bottom:10px !important; color:var(--text) !important; }
 .u-h3-strong-8{ font-size:14px !important; font-weight:900 !important; margin-bottom:8px !important; color:var(--text) !important; }
-.u-link-accent{ color:var(--accent) !important; text-decoration: underline !important; }
+.u-link-accent{ color:var(--accent-text) !important; text-decoration: underline !important; }
 .u-text-muted-13-16{ color:var(--muted) !important; font-size:13px !important; line-height:1.6 !important; margin-bottom:16px !important; }
 .u-text-muted-13-15{ color:var(--muted) !important; font-size:13px !important; line-height:1.5 !important; }
 .u-list-muted-12{ list-style:none !important; color:var(--muted) !important; font-size:12px !important; line-height:1.8 !important; margin:0 !important; padding:0 !important; }
 .u-kicker-13{ font-weight:700 !important; font-size:13px !important; margin-bottom:6px !important; }
 .u-h-12{ height:12px !important; }
-.u-faint-10{ opacity:0.6 !important; font-size:10px !important; }
+.u-faint-10{ color: var(--muted2) !important; font-size:10px !important; }
 .u-text{ color:var(--text) !important; }
 
 
@@ -2966,8 +2994,8 @@ html.light-mode, html.light-mode{
 .u-title-hero{ font-size:28px !important; font-weight:700 !important; margin:48px 0 24px !important; color:var(--text) !important; }
 .u-fw-600{ font-weight:600 !important; }
 .u-s-9762a3b{ display:block !important; padding:20px 24px !important; background:var(--card) !important; border:1px solid var(--border2) !important; border-radius:12px !important; text-decoration:none !important; color:var(--text) !important; transition:all 0.2s !important; text-align: center !important; }
-.u-s-ebbbf67{ color:var(--accent) !important; margin-right:8px !important; font-size:20px !important; }
-.u-s-ae3c165{ color:var(--accent) !important; text-decoration:none !important; }
+.u-s-ebbbf67{ color:var(--accent-text) !important; margin-right:8px !important; font-size:20px !important; }
+.u-s-ae3c165{ color:var(--accent-text) !important; text-decoration:none !important; }
 .u-title-section{ font-size:22px !important; font-weight:600 !important; margin:32px 0 16px !important; color:var(--text) !important; }
 .u-s-3ec39f2{ display:grid !important; gap:16px !important; max-width:700px !important; margin:0 auto !important; }
 .u-s-56e9e64{ margin-top:60px !important; padding-top:30px !important; border-top:1px solid rgba(255,255,255,.1) !important; text-align:center !important; font-size:13px !important; color:var(--muted) !important; }
@@ -2977,7 +3005,7 @@ html.light-mode, html.light-mode{
 .u-s-a403f4c{ font-size:28px !important; font-weight:700 !important; margin-bottom:16px !important; }
 .u-s-b7dc34f{ background:linear-gradient(135deg, rgba(139,92,246,0.1), rgba(34,197,94,0.1)) !important; border:2px solid var(--accent) !important; border-radius:20px !important; padding:40px !important; margin-bottom:64px !important; text-align:center !important; width: fit-content !important; max-width: 90% !important; margin-left: auto !important; margin-right: auto !important; }
 .u-s-d383698{ font-size:32px !important; font-weight:700 !important; margin-bottom:16px !important; text-align:center !important; }
-.u-c-var-accent{ color:var(--accent) !important; }
+.u-c-var-accent{ color:var(--accent-text) !important; }
 .u-s-4dc45da{ font-size:clamp(32px, 5vw, 48px) !important; font-weight:800 !important; margin-bottom:16px !important; }
 .u-s-9f21d0e{ font-size:18px !important; color:var(--muted) !important; margin-bottom:24px !important; }
 .u-mt-16px{ margin-top:16px !important; }
@@ -3024,9 +3052,9 @@ html.light-mode, html.light-mode{
 
 /* === Colors === */
 .u-color-muted{ color: var(--muted) !important; }
-.u-color-accent{ color: var(--accent) !important; }
-.u-color-green{ color: #10b981 !important; }
-.u-color-red{ color: #ef4444 !important; }
+.u-color-accent{ color: var(--accent-text) !important; }
+.u-color-green{ color: var(--ok-text) !important; }
+.u-color-red{ color: var(--danger-text) !important; }
 
 /* === Opacity === */
 .u-opacity-40{ opacity: 0.4 !important; }
@@ -3496,7 +3524,7 @@ html {
 
 .related-guide-card .guide-arrow {
   font-size: 14px;
-  color: var(--accent);
+  color: var(--accent-text);
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
@@ -3625,7 +3653,7 @@ html {
 }
 
 .footer-link {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   transition: opacity 0.2s ease;
 }
@@ -3765,7 +3793,7 @@ html {
 }
 
 .footer-link {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   transition: opacity 0.2s ease;
 }
@@ -3794,7 +3822,7 @@ html {
 
 /* === Breadcrumbs === */
 .breadcrumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:12px 0 16px;}
-.breadcrumbs a{color:var(--accent);text-decoration:none;font-weight:800;}
+.breadcrumbs a{color:var(--accent-text);text-decoration:none;font-weight:800;}
 .breadcrumbs a:hover{opacity:.85;}
 
 /* === Ajustes "pixel-perfect" para móviles === */
@@ -4112,8 +4140,8 @@ html.light-mode .aecc-banner__close:hover {
 
   /* Mismo codigo de color que la columna "Diferencia" de la tabla:
      rojo = pagas mas que la primera, verde = pagas menos. */
-  .mi-tarifa-chip__diff.is-pos { color: rgba(239, 68, 68, .95); }
-  .mi-tarifa-chip__diff.is-neg { color: rgba(34, 197, 94, .95); }
+  .mi-tarifa-chip__diff.is-pos { color: var(--danger-text); }
+  .mi-tarifa-chip__diff.is-neg { color: var(--ok-text); }
   .mi-tarifa-chip__diff.is-zero { color: var(--muted2); }
 
   @media (max-width: 360px) {
@@ -4129,8 +4157,6 @@ html.light-mode .aecc-banner__close:hover {
     color: var(--text);
   }
 
-  html.light-mode .mi-tarifa-chip__diff.is-pos { color: #DC2626; } /* Red-600, AA sobre blanco */
-  html.light-mode .mi-tarifa-chip__diff.is-neg { color: #15803D; } /* Green-700, AA sobre blanco */
 
   /* Destello breve al saltar a la fila, para no perderla de vista al llegar. */
   .custom-tariff-highlight.mi-tarifa-flash {
@@ -4218,7 +4244,7 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
 }
 .lf-dd-box ul{ margin:6px 0 0; padding-left:18px; }
 .lf-dd-box li{ margin:0 0 4px; }
-.lf-dd-box a{ color:var(--accent); font-weight:700; }
+.lf-dd-box a{ color:var(--accent-text); font-weight:700; }
 .lf-dd-warn{ border-color:var(--warn); background:rgba(245,158,11,.10); }
 .lf-dd-error{ border-color:var(--danger); background:rgba(220,38,38,.10); font-size:13px; }
 .lf-dd-error:focus{ outline:2px solid var(--danger); outline-offset:2px; }

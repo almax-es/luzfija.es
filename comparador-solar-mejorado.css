@@ -529,12 +529,13 @@ body.solar-pro .bv-alt-card-compact:has(.bv-alt-btn-toggle.active)::before{
   display: none;
 }
 
+/* El numero de puesto era gris al 55-65 % de opacidad: 3,2-3,6:1 (12/11/2026). */
 body.solar-pro .bv-alt-rank{
-  opacity: .55;
+  opacity: .85;
 }
 
 html.light-mode body.solar-pro .bv-alt-rank{
-  opacity: .65;
+  opacity: .85;
 }
 
 /* Buttons: reduce gloss, keep clarity */

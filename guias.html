@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/frame-guard.js?v=20261112-153711"></script>
-<script src="/js/config.js?v=20261112-153711"></script>
-<script src="/js/theme.js?v=20261112-153711"></script>
+<script src="/js/frame-guard.js?v=20261112-200224"></script>
+<script src="/js/config.js?v=20261112-200224"></script>
+<script src="/js/theme.js?v=20261112-200224"></script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" name="robots"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
@@ -428,21 +428,23 @@ body::before {
 
 .guide-tag.basico {
   background: rgba(34, 197, 94, 0.2);
-  color: var(--accent2);
+  color: var(--ok-text);
   border: 1px solid var(--accent2);
 }
 
 .guide-tag.intermedio {
   background: rgba(245, 158, 11, 0.2);
-  color: var(--warn);
+  color: var(--warn-text);
   border: 1px solid var(--warn);
 }
 
 .guide-tag.avanzado {
   background: rgba(239, 68, 68, 0.2);
-  color: var(--danger);
+  color: var(--danger-text);
   border: 1px solid var(--danger);
 }
+html.light-mode .guide-tag.avanzado{color:#991B1B} /* #B91C1C quedaba en 4,4:1 sobre el tinte rojo */
+html.light-mode .guide-tag.basico{color:#14532D} /* #166534 quedaba en 4,4:1 sobre el tinte verde */
 
 .guide-card h3 {
   font-size: 18px;
@@ -463,14 +465,14 @@ body::before {
   margin-top: 12px;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--accent2);
+  color: var(--ok-text);
   font-weight: 600;
 }
 
 .guide-arrow {
   margin-top: 16px;
   font-size: 20px;
-  color: var(--accent);
+  color: var(--accent-text);
   transition: transform 0.3s ease;
 }
 
@@ -569,7 +571,7 @@ footer {
 }
 
 footer a {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   transition: opacity 0.2s;
 }
@@ -715,10 +717,14 @@ html.light-mode .btn-small:hover{
 .skip-link{position:absolute;top:-999px;left:-999px;background:var(--accent);color:#fff;padding:12px 20px;text-decoration:none;border-radius:0 0 8px 0;z-index:10000;font-weight:700}
 .skip-link:focus{top:0;left:0;z-index:10002}
 
+/* Colores de TEXTO con contraste AA (12/11/2026), medidos a pixel en claro y oscuro: el
+   violeta y los verdes/ambar/rojos de marca se quedan para fondos y bordes. */
+:root{--accent-text:#B39DFB;--ok-text:#4ADE80;--warn-text:#FBBF24;--danger-text:#FCA5A5}
+html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--danger-text:#B91C1C}
 </style>
   <meta name="color-scheme" content="dark light"/>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20261112-153711">
+  <link rel="stylesheet" href="/fonts.css?v=20261112-200224">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -1149,7 +1155,7 @@ html.light-mode .btn-small:hover{
   <a href="/privacidad.html">Política de privacidad</a>
 </footer>
 
-<script src="/js/guides-search.js?v=20261112-153711"></script>
+<script src="/js/guides-search.js?v=20261112-200224"></script>
 <script>
 if (window.LFGuideSearch) {
   window.LFGuideSearch.init({
@@ -1221,6 +1227,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-  <script src="/js/tracking.js?v=20261112-153711" defer></script>
+  <script src="/js/tracking.js?v=20261112-200224" defer></script>
 </body>
 </html>

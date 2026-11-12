@@ -23,20 +23,20 @@
        especulativo y cada recurso del head se pediria en serie. frame-guard se
        adelanta porque se descarga igualmente dentro de un iframe ajeno; el resto
        va detras de frame-guard para no descargarlo alli. Ver ARRANQUE-CARGA.md 4.8. -->
-  <link rel="preload" href="/js/frame-guard.js?v=20261112-153711" as="script">
-  <script src="/js/error-bootstrap.js?v=20261112-153711"></script>
-  <script src="/js/frame-guard.js?v=20261112-153711"></script>
-  <link rel="preload" href="/js/config.js?v=20261112-153711" as="script">
-  <link rel="preload" href="/js/theme.js?v=20261112-153711" as="script">
-  <link rel="preload" href="/styles.css?v=20261112-153711" as="style">
-  <link rel="preload" href="/pro.css?v=20261112-153711" as="style">
+  <link rel="preload" href="/js/frame-guard.js?v=20261112-200224" as="script">
+  <script src="/js/error-bootstrap.js?v=20261112-200224"></script>
+  <script src="/js/frame-guard.js?v=20261112-200224"></script>
+  <link rel="preload" href="/js/config.js?v=20261112-200224" as="script">
+  <link rel="preload" href="/js/theme.js?v=20261112-200224" as="script">
+  <link rel="preload" href="/styles.css?v=20261112-200224" as="style">
+  <link rel="preload" href="/pro.css?v=20261112-200224" as="style">
   <!-- desglose-factura.css solo se usa en un modal, pero la hoja es media="all" y bloquea el renderizado: no anade bytes antes del primer pintado, porque ya hacia falta para pintar. -->
-  <link rel="preload" href="/desglose-factura.css?v=20261112-153711" as="style">
-  <link rel="preload" href="/fonts.css?v=20261112-153711" as="style">
-  <link rel="preload" href="/bv-sim.css?v=20261112-153711" as="style">
-  <link rel="preload" href="/comparador-solar-mejorado.css?v=20261112-153711" as="style">
+  <link rel="preload" href="/desglose-factura.css?v=20261112-200224" as="style">
+  <link rel="preload" href="/fonts.css?v=20261112-200224" as="style">
+  <link rel="preload" href="/bv-sim.css?v=20261112-200224" as="style">
+  <link rel="preload" href="/comparador-solar-mejorado.css?v=20261112-200224" as="style">
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <script src="/js/config.js?v=20261112-153711"></script>
+  <script src="/js/config.js?v=20261112-200224"></script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz con Autoconsumo y Batería Virtual">
   <meta property="og:description" content="Compara tarifas de luz con placas solares mes a mes: excedentes, tope de compensación y batería virtual con tu consumo real. Sin registro ni comisiones.">
@@ -167,7 +167,7 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20261112-153711"></script>
+  <script src="/js/theme.js?v=20261112-200224"></script>
 
   <script type="application/ld+json">
   {
@@ -201,14 +201,14 @@
   }
   </script>
 
-    <link rel="stylesheet" href="/styles.css?v=20261112-153711">
-    <link rel="stylesheet" href="/pro.css?v=20261112-153711">
+    <link rel="stylesheet" href="/styles.css?v=20261112-200224">
+    <link rel="stylesheet" href="/pro.css?v=20261112-200224">
   <!-- CSS del desglose (solo se usa al abrir el modal). Su preload va arriba, detras de frame-guard; la hoja media="all" sigue siendo render-blocking. -->
-  <link rel="stylesheet" href="/desglose-factura.css?v=20261112-153711" media="all">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20261112-200224" media="all">
 
-  <link rel="stylesheet" href="/fonts.css?v=20261112-153711">
-  <link rel="stylesheet" href="/bv-sim.css?v=20261112-153711">
-  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20261112-153711">
+  <link rel="stylesheet" href="/fonts.css?v=20261112-200224">
+  <link rel="stylesheet" href="/bv-sim.css?v=20261112-200224">
+  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20261112-200224">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -550,7 +550,7 @@
 
                               <!-- Fila de totales detallados -->
                               <div id="bv-manual-totals-row" class="bv-manual-totals-row" style="display: none;">
-                                <span style="font-weight: 900; color: var(--accent);">TOTAL</span>
+                                <span style="font-weight: 900; color: var(--accent-text);">TOTAL</span>
                                 <span id="bv-total-p1" style="font-weight: 700;">0</span>
                                 <span id="bv-total-p2" style="font-weight: 700;">0</span>
                                 <span id="bv-total-p3" style="font-weight: 700;">0</span>
@@ -563,13 +563,13 @@
                               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
                                 <div>
                                   <div style="color: var(--muted); margin-bottom: 4px;">Consumo total introducido</div>
-                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent-text);">
                                     <span id="bv-total-consumo">0</span> kWh
                                   </div>
                                 </div>
                                 <div>
                                   <div style="color: var(--muted); margin-bottom: 4px;">Excedentes introducidos</div>
-                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent-text);">
                                     <span id="bv-total-excedentes">0</span> kWh
                                   </div>
                                 </div>
@@ -653,13 +653,13 @@
                               Herramienta avanzada para <strong>comparar tarifas solares</strong> usando tus datos reales de autoconsumo y excedentes.
                             </p>
                             <p class="u-m-0">
-                              <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
+                              <a href="/guias.html" style="color:var(--accent-text); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
                                 📚 Guías sobre tarifas eléctricas
                                 <span style="font-size:10px;">→</span>
                               </a>
                             </p>
                             <p class="u-m-0" style="margin-top:10px;">
-                              <a href="/como-funciona-luzfija.html" style="color:var(--accent2); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
+                              <a href="/como-funciona-luzfija.html" style="color:var(--ok-text); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
                                 🧭 Qué hace LuzFija.es y cómo funciona
                                 <span style="font-size:10px;">→</span>
                               </a>
@@ -669,9 +669,9 @@
                           <div>
                             <h2 class="u-h3-strong-10">Horarios Discriminación</h2>
                             <ul class="u-list-muted-12">
-                              <li><strong style="color:var(--danger);">Punta:</strong> <span data-bv-period-schedule="p1">10h-14h y 18h-22h laborables</span></li>
-                              <li><strong style="color:var(--warn);">Llano:</strong> <span data-bv-period-schedule="p2">8h-10h, 14h-18h y 22h-24h laborables</span></li>
-                              <li><strong style="color:var(--accent2);">Valle:</strong> <span data-bv-period-schedule="p3">0h-8h laborables; sábados, domingos y festivos nacionales aplicables: todo el día</span></li>
+                              <li><strong style="color:var(--danger-text);">Punta:</strong> <span data-bv-period-schedule="p1">10h-14h y 18h-22h laborables</span></li>
+                              <li><strong style="color:var(--warn-text);">Llano:</strong> <span data-bv-period-schedule="p2">8h-10h, 14h-18h y 22h-24h laborables</span></li>
+                              <li><strong style="color:var(--ok-text);">Valle:</strong> <span data-bv-period-schedule="p3">0h-8h laborables; sábados, domingos y festivos nacionales aplicables: todo el día</span></li>
                             </ul>
                           </div>
 
@@ -734,18 +734,18 @@
             </div>
 
             <!-- ⚠️ ORDEN CRÍTICO: lf-csv-utils.js DEBE cargarse ANTES que bv-sim-monthly.js -->
-            <script src="/js/tracking.js?v=20261112-153711"></script>
-            <script src="/js/lf-config.js?v=20261112-153711"></script>
-            <script src="/js/lf-utils.js?v=20261112-153711"></script>
-            <script src="/js/lf-ssaa.js?v=20261112-153711"></script>
-            <script src="/js/lf-csv-utils.js?v=20261112-153711"></script>
-            <script src="/js/lf-csv-report.js?v=20261112-153711"></script>
-            <script src="/js/lf-surplus-prices.js?v=20261112-153711"></script>
-            <script src="/js/bv/bv-import.js?v=20261112-153711"></script>
-            <script src="/js/bv/bv-sim-monthly.js?v=20261112-153711"></script>
-            <script src="/js/bv/bv-ui-helpers.js?v=20261112-153711"></script>
-            <script src="/js/bv/bv-ui.js?v=20261112-153711"></script>
-            <script src="/js/lf-datadis.js?v=20261112-153711"></script>
-            <script src="/js/lf-sw-update.js?v=20261112-153711" defer></script>
-            <script src="/js/shell-lite.js?v=20261112-153711" defer></script>
+            <script src="/js/tracking.js?v=20261112-200224"></script>
+            <script src="/js/lf-config.js?v=20261112-200224"></script>
+            <script src="/js/lf-utils.js?v=20261112-200224"></script>
+            <script src="/js/lf-ssaa.js?v=20261112-200224"></script>
+            <script src="/js/lf-csv-utils.js?v=20261112-200224"></script>
+            <script src="/js/lf-csv-report.js?v=20261112-200224"></script>
+            <script src="/js/lf-surplus-prices.js?v=20261112-200224"></script>
+            <script src="/js/bv/bv-import.js?v=20261112-200224"></script>
+            <script src="/js/bv/bv-sim-monthly.js?v=20261112-200224"></script>
+            <script src="/js/bv/bv-ui-helpers.js?v=20261112-200224"></script>
+            <script src="/js/bv/bv-ui.js?v=20261112-200224"></script>
+            <script src="/js/lf-datadis.js?v=20261112-200224"></script>
+            <script src="/js/lf-sw-update.js?v=20261112-200224" defer></script>
+            <script src="/js/shell-lite.js?v=20261112-200224" defer></script>
           </body></html>

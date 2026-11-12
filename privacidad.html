@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-IoKsBkXafHMLn2NIPKqy/VkSHU5W175k9uMzdgN9a+E='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/frame-guard.js?v=20261112-153711"></script>
-<script src="/js/config.js?v=20261112-153711"></script>
-<script src="/js/theme.js?v=20261112-153711"></script>
+<script src="/js/frame-guard.js?v=20261112-200224"></script>
+<script src="/js/config.js?v=20261112-200224"></script>
+<script src="/js/theme.js?v=20261112-200224"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="color-scheme" content="dark light"/>
 <title>Privacidad | LuzFija.es</title>
@@ -42,7 +42,7 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 .header h1{font-size:clamp(32px,5vw,48px);font-weight:800;margin-bottom:12px;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .header-subtitle{font-size:18px;color:var(--muted)}
 .container{max-width:900px;margin:60px auto;padding:0 24px}
-.back-link{display:inline-flex;align-items:center;gap:8px;color:var(--accent);text-decoration:none;font-weight:600;margin-bottom:40px;transition:gap .3s}
+.back-link{display:inline-flex;align-items:center;gap:8px;color:var(--accent-text);text-decoration:none;font-weight:600;margin-bottom:40px;transition:gap .3s}
 .back-link:hover{gap:12px}
 .content-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .content-card h2{font-size:28px;font-weight:800;margin:40px 0 20px;color:var(--text);padding-bottom:12px;border-bottom:2px solid var(--accent)}
@@ -63,21 +63,21 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 .content-card ul,.content-card ol{margin:16px 0 16px 24px;color:var(--muted)}
 .content-card li{margin-bottom:8px}
 .content-card strong{color:var(--text);font-weight:700}
-.content-card a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
+.content-card a{color:var(--accent-text);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
 .content-card a:hover{border-bottom-color:var(--accent)}
 .highlight-box{background:rgba(139,92,246,.1);border-left:4px solid var(--accent);padding:20px;margin:24px 0;border-radius:8px}
 .accordion{margin:20px 0}
 .accordion-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:all .3s ease}
 .accordion-item:hover{border-color:rgba(139,92,246,.5)}
 .accordion-item summary{padding:20px 24px;font-weight:600;font-size:18px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none;color:var(--text)}
-.accordion-item summary::after{content:'+';font-size:28px;color:var(--accent);transition:transform .3s}
+.accordion-item summary::after{content:'+';font-size:28px;color:var(--accent-text);transition:transform .3s}
 .accordion-item[open] summary::after{transform:rotate(45deg)}
 .accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}
 .accordion-item .accordion-content{overflow-wrap:anywhere}
 .footer{margin-top:80px;padding:40px 24px;text-align:center;border-top:1px solid var(--border)}
 .footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
 .footer-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
-.footer-links a:hover{color:var(--accent)}
+.footer-links a:hover{color:var(--accent-text)}
 .footer-text{color:var(--muted);font-size:14px}
 @media (max-width:768px){.content-card{padding:32px 24px}.header{padding:32px 16px}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -137,9 +137,13 @@ html.light-mode .btn-small:hover{
 .skip-link{position:absolute;top:-999px;left:-999px;background:var(--accent);color:#fff;padding:12px 20px;text-decoration:none;border-radius:0 0 8px 0;z-index:10000;font-weight:700}
 .skip-link:focus{top:0;left:0;z-index:10002}
 
+/* Colores de TEXTO con contraste AA (12/11/2026), medidos a pixel en claro y oscuro: el
+   violeta y los verdes/ambar/rojos de marca se quedan para fondos y bordes. */
+:root{--accent-text:#B39DFB;--ok-text:#4ADE80;--warn-text:#FBBF24;--danger-text:#FCA5A5}
+html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--danger-text:#B91C1C}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20261112-153711">
+  <link rel="stylesheet" href="/fonts.css?v=20261112-200224">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -232,8 +236,8 @@ html.light-mode .btn-small:hover{
 <p><strong>Base jurídica:</strong> interés legítimo (análisis de tráfico anónimo).</p>
 <p style="margin-top:16px;">
     Si prefieres no participar en la medición de audiencia, puedes
-    <a href="#" id="opt-out-analytics" style="color:var(--accent); font-weight:600; text-decoration:underline;">desactivar GoatCounter</a>.
-    <span id="opt-out-status" style="color:var(--accent2); font-weight:600;"></span>
+    <a href="#" id="opt-out-analytics" style="color:var(--accent-text); font-weight:600; text-decoration:underline;">desactivar GoatCounter</a>.
+    <span id="opt-out-status" style="color:var(--ok-text); font-weight:600;"></span>
   </p>
 <h3>5) Email (contacto)</h3>
 <p>
@@ -312,8 +316,8 @@ html.light-mode .btn-small:hover{
 <p style="color:var(--muted); font-size:14px;"><em>Última actualización: 6 de noviembre de 2026</em></p>
 <hr style="margin:40px 0; border:none; border-top:1px solid var(--border);"/>
 <p style="text-align:center; margin:30px 0;">
-<a href="/aviso-legal.html" style="color:var(--accent); margin:0 12px;">← Aviso legal</a>
-<a href="/" style="display:inline-block; padding:12px 24px; background:var(--accent); color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Volver al comparador</a>
+<a href="/aviso-legal.html" style="color:var(--accent-text); margin:0 12px;">← Aviso legal</a>
+<a href="/" style="display:inline-block; padding:12px 24px; background:#7C3AED; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Volver al comparador</a>
 </p>
 </div>
 </div>
@@ -397,6 +401,6 @@ html.light-mode .btn-small:hover{
   updateUI();
 })();
 </script>
-<script src="/js/tracking.js?v=20261112-153711" defer></script>
+<script src="/js/tracking.js?v=20261112-200224" defer></script>
 </body>
 </html>

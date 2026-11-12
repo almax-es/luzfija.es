@@ -439,7 +439,7 @@
             cpTip += `Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos.\n\n`;
           }
           cpTip += `El cálculo mostrado ya refleja esta limitación.`;
-          compParcialIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(cpTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
+          compParcialIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(cpTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial" style="margin-left:4px; color:var(--danger-text); cursor:help; font-size:1.1em;">❗</span>`;
         }
 
         // Guardar metaPvpc para desglose si es PVPC
@@ -464,7 +464,7 @@
           : (r.pvpcWarning ? ' ⚠' : '');
 
         const requisitosTooltip = r.requisitos
-          ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn); cursor:help;">i</span>`
+          ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn-text); cursor:help;">i</span>`
           : '';
 
         // Promocion: beneficio que NO esta incluido en el precio de la fila.
@@ -735,15 +735,15 @@
       </div>
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-top:8px;">
         <div style="display:flex; flex-direction:column; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); padding:6px 10px; border-radius:8px;">
-          <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:rgba(239,68,68,1); font-weight:800;">Punta (P1)</span>
+          <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--danger-text); font-weight:800;">Punta (P1)</span>
           <span style="font-family:var(--mono); font-weight:700; font-size:13px;">${fmt(window.pvpcLastMeta.precioPunta)}</span>
         </div>
         <div style="display:flex; flex-direction:column; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); padding:6px 10px; border-radius:8px;">
-          <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:rgba(245,158,11,1); font-weight:800;">Llano (P2)</span>
+          <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--warn-text); font-weight:800;">Llano (P2)</span>
           <span style="font-family:var(--mono); font-weight:700; font-size:13px;">${fmt(window.pvpcLastMeta.precioLlano)}</span>
         </div>
         <div style="display:flex; flex-direction:column; background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.3); padding:6px 10px; border-radius:8px;">
-          <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:rgba(34,197,94,1); font-weight:800;">Valle (P3)</span>
+          <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--ok-text); font-weight:800;">Valle (P3)</span>
           <span style="font-family:var(--mono); font-weight:700; font-size:13px;">${fmt(window.pvpcLastMeta.precioValle)}</span>
         </div>
       </div>

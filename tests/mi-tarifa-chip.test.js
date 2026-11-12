@@ -554,8 +554,11 @@ describe('mi-tarifa-chip: estilos', () => {
   });
 
   it('usa colores de diferencia con contraste AA en modo claro', () => {
-    expect(styles).toMatch(/html\.light-mode \.mi-tarifa-chip__diff\.is-pos \{ color: #DC2626; \}/);
-    expect(styles).toMatch(/html\.light-mode \.mi-tarifa-chip__diff\.is-neg \{ color: #15803D; \}/);
+    // Desde el 12/11/2026 usan las variables de texto del tema (rojo #B91C1C / verde #166534 en
+    // claro, #FB8A8A / #4ADE80 en oscuro), igual que la columna "Diferencia" de la tabla.
+    expect(styles).toMatch(/\.mi-tarifa-chip__diff\.is-pos \{ color: var\(--danger-text\); \}/);
+    expect(styles).toMatch(/\.mi-tarifa-chip__diff\.is-neg \{ color: var\(--ok-text\); \}/);
+    expect(styles).toMatch(/html\.light-mode\{ --accent-text:#5B21B6; --ok-text:#166534; --warn-text:#92400E; --danger-text:#B91C1C; \}/);
   });
 
   it('se centra con inset + margin-inline, no con translateX', () => {

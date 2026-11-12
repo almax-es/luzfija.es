@@ -2667,7 +2667,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const etiquetaZona = zonaLabel(zonaFiscalVal);
-    statusEl.innerHTML = `<span style="color:var(--danger)">⚠️ ${escapeHtml(message)}</span>`
+    statusEl.innerHTML = `<span style="color:var(--danger-text)">⚠️ ${escapeHtml(message)}</span>`
       + `<br><button type="button" id="bv-zona-confirm" class="btn btn-secondary" style="margin-top:10px">`
       + `He ajustado la tabla a mano para ${escapeHtml(etiquetaZona)}</button>`;
     showToast(message, 'err');
@@ -3498,7 +3498,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
           const hasBV = v.hasBV;
           const huchaCell = hasBV ? (v.usoHucha > 0 ? `-${fEur(v.usoHucha)}` : fEur(0)) : '';
           const saldoCell = hasBV ? fEur(v.bvSaldoFin) : '';
-          const saldoStyle = hasBV ? 'color:#fbbf24; font-weight:700;' : '';
+          const saldoStyle = hasBV ? 'color:var(--warn-text); font-weight:700;' : '';
           const cuotaBVCell = resultHasCosteBV
             ? `<td data-label="Cuota BV" class="bv-tooltip-trigger" data-tip="Coste fijo mensual de la batería virtual, prorrateado si el mes está incompleto."><span class="bv-cell-value">${fEur(v.costeBV)}</span></td>`
             : '';
@@ -3513,12 +3513,12 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
               <td data-label="Mes"${v.tipMes ? ` class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tipMes)}"` : ''}><span class="bv-cell-value">${v.key}</span></td>
               <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.pot)}"><span class="bv-cell-value">${fEur(v.pot)}</span></td>
               <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.eBruta)}"><span class="bv-cell-value">${fEur(v.eBruta)}</span></td>
-              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.exc)}" style="color:var(--accent2);"><span class="bv-cell-value">${v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)}</span></td>
+              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.exc)}" style="color:var(--ok-text);"><span class="bv-cell-value">${v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)}</span></td>
               <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.eNeta)}" style="font-weight:700;"><span class="bv-cell-value">${fEur(v.eNeta)}</span></td>
-              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.imp)}" style="color:var(--danger);"><span class="bv-cell-value">${fEur(v.imp)}</span></td>
+              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.imp)}" style="color:var(--danger-text);"><span class="bv-cell-value">${fEur(v.imp)}</span></td>
               ${cuotaBVCell}
               <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.subtotal)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-value">${fEur(v.subtotal)}</span></td>
-              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.pagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-value">${fEur(v.pagar)}</span></td>
+              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.pagar)}" style="color:var(--ok-text); font-weight:800;"><span class="bv-cell-value">${fEur(v.pagar)}</span></td>
               ${extraCells}
             </tr>
           `;
@@ -3796,7 +3796,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         const altPromoNote = getPromoAviso(r.tarifa);
         const deltaVsWinner = r2(r.totals.pagado - winner.totals.pagado);
         const deltaHTML = deltaVsWinner > 0.005
-          ? `<div class="bv-alt-delta" style="font-size:11px; font-weight:700; color:var(--warn); margin-top:2px;">+${fEur(deltaVsWinner)} vs mejor opción</div>`
+          ? `<div class="bv-alt-delta" style="font-size:11px; font-weight:700; color:var(--warn-text); margin-top:2px;">+${fEur(deltaVsWinner)} vs mejor opción</div>`
           : '';
         const altNeto = window.BVSim.manualUi.resolveCosteNeto(r.totals, hasBV);
         const altNetoHTML = altNeto.mostrar
@@ -3934,7 +3934,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
     } catch (e) {
       console.error('BVSim Error:', e);
       const msg = e?.message ? String(e.message) : 'Error inesperado.';
-      if (statusEl) statusEl.innerHTML = `<span style="color:var(--danger)">⚠️ Error: ${escapeHtml(msg)}</span>`;
+      if (statusEl) statusEl.innerHTML = `<span style="color:var(--danger-text)">⚠️ Error: ${escapeHtml(msg)}</span>`;
       showToast(msg, 'err');
     } finally {
       simulateButton.disabled = false;

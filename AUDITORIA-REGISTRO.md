@@ -7543,8 +7543,8 @@ las 34 paginas restantes (830 registros); por estado: errores JS, red, desborde 
 - Cabecera sticky de 25 guias, `como-funciona-luzfija.html` y `comparar-pvpc-tarifa-fija.html`: en movil ocupaba
   142-253 px de 640 (22-40 %) toda la lectura. `position:static` con `max-width:640px` o `max-height:500px`.
 - Privacidad a 320 px: "(preferencias/estado/cache)" se salia 4 px del desplegable. `overflow-wrap:anywhere`.
-Las dos ultimas tocan paginas con fecha visible: `maskVolatileSeoChanges` ignora esas dos lineas exactas, asi que no
-fechan ninguna guia ni la politica de privacidad (comprobado: 28 HTML modificados, 0 refechados).
+Las dos ultimas tocan paginas con fecha visible: `maskVolatileSeoChanges` ignora el CSS de pagina (ver punto 9), asi
+que no fechan ninguna guia ni la politica de privacidad (comprobado: 28 HTML modificados, 0 refechados).
 NO son bugs (verificados): `#scrollToResults` tapa el enlace del pie 5 s tras calcular a 320 px (se oculta solo); el
 `summary` "Opciones avanzadas" del solar esta dentro de un `details` cerrado; `aurora-*` del 404 son decorativos sin
 desborde; `nested-interactive` de axe en `.tarifa-cell` (tooltips con rol boton dentro de la celda que abre el
@@ -7552,3 +7552,27 @@ desglose) es un patron de accesibilidad conocido, no un fallo visual; un 429 ais
 visitas automatizadas llevan `b=153` y no cuentan). Conservados por la decision de contraste del 25/07/2026: los
 colores de periodo en la guia P1/P2/P3 en claro y los enlaces violeta de las paginas editoriales en oscuro.
 Tests: `tests/auditoria-visual-20261112.test.js`, `tests/header-movil-no-fija.test.js` y `tests/seo-date-logic.test.js`.
+
+**9. Contraste a pixel de todo el sitio (12/11/2026, tras levantar el promotor la decision del 25/07/2026): CORREGIDO.**
+Metodo: en cada estado se captura la pantalla con el texto transparente (fondo real detras de cada letra, degradados y
+tintes incluidos) y se mide el color de cada texto contra la mediana de esos pixeles; recorrido pantalla a pantalla
+(una captura de pagina completa redimensiona la ventana y mueve el contenido) y sin desplazamiento suave. axe no
+servia: no evalua degradados ni fondos semitransparentes. Antes: 5.183 textos por debajo de AA en 236 estados
+(393 y 1366 px, claro/oscuro). Despues: 0 en 590 estados x 5 anchos (95.612 textos); los dos avisos que quedan son del
+boton "Comparar Tarifas y Ver Ahorro" leido a mitad de su transicion de color al cargar (en reposo, 6,4:1).
+Causas y arreglo (mismos tonos de marca, solo luminosidad; fondos, bordes y botones sin cambios de color):
+- Variables de TEXTO nuevas en `styles.css` y en las paginas editoriales: `--accent-text`, `--ok-text`, `--warn-text`,
+  `--danger-text` (oscuro #C4B5FD/#4ADE80/#FBBF24/#FCA5A5, en editoriales violeta #B39DFB; claro
+  #5B21B6/#166534/#92400E/#B91C1C). Todo `color: var(--accent|accent2|warn|danger)` pasa a ellas; el violeta de marca
+  como letra sobre fondo oscuro daba 2,4-3,3:1.
+- `--muted2` en claro .58 -> .66 y en oscuro .55 -> .66 (4,1-4,4:1 sobre tarjetas tintadas).
+- Valores minimo/medio/maximo y "Diferencia" en claro (1,8-3,8:1), saldo BV ambar sobre blanco (1,6:1), 1P/3P
+  (blanco sobre azul claro/ambar: azul mas profundo y texto marron sobre el ambar), pie con opacity (1,9-3,6:1),
+  `.btn.primary` en oscuro (blanco sobre el rosa central, 3,3:1: degradado un paso mas profundo fuera de
+  forced-colors), chips y botones violeta de estadisticas y solar, bloque Min/Max del modal PVPC, etiquetas de nivel
+  de guias.html, puesto del ranking solar (opacity .55).
+- `maskVolatileSeoChanges` trata como presentacion los bloques `<style>` (escritos al principio de linea) y los
+  atributos `style=""`: retocar CSS no fecha la pagina (34 HTML tocados, 0 refechados). Sustituye a las dos mascaras
+  de linea exacta del punto 8. Un "<style>" dentro de una cadena de script no se traga contenido (test).
+Tests: `tests/seo-date-logic.test.js`, `tests/accessibility-regressions.test.js`, `tests/mi-tarifa-chip.test.js`.
+

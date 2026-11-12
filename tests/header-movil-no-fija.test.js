@@ -7,8 +7,8 @@ import path from 'path';
  * sticky con migas y botones. En movil se parte en varias lineas y, fija, ocupaba 142-253 px
  * de una pantalla de 640 (22-40 %) durante toda la lectura (medido el 12/11/2026). En pantallas
  * estrechas o bajas (movil apaisado) pasa a `position:static`. Toda pagina con esa cabecera
- * debe llevar la regla justo detras; la mascara SEO de `scripts/seo-date-logic.mjs` depende de
- * que la linea sea exactamente esta.
+ * debe llevar la regla justo detras. (Es CSS de pagina: `maskVolatileSeoChanges` no la cuenta
+ * como cambio editorial, asi que no refecha las guias.)
  */
 
 const ROOT = path.resolve(__dirname, '..');

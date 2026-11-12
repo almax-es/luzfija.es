@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
-<script src="/js/frame-guard.js?v=20261112-153711"></script>
+<script src="/js/frame-guard.js?v=20261112-200224"></script>
 <script>
     (function(){
       var key='almax_theme';
@@ -135,7 +135,7 @@
 }
 </script>
 <style>
-:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent-text:#A78BFA;--accent2:#22C55E;--warn:#F59E0B}
+:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent-text:#B39DFB;--accent2:#22C55E;--warn:#F59E0B}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden}
 .progress-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:rgba(255,255,255,.05);z-index:1000}
@@ -215,7 +215,7 @@ html.light-mode{
   --card2: rgba(15, 23, 42, .06);
   --border2: rgba(15, 23, 42, .16);
   --muted2: rgba(15, 23, 42, .58);
-  --accent:#6D28D9;--accent-text:#6D28D9; /* mejor contraste en modo claro */
+  --accent:#6D28D9;--accent-text:#5B21B6; /* mejor contraste en modo claro */
   --accent2:#15803D; /* mejor contraste en modo claro */
   --warn:#B45309; /* mejor contraste en modo claro */
 }
@@ -291,7 +291,7 @@ html.light-mode .btn-small:hover{
 }
 .updated-badge {
   background: rgba(34, 197, 94, 0.15);
-  color: var(--accent2);
+  color: var(--ok-text);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -314,11 +314,11 @@ html.light-mode .btn-small:hover{
   padding: 0 10px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent2);
+  color: var(--ok-text);
   border: 1px solid var(--accent2);
   border-radius: 100px;
 }
-.key-takeaway strong { color: var(--accent2); }
+.key-takeaway strong { color: var(--ok-text); }
 
 
 /* === GUÍAS RELACIONADAS (CONSISTENCIA ENTRE ARTÍCULOS) === */
@@ -464,6 +464,10 @@ html.light-mode .btn-small:hover{
   transform: translateY(-1px);
 }
 
+/* Colores de TEXTO con contraste AA (12/11/2026), medidos a pixel en claro y oscuro: el
+   violeta y los verdes/ambar/rojos de marca se quedan para fondos y bordes. */
+:root{--accent-text:#B39DFB;--ok-text:#4ADE80;--warn-text:#FBBF24;--danger-text:#FCA5A5}
+html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--danger-text:#B91C1C}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -790,6 +794,6 @@ function share(platform){
   }
 }
 </script>
-  <script src="/js/tracking.js?v=20261112-153711" defer></script>
+  <script src="/js/tracking.js?v=20261112-200224" defer></script>
 </body>
 </html>

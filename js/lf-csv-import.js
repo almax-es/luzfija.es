@@ -736,7 +736,7 @@
           <div style="display: grid; gap: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 12px; color: var(--muted2);">Total excedentes</span>
-              <span style="font-size: 14px; font-weight: 700; color: var(--warn);">${resultado.totalExcedentes} kWh</span>
+              <span style="font-size: 14px; font-weight: 700; color: var(--warn-text);">${resultado.totalExcedentes} kWh</span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
               <div><div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Punta</div><div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesPunta} kWh</div></div>
@@ -758,8 +758,8 @@
           </label>
           <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); line-height: 1.5;">
             ${resultado.formato === 'Datadis'
-              ? '💡 Para la simulación mes a mes, el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 700;">Simulador Solar</a> también importa desde Datadis (tus 12 últimos meses completos). Es la herramienta recomendada para autoconsumo.'
-              : '💡 Con este mismo archivo puedes hacer la simulación mes a mes en el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 700;">Simulador Solar</a>, la herramienta recomendada para autoconsumo.'}
+              ? '💡 Para la simulación mes a mes, el <a href="/comparador-tarifas-solares.html" style="color: var(--warn-text); font-weight: 700;">Simulador Solar</a> también importa desde Datadis (tus 12 últimos meses completos). Es la herramienta recomendada para autoconsumo.'
+              : '💡 Con este mismo archivo puedes hacer la simulación mes a mes en el <a href="/comparador-tarifas-solares.html" style="color: var(--warn-text); font-weight: 700;">Simulador Solar</a>, la herramienta recomendada para autoconsumo.'}
           </div>
         </div>
       `;

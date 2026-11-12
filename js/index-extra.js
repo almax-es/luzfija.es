@@ -580,7 +580,7 @@
       // === NUEVO LINK OBSERVATORIO (ARRIBA) ===
       const observatorioLink = `
         <div style="margin-bottom: 20px;">
-          <a href="/estadisticas/" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25); transition: transform 0.2s, box-shadow 0.2s;">
+          <a href="/estadisticas/" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, var(--accent), #15803D); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25); transition: transform 0.2s, box-shadow 0.2s;">
             <span style="font-size: 18px;">📊</span>
             <span>Ver Observatorio Histórico y Tendencias</span>
             <span style="opacity: 0.8;">→</span>
@@ -605,13 +605,13 @@
 
           const comentario = cfg.showComments ? getComentario(precio, hora, precioMin, precioMax) : '';
           const comentarioHtml = cfg.showComments
-            ? `${isNow ? '<strong style="color: var(--accent); font-size: 10px;">← AHORA</strong> • ' : ''}${comentario}`
-            : (isNow ? '<strong style="color: var(--accent); font-size: 10px;">← AHORA</strong>' : '');
+            ? `${isNow ? '<strong style="color: var(--accent-text); font-size: 10px;">← AHORA</strong> • ' : ''}${comentario}`
+            : (isNow ? '<strong style="color: var(--accent-text); font-size: 10px;">← AHORA</strong>' : '');
 
         const item = `
           <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); ${isNow ? 'background: rgba(255,180,50,.06); border-bottom: 1px solid rgba(255,180,50,.2);' : ''}" data-is-now="${isNow ? 'true' : 'false'}">
             <div style="display: grid; grid-template-columns: 64px 1fr 80px; gap: 8px; align-items: center;">
-              <div style="font-weight: 700; font-size: ${isNow ? '14px' : '13px'}; color: ${isNow ? 'var(--accent)' : 'var(--text)'};">
+              <div style="font-weight: 700; font-size: ${isNow ? '14px' : '13px'}; color: ${isNow ? 'var(--accent-text)' : 'var(--text)'};">
                 ${horaLabel}
               </div>
               <div style="height: 6px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden;">

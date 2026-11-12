@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/frame-guard.js?v=20261112-153711"></script>
-<script src="/js/config.js?v=20261112-153711"></script>
-<script src="/js/theme.js?v=20261112-153711"></script>
+<script src="/js/frame-guard.js?v=20261112-200224"></script>
+<script src="/js/config.js?v=20261112-200224"></script>
+<script src="/js/theme.js?v=20261112-200224"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="color-scheme" content="dark light"/>
 <title>404 - Página no encontrada | LuzFija.es</title>
@@ -57,7 +57,7 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 .quick-link:hover{background:rgba(139,92,246,.15);border-color:var(--accent);transform:translateY(-2px)}
 .quick-link-icon{font-size:24px}
 .fun-fact{background:rgba(139,92,246,.1);border-left:4px solid var(--accent);padding:20px 24px;border-radius:8px;margin-top:40px}
-.fun-fact-title{font-size:14px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.fun-fact-title{font-size:14px;font-weight:700;color:var(--accent-text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
 .fun-fact-text{color:var(--muted);font-size:15px;line-height:1.6}
 .back-button{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:#7C3AED;color:white;text-decoration:none;border-radius:12px;font-weight:700;font-size:16px;transition:all .3s;box-shadow:0 4px 15px rgba(139,92,246,.3)}
 .back-button:hover{background:#6D28D9;transform:translateY(-2px);box-shadow:0 8px 25px rgba(139,92,246,.5)}
@@ -116,9 +116,13 @@ html.light-mode .btn-small:hover{
 .skip-link{position:absolute;top:-999px;left:-999px;background:var(--accent);color:#fff;padding:12px 20px;text-decoration:none;border-radius:0 0 8px 0;z-index:10000;font-weight:700}
 .skip-link:focus{top:0;left:0;z-index:10002}
 
+/* Colores de TEXTO con contraste AA (12/11/2026), medidos a pixel en claro y oscuro: el
+   violeta y los verdes/ambar/rojos de marca se quedan para fondos y bordes. */
+:root{--accent-text:#B39DFB;--ok-text:#4ADE80;--warn-text:#FBBF24;--danger-text:#FCA5A5}
+html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--danger-text:#B91C1C}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20261112-153711">
+  <link rel="stylesheet" href="/fonts.css?v=20261112-200224">
 
   <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -193,7 +197,7 @@ function searchContent(e) {
   }
 }
 </script>
-<script src="/js/tracking.js?v=20261112-153711" defer></script>
-<script src="/js/not-found.js?v=20261112-153711" defer></script>
+<script src="/js/tracking.js?v=20261112-200224" defer></script>
+<script src="/js/not-found.js?v=20261112-200224" defer></script>
 </body>
 </html>

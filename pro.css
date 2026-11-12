@@ -148,7 +148,7 @@ html.light-mode :where(input, select, textarea)::placeholder{
 }
 
 .breadcrumbs a, .breadcrumb a{
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
 }
 
