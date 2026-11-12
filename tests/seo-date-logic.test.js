@@ -223,6 +223,29 @@ describe('SEO date policy', () => {
     expect(dirty(committed.replace('.b{color:blue}', '.b{color:green}'))).toBe(false);
   });
 
+  it('keeps every visible-text case of the CSS mask counting (ChatGPT review, 12/11/2026)', () => {
+    const page = (head, body) => '<html><head>\n' + head + '\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (a, b) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: b, committedContent: a });
+    const css = '<style>\n.dato::before{content:\'Dato Clave\'}\n.a{color:red}\n</style>';
+    // Texto pintado por CSS: cuenta.
+    expect(dirty(page(css, '<p>A</p>'), page(css.replace('Dato Clave', 'Dato Clave 2026'), '<p>A</p>'))).toBe(true);
+    // Solo el color: no cuenta.
+    expect(dirty(page(css, '<p>A</p>'), page(css.replace('color:red', 'color:blue'), '<p>A</p>'))).toBe(false);
+    // Mayusculas: tambien se reconoce el bloque.
+    expect(dirty(page(css.toUpperCase().replace('DATO CLAVE', 'Dato Clave'), '<p>A</p>'), page(css.toUpperCase().replace('DATO CLAVE', 'Dato Clave').replace('COLOR:RED', 'COLOR:BLUE'), '<p>A</p>'))).toBe(false);
+    // Un "<style>" en una cadena de un script del cuerpo no enmascara nada.
+    const js = '<script>\nconst h = ' + String.fromCharCode(96) + '\n<style>\n.n::before{content:"Precio anterior"}\n</style>\n' + String.fromCharCode(96) + ';\n</script>';
+    expect(dirty(page(css, js), page(css, js.replace('Precio anterior', 'Precio actualizado')))).toBe(true);
+    // Un comentario no puede abrir un bloque que se trague el texto visible.
+    const trampa = '<!--\n<style>\n-->\n<p>TEXTO VISIBLE</p>\n</style>';
+    expect(dirty(page(trampa, '<p>A</p>'), page(trampa.replace('TEXTO VISIBLE', 'OTRO TEXTO'), '<p>A</p>'))).toBe(true);
+    // "style=" escrito como texto no es un atributo.
+    expect(dirty(page(css, '<p>Ejemplo: style="color:red"</p>'), page(css, '<p>Ejemplo: style="color:blue"</p>'))).toBe(true);
+    // Ocultar o mostrar un bloque con style="" cuenta; cambiar su color no.
+    expect(dirty(page(css, '<p style="display:block">Info</p>'), page(css, '<p style="display:none">Info</p>'))).toBe(true);
+    expect(dirty(page(css, '<p style="color:red">Info</p>'), page(css, '<p style="color:blue">Info</p>'))).toBe(false);
+  });
+
   it('does not re-date the privacy policy for a CSS-only fix', () => {
     const committed = '<style>\n.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}\n</style>\n<p>Texto legal.</p>';
     const withRule = committed.replace('var(--muted)}\n', 'var(--muted)}\n.accordion-item .accordion-content{overflow-wrap:anywhere}\n');

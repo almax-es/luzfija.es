@@ -32,6 +32,32 @@ export function getTodayMadridYmd(now = new Date()) {
   return `${map.year}-${map.month}-${map.day}`;
 }
 
+// CSS de pagina = presentacion (12/11/2026), con los limites que pidio la revision de ChatGPT:
+// - Solo los bloques <style> del <head>, con apertura y cierre a principio de linea y sin otra
+//   etiqueta style ni marcas de comentario HTML dentro: un "<style>" en una cadena de un script
+//   del cuerpo o en un comentario no puede tragarse contenido; si algo no encaja, el bloque no se
+//   enmascara y cuenta como cambio (el error aceptado es fechar de mas, nunca de menos).
+// - El texto que el CSS pinta (content: 'Dato Clave') SIGUE contando: se conservan esos valores.
+// - Solo los atributos style="" de dentro de una etiqueta; si ocultan contenido (display:none,
+//   visibility:hidden) se conserva esa marca, porque mostrar u ocultar un bloque si cambia lo que
+//   se lee.
+const PAGE_STYLE_BLOCK = /^[ \t]*<style\b[^>]*>(?:(?!<\/?style\b|<!--|-->)[\s\S])*?^[ \t]*<\/style>/gim;
+const CSS_CONTENT_VALUE = /\bcontent\s*:\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/gi;
+const STYLE_ATTR_IN_TAG = /(<[a-zA-Z][^<>]*?)\sstyle="([^"]*)"/g;
+const HIDES_CONTENT = /display\s*:\s*none|visibility\s*:\s*hidden/i;
+
+function maskPageCss(text) {
+  const headEnd = text.search(/<\/head\s*>/i);
+  // Sin </head> (fragmento) se trata todo como cabecera; las paginas reales siempre lo tienen.
+  const head = headEnd < 0 ? text : text.slice(0, headEnd);
+  const rest = headEnd < 0 ? '' : text.slice(headEnd);
+  const maskedHead = head.replace(PAGE_STYLE_BLOCK, (block) => {
+    const visibles = [...block.matchAll(CSS_CONTENT_VALUE)].map((m) => m[1]).join(' ');
+    return '<style>X ' + visibles + '</style>';
+  });
+  return (maskedHead + rest).replace(STYLE_ATTR_IN_TAG, (m, tag, css) => tag + ' style="X' + (HIDES_CONTENT.test(css) ? ':oculto' : '') + '"');
+}
+
 export function maskVolatileSeoChanges(text) {
   return String(text || '')
     .replace(/\r\n?/g, '\n')
@@ -66,11 +92,7 @@ export function maskVolatileSeoChanges(text) {
     // de privacidad incluida). El bloque solo se reconoce con <style> y </style> al principio de
     // linea, como los escribe el sitio, asi que un "<style>" dentro de una cadena de un script no
     // se traga contenido. Un texto, enlace o elemento nuevo fuera del CSS sigue contando.
-    // El contenido del bloque no puede contener otra etiqueta <style> o </style>: si un cierre
-    // quedara a mitad de linea, la mascara no saltaria al siguiente bloque tragandose el HTML
-    // de en medio (el bloque, simplemente, no se enmascara y cuenta como cambio).
-    .replace(/^[ \t]*<style\b[^>]*>(?:(?!<\/?style\b)[\s\S])*?^[ \t]*<\/style>/gm, '<style>X</style>')
-    .replace(/\sstyle="[^"]*"/g, ' style="X"')
+    .replace(/[\s\S]*/, (all) => maskPageCss(all))
     // Semantica de accesibilidad: nombres de landmarks, roles y el NIVEL de un encabezado cuyo
     // texto no cambia. Afectan a como se navega con lector de pantalla, no a lo que se lee: la
     // pasada axe del 24/09/2026 los toco en 25 guias y 3 aplicaciones y, sin esto, las habria

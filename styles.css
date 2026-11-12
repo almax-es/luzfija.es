@@ -195,6 +195,11 @@
         animation: none !important;
         text-shadow: none !important;
       }
+      /* En oscuro el violeta de marca como letra se quedaba en 3,05:1 (12/11/2026); el claro
+         de la misma familia da 6,9:1. En claro #6D28D9 ya da 7,1:1. */
+      html:not(.light-mode) .brand h1 {
+        -webkit-text-fill-color: #A78BFA !important;
+      }
       
       /* 7. Reducir transiciones (ahorro ~5ms) */
       * {
@@ -421,14 +426,15 @@
 
     /* Tema oscuro (12/11/2026): el blanco sobre el rosa central del degradado se quedaba en
        3,3:1 en los botones de texto normal (Cerrar, Entendido, Aplicar consumos). Mismos tonos un
-       paso mas profundos (>= 4,6:1 bajo el texto). En claro el texto es oscuro y el degradado
+       paso mas profundos: violeta-700, rosa-700 y ambar-700, >= 4,5:1 en CADA pixel bajo el
+       texto, no solo en la mediana (revision de ChatGPT, 12/11/2026). En claro el texto es oscuro y el degradado
        original ya cumple. Fuera de forced-colors para no pisar los colores de sistema. */
     /* En el modal PVPC el bloque Min/Max iba al 80 % de opacidad: en claro dejaba el verde, el
        rojo y las horas en 3,6-4,4:1 sobre el recuadro ambar (12/11/2026). */
     #modalPVPCInfo .u-opacity-80{ opacity: 1 !important; }
     @media (forced-colors: none){
-      html:not(.light-mode) .btn.primary{ background-image: linear-gradient(135deg, #7C3AED 0%, #DB2777 50%, #D97706 100%); }
-      html:not(.light-mode) .btn.primary::before{ background-image: linear-gradient(135deg, #7C3AED, #DB2777, #D97706, #7C3AED); }
+      html:not(.light-mode) .btn.primary{ background-image: linear-gradient(135deg, #6D28D9 0%, #BE185D 50%, #B45309 100%); }
+      html:not(.light-mode) .btn.primary::before{ background-image: linear-gradient(135deg, #6D28D9, #BE185D, #B45309, #6D28D9); }
     }
     .btn.primary #btnText {
       display: inline-block;
@@ -613,6 +619,8 @@
     .consumo-estimate-choice{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:10px; padding-top:10px; border-top:1px solid color-mix(in srgb, var(--warn) 28%, var(--border)); }
     .consumo-estimate-choice > p{ flex:1 1 100%; }
     .consumo-estimate-choice .consumo-estimate-help{ color:var(--muted); }
+    /* Sobre el aviso ambar del modo oscuro --muted rozaba 4,5:1 (12/11/2026). */
+    html:not(.light-mode) .consumo-estimate-choice .consumo-estimate-help{ color: rgba(247,247,251,.84); }
     .consumo-estimate-toggle{ min-height:42px; padding:9px 13px; border:1px solid color-mix(in srgb, var(--accent) 65%, var(--border)); border-radius:9px; background:color-mix(in srgb, var(--accent) 13%, var(--card)); color:var(--text); font:inherit; font-weight:800; line-height:1.25; cursor:pointer; transition:background .16s ease,border-color .16s ease,transform .16s ease; }
     .consumo-estimate-toggle:hover{ background:color-mix(in srgb, var(--accent) 20%, var(--card)); border-color:var(--accent); transform:translateY(-1px); }
     .consumo-estimate-toggle:focus-visible{ outline:3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset:2px; }
