@@ -23,20 +23,20 @@
        especulativo y cada recurso del head se pediria en serie. frame-guard se
        adelanta porque se descarga igualmente dentro de un iframe ajeno; el resto
        va detras de frame-guard para no descargarlo alli. Ver ARRANQUE-CARGA.md 4.8. -->
-  <link rel="preload" href="/js/frame-guard.js?v=20261112-105923" as="script">
-  <script src="/js/error-bootstrap.js?v=20261112-105923"></script>
-  <script src="/js/frame-guard.js?v=20261112-105923"></script>
-  <link rel="preload" href="/js/config.js?v=20261112-105923" as="script">
-  <link rel="preload" href="/js/theme.js?v=20261112-105923" as="script">
-  <link rel="preload" href="/styles.css?v=20261112-105923" as="style">
-  <link rel="preload" href="/pro.css?v=20261112-105923" as="style">
-  <!-- desglose-factura.css solo se usa en un modal, pero la hoja es media="all" y bloquea el renderizado: adelantarla no puede retrasar el primer pintado. -->
-  <link rel="preload" href="/desglose-factura.css?v=20261112-105923" as="style">
-  <link rel="preload" href="/fonts.css?v=20261112-105923" as="style">
-  <link rel="preload" href="/bv-sim.css?v=20261112-105923" as="style">
-  <link rel="preload" href="/comparador-solar-mejorado.css?v=20261112-105923" as="style">
+  <link rel="preload" href="/js/frame-guard.js?v=20261112-113000" as="script">
+  <script src="/js/error-bootstrap.js?v=20261112-113000"></script>
+  <script src="/js/frame-guard.js?v=20261112-113000"></script>
+  <link rel="preload" href="/js/config.js?v=20261112-113000" as="script">
+  <link rel="preload" href="/js/theme.js?v=20261112-113000" as="script">
+  <link rel="preload" href="/styles.css?v=20261112-113000" as="style">
+  <link rel="preload" href="/pro.css?v=20261112-113000" as="style">
+  <!-- desglose-factura.css solo se usa en un modal, pero la hoja es media="all" y bloquea el renderizado: no anade bytes antes del primer pintado, porque ya hacia falta para pintar. -->
+  <link rel="preload" href="/desglose-factura.css?v=20261112-113000" as="style">
+  <link rel="preload" href="/fonts.css?v=20261112-113000" as="style">
+  <link rel="preload" href="/bv-sim.css?v=20261112-113000" as="style">
+  <link rel="preload" href="/comparador-solar-mejorado.css?v=20261112-113000" as="style">
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <script src="/js/config.js?v=20261112-105923"></script>
+  <script src="/js/config.js?v=20261112-113000"></script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz con Autoconsumo y Batería Virtual">
   <meta property="og:description" content="Compara tarifas de luz con placas solares mes a mes: excedentes, tope de compensación y batería virtual con tu consumo real. Sin registro ni comisiones.">
@@ -167,7 +167,7 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20261112-105923"></script>
+  <script src="/js/theme.js?v=20261112-113000"></script>
 
   <script type="application/ld+json">
   {
@@ -201,14 +201,14 @@
   }
   </script>
 
-    <link rel="stylesheet" href="/styles.css?v=20261112-105923">
-    <link rel="stylesheet" href="/pro.css?v=20261112-105923">
+    <link rel="stylesheet" href="/styles.css?v=20261112-113000">
+    <link rel="stylesheet" href="/pro.css?v=20261112-113000">
   <!-- CSS del desglose (solo se usa al abrir el modal). Su preload va arriba, detras de frame-guard; la hoja media="all" sigue siendo render-blocking. -->
-  <link rel="stylesheet" href="/desglose-factura.css?v=20261112-105923" media="all">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20261112-113000" media="all">
 
-  <link rel="stylesheet" href="/fonts.css?v=20261112-105923">
-  <link rel="stylesheet" href="/bv-sim.css?v=20261112-105923">
-  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20261112-105923">
+  <link rel="stylesheet" href="/fonts.css?v=20261112-113000">
+  <link rel="stylesheet" href="/bv-sim.css?v=20261112-113000">
+  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20261112-113000">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -734,18 +734,18 @@
             </div>
 
             <!-- ⚠️ ORDEN CRÍTICO: lf-csv-utils.js DEBE cargarse ANTES que bv-sim-monthly.js -->
-            <script src="/js/tracking.js?v=20261112-105923"></script>
-            <script src="/js/lf-config.js?v=20261112-105923"></script>
-            <script src="/js/lf-utils.js?v=20261112-105923"></script>
-            <script src="/js/lf-ssaa.js?v=20261112-105923"></script>
-            <script src="/js/lf-csv-utils.js?v=20261112-105923"></script>
-            <script src="/js/lf-csv-report.js?v=20261112-105923"></script>
-            <script src="/js/lf-surplus-prices.js?v=20261112-105923"></script>
-            <script src="/js/bv/bv-import.js?v=20261112-105923"></script>
-            <script src="/js/bv/bv-sim-monthly.js?v=20261112-105923"></script>
-            <script src="/js/bv/bv-ui-helpers.js?v=20261112-105923"></script>
-            <script src="/js/bv/bv-ui.js?v=20261112-105923"></script>
-            <script src="/js/lf-datadis.js?v=20261112-105923"></script>
-            <script src="/js/lf-sw-update.js?v=20261112-105923" defer></script>
-            <script src="/js/shell-lite.js?v=20261112-105923" defer></script>
+            <script src="/js/tracking.js?v=20261112-113000"></script>
+            <script src="/js/lf-config.js?v=20261112-113000"></script>
+            <script src="/js/lf-utils.js?v=20261112-113000"></script>
+            <script src="/js/lf-ssaa.js?v=20261112-113000"></script>
+            <script src="/js/lf-csv-utils.js?v=20261112-113000"></script>
+            <script src="/js/lf-csv-report.js?v=20261112-113000"></script>
+            <script src="/js/lf-surplus-prices.js?v=20261112-113000"></script>
+            <script src="/js/bv/bv-import.js?v=20261112-113000"></script>
+            <script src="/js/bv/bv-sim-monthly.js?v=20261112-113000"></script>
+            <script src="/js/bv/bv-ui-helpers.js?v=20261112-113000"></script>
+            <script src="/js/bv/bv-ui.js?v=20261112-113000"></script>
+            <script src="/js/lf-datadis.js?v=20261112-113000"></script>
+            <script src="/js/lf-sw-update.js?v=20261112-113000" defer></script>
+            <script src="/js/shell-lite.js?v=20261112-113000" defer></script>
           </body></html>

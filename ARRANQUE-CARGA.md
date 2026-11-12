@@ -696,7 +696,8 @@ estan medidos.
   Cualquier diferencia de URL, destino o modo es una doble descarga.
 - Todo script sincrono u hoja nueva del `<head>` posterior a frame-guard necesita su
   preload. `desglose-factura.css` se precarga aunque sea de un modal: es `media="all"` y
-  bloquea el renderizado, asi que adelantarla no puede retrasar el primer pintado.
+  bloquea el renderizado: no anade bytes antes del primer pintado, porque ya hacia falta
+  para pintar. Su efecto neto aislado (orden frente a CSS y fuentes) no se ha medido.
 - No se precargan fuentes nuevas sin evidencia de que las use el elemento LCP (por eso
   solar solo lleva la 400 y `/estadisticas/` ninguna).
 - Ninguno va antes del meta CSP. `maskVolatileSeoChanges` ignora preloads y comentarios
@@ -731,8 +732,8 @@ mismas condiciones):
 **Scripts del `<body>` de `/estadisticas/` y solar: NO se precargan** (medido y descartado
 el 12/11/2026). Van al final del `<body>`, detras de `</main>` (en solar, tambien del pie),
 y se siguen descubriendo en serie. Se midieron preloads al final del `<head>` con tiempos
-REALES, no la simulacion de Lighthouse, que cuenta esos scripts como si bloquearan el
-pintado: servidor local HTTP/2 con gzip (como GitHub Pages), 1,6 Mbps, 150 ms, CPU 4x,
+REALES, no con Lighthouse sobre un servidor local (sin compresion daba un FCP de 6,3 s
+frente a ~1,4 s medido, por el peso del JS sin gzip): servidor local HTTP/2 con gzip (como GitHub Pages), 1,6 Mbps, 150 ms, CPU 4x,
 5 pasadas alternas. Medianas (FCP / LCP / pagina lista):
 
 | Pagina | Actual | Preload de los pesados | Preload de todos |

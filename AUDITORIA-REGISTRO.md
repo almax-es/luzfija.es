@@ -7493,9 +7493,9 @@ tienen una tabla comparable ni una medicion. `tests/theme-switch-transitions.tes
 **4. Fase 2 (scripts del `<body>` de `/estadisticas/` y solar): MEDIDA Y DESCARTADA.** Preloads al final del
 `<head>` medidos con tiempos reales (HTTP/2 + gzip, 1,6 Mbps, CPU 4x, 5 pasadas): toda variante empeora FCP y/o
 LCP para adelantar la pagina lista, y `fetchpriority="low"` no cambia nada. Tabla y limites en
-`ARRANQUE-CARGA.md` 4.8. Dos trampas del primer intento: la simulacion de Lighthouse cuenta los scripts del final
-del `<body>` como bloqueantes del pintado (FCP de 6,3 s simulado frente a ~1,4 s real), y un servidor local sin
-compresion triplica el peso de Chart.js y exagera la competencia. Los scripts ya van detras de `</main>`: la idea
+`ARRANQUE-CARGA.md` 4.8. Trampa del primer intento: un servidor local sin compresion (y en HTTP/1.1) triplica
+el peso de Chart.js y exagera la competencia; Lighthouse sobre ese servidor daba un FCP de 6,3 s frente a ~1,4 s
+medido con HTTP/2 y gzip. No esta demostrado que Lighthouse trate esos scripts como bloqueantes del pintado. Los scripts ya van detras de `</main>`: la idea
 de "moverlos detras de `</main>`" partia de un dato mal leido.
 
 **5. Datos del observatorio: CORREGIDO.** El render pedia el anho anterior (media movil) solo al terminar el actual;

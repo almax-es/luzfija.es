@@ -1288,6 +1288,9 @@
       // tambien los años de la comparativa no mejoraba nada (la red ya va llena). El
       // `.catch` adjunto al crear la promesa evita un rechazo no gestionado si este render
       // sale antes por error o por quedar obsoleto; el resultado se usa abajo, como antes.
+      // Coste aceptado: si el usuario cambia de seleccion antes de que termine, este render
+      // abandonado descarga tambien el año anterior (~58 KB gzip en Peninsula) que antes no
+      // llegaba a pedir. No se pinta: los `_rerenderToken` de abajo lo descartan.
       const prevYearPromise = PVPC_STATS
         .loadYearData(Number(state.geo), Number(state.year) - 1, state.type)
         .catch(() => null);

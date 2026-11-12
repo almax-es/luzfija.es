@@ -190,6 +190,29 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
+  it('does not let a "<!--" inside a script, or a conditional comment, hide visible content', () => {
+    // La regex no es un parser: sin limites, el "<!--" del script se comeria el parrafo
+    // hasta el "-->" del comentario real y el cambio de texto no fecharia la pagina.
+    const page = (texto) => [
+      '<script>var marca = "<!--";</script>',
+      `<p>${texto}</p>`,
+      '<!-- nota de mantenimiento -->'
+    ].join('\n');
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: page('Texto reescrito'), committedContent: page('Texto original')
+    })).toBe(true);
+
+    // Un comentario condicional puede contener HTML que un navegador antiguo pinta.
+    const cond = (texto) => `<!--[if IE]><p>${texto}</p><![endif]-->\n<p>Resto</p>`;
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: cond('Aviso nuevo'), committedContent: cond('Aviso viejo')
+    })).toBe(true);
+
+    // Un comentario normal sigue siendo invisible para la fecha.
+    expect(maskVolatileSeoChanges('<p>A</p>\n  <!-- una nota -->\n<p>B</p>'))
+      .toBe(maskVolatileSeoChanges('<p>A</p>\n<p>B</p>'));
+  });
+
   it('preserves the self-stamped date across pre-commit and CI git fallbacks', () => {
     const content = '<script type="application/ld+json">{"dateModified":"2026-07-18T12:00:00+02:00"}</script>';
 

@@ -54,9 +54,11 @@ export function maskVolatileSeoChanges(text) {
     // invisibles para el lector y sin contenido indexable. Los preloads explicitos del head
     // (12/11/2026, meta CSP sin descubrimiento especulativo) habrian fechado como actualizadas
     // las tres aplicaciones. Una hoja o un script nuevos (<link rel="stylesheet">, <script>)
-    // siguen contando.
+    // siguen contando. La regex no es un parser: un comentario no puede cruzar una etiqueta
+    // <script> (un "<!--" dentro de un script se comeria el HTML hasta el siguiente "-->") ni
+    // ser condicional (<!--[if ...]>, que algunos navegadores antiguos si pintaban).
     .replace(/[ \t]*<link\b[^>]*\brel=["']preload["'][^>]*>[ \t]*\n?/gi, '')
-    .replace(/[ \t]*<!--[\s\S]*?-->[ \t]*\n?/g, '')
+    .replace(/[ \t]*<!--(?!\s*\[if)(?:(?!<\/?script\b)[\s\S])*?-->[ \t]*\n?/gi, '')
     // Semantica de accesibilidad: nombres de landmarks, roles y el NIVEL de un encabezado cuyo
     // texto no cambia. Afectan a como se navega con lector de pantalla, no a lo que se lee: la
     // pasada axe del 24/09/2026 los toco en 25 guias y 3 aplicaciones y, sin esto, las habria
