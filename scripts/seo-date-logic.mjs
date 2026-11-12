@@ -42,20 +42,41 @@ export function getTodayMadridYmd(now = new Date()) {
 //   visibility:hidden) se conserva esa marca, porque mostrar u ocultar un bloque si cambia lo que
 //   se lee.
 const PAGE_STYLE_BLOCK = /^[ \t]*<style\b[^>]*>(?:(?!<\/?style\b|<!--|-->)[\s\S])*?^[ \t]*<\/style>/gim;
-const CSS_CONTENT_VALUE = /\bcontent\s*:\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/gi;
-const STYLE_ATTR_IN_TAG = /(<[a-zA-Z][^<>]*?)\sstyle="([^"]*)"/g;
-const HIDES_CONTENT = /display\s*:\s*none|visibility\s*:\s*hidden/i;
+// Lo que el CSS puede pintar como texto se conserva entero: cada declaracion content: (cadenas,
+// var(), counter(), attr()...) y cada propiedad personalizada cuyo valor lleve comillas (puede
+// llegar a un content: con var()). Antes se quitan los comentarios CSS (revision de ChatGPT).
+const CSS_COMMENT = /\/\*[\s\S]*?\*\//g;
+const CSS_TEXT_DECL = /(?:^|[;{\s])(content\s*:[^;}]*|--[\w-]+\s*:[^;}]*["'][^;}]*)/gi;
+// Atributos leidos como atributos (con sus comillas), no por texto suelto: un style="" escrito
+// dentro de title='...' no es un atributo style.
+const HTML_TAG = /<[a-zA-Z][\w:-]*(?:\s+[^\s"'<>\/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*\s*\/?>/g;
+const TAG_ATTR = /(\s+)([^\s"'<>\/=]+)(?:(\s*=\s*)("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g;
+const HIDES_CONTENT = /display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse)|content-visibility\s*:\s*hidden|(?:^|[;\s])opacity\s*:\s*0*(?:\.0*)?\s*(?:;|$|!)/i;
+
+function maskStyleBlock(block) {
+  const css = block.replace(CSS_COMMENT, ' ');
+  const textDecls = [...css.matchAll(CSS_TEXT_DECL)].map((m) => m[1].replace(/\s+/g, ' ').trim()).join(';');
+  return '<style>X ' + textDecls + '</style>';
+}
+
+function maskStyleAttrs(html) {
+  return html.replace(HTML_TAG, (tag) => tag.replace(TAG_ATTR, (m, sp, name, eq, value) => {
+    if (name.toLowerCase() !== 'style' || value === undefined) return m;
+    const css = value.replace(/^["']|["']$/g, '').replace(CSS_COMMENT, ' ');
+    return sp + 'style="X' + (HIDES_CONTENT.test(css) ? ':oculto' : '') + '"';
+  }));
+}
 
 function maskPageCss(text) {
   const headEnd = text.search(/<\/head\s*>/i);
   // Sin </head> (fragmento) se trata todo como cabecera; las paginas reales siempre lo tienen.
   const head = headEnd < 0 ? text : text.slice(0, headEnd);
   const rest = headEnd < 0 ? '' : text.slice(headEnd);
-  const maskedHead = head.replace(PAGE_STYLE_BLOCK, (block) => {
-    const visibles = [...block.matchAll(CSS_CONTENT_VALUE)].map((m) => m[1]).join(' ');
-    return '<style>X ' + visibles + '</style>';
-  });
-  return (maskedHead + rest).replace(STYLE_ATTR_IN_TAG, (m, tag, css) => tag + ' style="X' + (HIDES_CONTENT.test(css) ? ':oculto' : '') + '"');
+  // Los scripts del <head> se apartan antes: un "<style>" dentro de una plantilla JS no es CSS.
+  const scripts = [];
+  const headSinScripts = head.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, (m) => { scripts.push(m); return '\u0000S' + (scripts.length - 1) + '\u0000'; });
+  const maskedHead = headSinScripts.replace(PAGE_STYLE_BLOCK, maskStyleBlock).replace(/\u0000S(\d+)\u0000/g, (m, i) => scripts[Number(i)]);
+  return maskStyleAttrs(maskedHead + rest);
 }
 
 export function maskVolatileSeoChanges(text) {

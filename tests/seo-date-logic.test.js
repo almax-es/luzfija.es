@@ -246,6 +246,33 @@ describe('SEO date policy', () => {
     expect(dirty(page(css, '<p style="color:red">Info</p>'), page(css, '<p style="color:blue">Info</p>'))).toBe(false);
   });
 
+  it('covers the second ChatGPT review: var(), counter(), comments, attributes and head scripts', () => {
+    const page = (head, body) => '<html><head>\n' + head + '\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (x, y) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: y, committedContent: x });
+    const css = (inner) => '<style>\n' + inner + '\n.a{color:red}\n</style>';
+    // Texto en una variable que usa content: var()
+    expect(dirty(page(css(':root{--label:"Oferta anterior"}\n.b::before{content:var(--label)}'), '<p>A</p>'), page(css(':root{--label:"Oferta nueva"}\n.b::before{content:var(--label)}'), '<p>A</p>'))).toBe(true);
+    // content con counter() o attr()
+    expect(dirty(page(css('.b::before{content:"Precio: " counter(total)}'), '<p>A</p>'), page(css('.b::before{content:"Precio: " counter(descuento)}'), '<p>A</p>'))).toBe(true);
+    expect(dirty(page(css('.b::before{content:attr(data-a)}'), '<p>A</p>'), page(css('.b::before{content:attr(data-b)}'), '<p>A</p>'))).toBe(true);
+    // Comentario entre content: y el texto
+    expect(dirty(page(css('.b::before{content:/* etiqueta */ "Anterior"}'), '<p>A</p>'), page(css('.b::before{content:/* etiqueta */ "Nuevo"}'), '<p>A</p>'))).toBe(true);
+    // Un comentario CSS con "content:" no cuenta: es solo CSS
+    expect(dirty(page(css('/* content: "viejo" */'), '<p>A</p>'), page(css('/* content: "otro" */'), '<p>A</p>'))).toBe(false);
+    // style="" escrito dentro de un title cuenta (es texto del tooltip)
+    expect(dirty(page(css(''), "<button title='Ayuda: style=\"color:red\"'>i</button>"), page(css(''), "<button title='Ayuda: style=\"color:blue\"'>i</button>"))).toBe(true);
+    // Atributo style real con comillas simples: solo color, no cuenta
+    expect(dirty(page(css(''), "<p style='color:red'>A</p>"), page(css(''), "<p style='color:blue'>A</p>"))).toBe(false);
+    // Plantilla JS del <head> con un <style>: cuenta
+    const js = (label) => '<script>\nconst c = ' + String.fromCharCode(96) + '\n<style>\n:root{--l:"' + label + '"}\n</style>\n' + String.fromCharCode(96) + ';\n</script>';
+    expect(dirty(page(js('Anterior') + '\n' + css(''), '<p>A</p>'), page(js('Nuevo') + '\n' + css(''), '<p>A</p>'))).toBe(true);
+    // Otras formas de ocultar contenido cuentan
+    expect(dirty(page(css(''), '<p style="opacity:0">Info</p>'), page(css(''), '<p style="opacity:1">Info</p>'))).toBe(true);
+    expect(dirty(page(css(''), '<p style="visibility:visible">Info</p>'), page(css(''), '<p style="visibility:collapse">Info</p>'))).toBe(true);
+    // Un "display:none" dentro de un comentario del style no es ocultar
+    expect(dirty(page(css(''), '<div style="color:red; /* display:none */">x</div>'), page(css(''), '<div style="color:red">x</div>'))).toBe(false);
+  });
+
   it('does not re-date the privacy policy for a CSS-only fix', () => {
     const committed = '<style>\n.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}\n</style>\n<p>Texto legal.</p>';
     const withRule = committed.replace('var(--muted)}\n', 'var(--muted)}\n.accordion-item .accordion-content{overflow-wrap:anywhere}\n');
