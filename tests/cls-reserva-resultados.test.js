@@ -411,6 +411,14 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true);
   });
 
+  it('si setStatus falla ANTES de reservar, tampoco libera', async () => {
+    bootApp({ setStatus: vi.fn((texto) => { if (texto === 'Calculando...') throw new Error('boom en setStatus'); }) });
+    await window.calculate(true, false);
+    expect(window.LF.reserveResultsSpace).not.toHaveBeenCalled();
+    expect(window.LF.releaseResultsSpace).not.toHaveBeenCalled();
+    expect(window.__LF_CALC_INFLIGHT).toBe(false);
+  });
+
   it('si algo falla ANTES de reservar, no libera: conserva el aviso de error de un intento anterior', async () => {
     // Revision de ChatGPT (12/11/2026): liberar con `false` borraria la altura y `.is-error`
     // que dejo un intento fallido previo, aunque este calculo nunca llego a reservar.

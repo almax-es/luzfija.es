@@ -726,6 +726,11 @@ mismas condiciones):
   controlando la pagina (registro de peticiones del servidor, no Resource Timing).
 - Iframe de otro origen: base y cambio piden exactamente lo mismo antes del aviso (la
   pagina, `error-bootstrap.js` y `frame-guard.js`; solo cambia el orden).
+  Esto vale para Chromium. WebKit (Safari, iOS y macOS; medido con WebKit 27.2) SI hace
+  descubrimiento especulativo con el meta CSP: en un iframe ajeno descarga CSS, fuentes y
+  scripts del head antes de que frame-guard pare la pagina, y YA lo hacia antes de los
+  preloads (mismo conjunto de ficheros). Solo se descargan: no se ejecuta la app ni se envia
+  analitica, y la pagina acaba en el aviso igual. En WebKit tampoco hay dobles descargas.
 - Fallo inyectado (503) en `frame-guard.js`, `config.js` y `theme.js`: misma recarga,
   mismo tema y misma recuperacion que la base. Chrome no reutiliza un preload que
   respondio con error: el `<script>` vuelve a pedirlo (una peticion mas). El `<link>`
