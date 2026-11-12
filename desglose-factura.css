@@ -227,7 +227,11 @@
 .desglose-detalle {
   font-size: 13px;
   color: var(--muted);
-  font-family: 'Courier New', monospace;
+  /* Antes 'Courier New': trazo muy fino, gris sobre gris en tema claro y dificil de leer
+     (12/11/2026). Misma tipografia de la web con cifras de ancho fijo para alinear importes. */
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
   transition: color 0.3s ease;
 }
 
