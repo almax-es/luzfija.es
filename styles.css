@@ -1521,7 +1521,12 @@
       backdrop-filter: blur(8px);
     }
 
-    html.light-mode .modal-content{
+    /* `.modal-content.card`: el modal tambien es `.card`, y `html.light-mode .card`
+       (blanco al 90 %, mas abajo) le ganaba por orden con la misma especificidad. El
+       modal quedaba translucido y en movil, sin el blur del overlay, se leia la pagina
+       a traves (12/11/2026). */
+    html.light-mode .modal-content,
+    html.light-mode .modal-content.card{
       background: #FFFFFF;
       color: var(--text);
       box-shadow: 0 25px 50px rgba(15,23,42,.25);

@@ -31,3 +31,13 @@ describe('La X de los modales queda por encima de la cabecera sticky en movil', 
     expect(zx).toBeGreaterThan(zh);
   });
 });
+
+describe('Modales opacos en tema claro', () => {
+  it('html.light-mode .modal-content.card gana a html.light-mode .card (blanco al 90 %)', () => {
+    // El modal tambien es `.card`: con la misma especificidad, la regla de tarjetas (que va
+    // despues) lo dejaba translucido y en movil se leia la pagina a traves (12/11/2026).
+    const regla = sinComentarios.match(/html\.light-mode \.modal-content,\s*html\.light-mode \.modal-content\.card\s*\{([^}]*)\}/);
+    expect(regla, 'falta la regla de fondo opaco del modal en tema claro').toBeTruthy();
+    expect(regla[1]).toMatch(/background:\s*#FFFFFF/i);
+  });
+});

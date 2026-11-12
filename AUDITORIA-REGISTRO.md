@@ -7523,3 +7523,6 @@ este cambio solo le suma un frame.
 placas y PVPC el toque lo recibia la cabecera y no se podia cerrar con la X (si tocando fuera o con "Cerrar"). Ahora
 `.modal-x` lleva z-index 3; medido con elementFromPoint y toque real en Pixel 5 y escritorio, claro y oscuro: los cinco
 modales con X (factura, placas, PVPC, CSV y Datadis) cierran. Test: `tests/modal-x-encima-cabecera.test.js`.
+Misma QA: en tema claro el modal se transparentaba (se leia la pagina a traves en movil, donde el overlay no lleva
+blur). `html.light-mode .modal-content` pedia `#FFFFFF`, pero `html.light-mode .card` (blanco al 90 %) le ganaba por orden
+con la misma especificidad. CORREGIDO subiendo la especificidad del modal; tema oscuro sin cambios.
