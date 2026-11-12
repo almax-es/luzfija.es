@@ -85,12 +85,23 @@ html.light-mode{
   --lf-keyboard-focus: #6D28D9;
 }
 
-/* Aplicar transiciones suaves de tema solo a elementos principales */
+/* Transiciones suaves de color en los elementos principales. No se ven al cambiar
+   de tema en la home: toggleTheme() (js/lf-ui.js) pone lf-theme-switching durante
+   el cambio, porque animar los colores de toda la pagina costaba 1-2 s de INP. */
 body,
 .card,
 .modal-content,
 .desglose-modal{
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.lf-theme-switching,
+html.lf-theme-switching::before,
+html.lf-theme-switching::after,
+html.lf-theme-switching *,
+html.lf-theme-switching *::before,
+html.lf-theme-switching *::after{
+  transition: none !important;
 }
 
 /* ---- Tipografía y ritmo (ligero, sin cambiar identidad) ---- */

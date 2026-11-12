@@ -7460,3 +7460,35 @@ mono/trifasico solo se anadiria si el usuario lo pide: toca formulario, estado, 
 Ademas, el informe da por correctos el cambio de comercializadora, consentimiento, desistimiento, penalizacion por
 rescision, servicios adicionales, reclamaciones, llamadas comerciales, periodos 2.0TD, PVPC 55/45, IGIC, Auto+ y
 la DA 62; coinciden con las rondas 63 y 71.
+
+<a id="preloads-meta-csp-y-tema-inp-ronda-85-12-11-2026"></a>
+### Carga En Serie Por El Meta CSP Y INP Del Cambio De Tema (Ronda 85, 12/11/2026)
+
+Auditoria propia de Claude con PageSpeed a peticion del promotor; plan revisado dos veces por ChatGPT.
+
+**1. Preloads explicitos del `<head>`: CORREGIDO.** Con un `<meta>` CSP, Chromium no hace descubrimiento
+especulativo (`html_preload_scanner.cc`, feature `AllowPreloadingWithCSPMetaTag` en `experimental`), asi que los
+scripts sincronos y las hojas del head se pedian en serie. Las tres aplicaciones precargan ahora `frame-guard.js`
+antes de `error-bootstrap.js` y el resto justo detras de frame-guard, sin cambiar el orden de ejecucion. Lighthouse
+movil local: home FCP/LCP 2,56 s -> 1,36 s. Sin dobles descargas (frio y con SW), mismo comportamiento ante fallos
+y nada de CSS ni fuentes en un iframe ajeno. Contrato y mediciones en `ARRANQUE-CARGA.md` 4.8 y 8.7;
+`tests/head-preloads.test.js`. `maskVolatileSeoChanges` ignora preloads y comentarios HTML.
+
+**2. INP del cambio de tema: CORREGIDO.** Con la tabla de resultados pintada, las transiciones de color/fondo
+(filas, celda del total, botones, enlaces, `body`, `.card`) convertian el clic en tres recalculos de estilo de toda
+la pagina. `toggleTheme()` pone `lf-theme-switching` (`transition:none`) y la retira tras dos frames, con
+temporizador de respaldo y token frente a dobles clics; el aviso sale al liberar. A/B con CPU 4x y movil emulado,
+10 pasadas alternas: mediana 1196 -> 328 ms (p90 1432 -> 384). Solo en la home: `shell-lite.js` y `bv-ui.js` no
+tienen una tabla comparable ni una medicion. `tests/theme-switch-transitions.test.js`.
+
+**3. No son bugs, no reabrir:**
+- Calcular (144-272 ms con CPU 4x) incluye ~85 ms de layout forzado en `reservarAltura()`: es el diseno anti-CLS;
+  ese layout ocurriria igual en el frame siguiente.
+- El modal de info PVPC (200-360 ms) y picos de 300-700 ms en algunas pulsaciones son tiempo de pintado sin frames
+  largos de JS en Chrome headless; ni el `backdrop-filter` ni las transiciones los explican. Solo se reabre con un
+  movil real.
+- "Un preload fallido se reutiliza y el script no vuelve a pedirlo": medido con 503, Chrome SI vuelve a pedirlo
+  (una peticion mas). El resultado visible es el mismo que sin preload.
+
+**Pendiente con medicion propia:** los scripts sincronos del `<body>` de `/estadisticas/` y solar (Chart.js y
+`lf-csv-utils.js` dominan el bloqueo); no se pasan a `defer` sin redisenar `ARRANQUE-CARGA.md` 2.2-2.3.

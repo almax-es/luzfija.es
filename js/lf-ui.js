@@ -120,15 +120,44 @@
     el.btnTheme.setAttribute('aria-pressed', isLight ? 'false' : 'true');
   }
 
+  // Cambio de tema sin transiciones (INP). Con la tabla de resultados pintada, las
+  // transiciones de color/fondo de filas, celdas, botones y enlaces convertian el
+  // clic en tres recalculos de estilo de toda la pagina: 1,1-2,1 s con CPU 4x en
+  // movil emulado, frente a 0,28-0,33 s sin ellas (medido el 12/11/2026).
+  // `lf-theme-switching` (pro.css) anula las transiciones mientras se aplica el
+  // tema y se retira tras dos frames: al quitarla no arranca ningun fundido porque
+  // los colores ya estan en su valor final. El token impide que la retirada de un
+  // clic anterior quite la clase durante un segundo clic rapido. El aviso se
+  // muestra al liberar, para que conserve su propia transicion de entrada.
+  const THEME_SWITCHING_CLASS = 'lf-theme-switching';
+  const THEME_SWITCH_FALLBACK_MS = 500;
+  let themeSwitchToken = 0;
+
   function toggleTheme() {
-    const isLight = document.documentElement.classList.contains('light-mode');
+    const root = document.documentElement;
+    const isLight = root.classList.contains('light-mode');
     const next = isLight ? 'dark' : 'light';
-    applyThemeClass(next === 'light' ? 'light' : 'dark');
+    const token = ++themeSwitchToken;
+    root.classList.add(THEME_SWITCHING_CLASS);
+    applyThemeClass(next);
     try {
       localStorage.setItem(THEME_KEY, next);
     } catch (e) {}
     updateThemeIcon();
-    toast(next === 'light' ? 'Modo claro' : 'Modo oscuro');
+
+    let released = false;
+    const release = () => {
+      if (released || token !== themeSwitchToken) return;
+      released = true;
+      root.classList.remove(THEME_SWITCHING_CLASS);
+      toast(next === 'light' ? 'Modo claro' : 'Modo oscuro');
+    };
+    // rAF puede no llegar nunca en una pestana en segundo plano: el temporizador
+    // garantiza que la clase no se quede puesta.
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(release));
+    }
+    setTimeout(release, THEME_SWITCH_FALLBACK_MS);
   }
 
   // Aplicar tema inicial

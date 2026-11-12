@@ -155,6 +155,41 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
+  it('treats preload hints and HTML comments as infrastructure, but not new stylesheets', () => {
+    const committed = [
+      '<meta charset="utf-8"/>',
+      '  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>',
+      '  <link rel="stylesheet" href="/styles.css?v=20261108-190217">',
+      '<p>Texto de la guia que lee el usuario.</p>'
+    ].join('\n');
+    // Alta del 12/11/2026: bloque de preloads con su comentario y la fuente movida de sitio.
+    const withPreloads = [
+      '<meta charset="utf-8"/>',
+      '  <!-- Preloads explicitos: con un <meta> CSP, Chromium no hace',
+      '       descubrimiento especulativo. -->',
+      '  <link rel="preload" href="/styles.css?v=20261112-100000" as="style">',
+      '  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>',
+      '  <link rel="stylesheet" href="/styles.css?v=20261112-100000">',
+      '<p>Texto de la guia que lee el usuario.</p>'
+    ].join('\n');
+    expect(isSignificantlyDirty({
+      status: ' M index.html', currentContent: withPreloads, committedContent: committed
+    })).toBe(false);
+
+    // Una hoja de estilo nueva sigue contando.
+    expect(isSignificantlyDirty({
+      status: ' M index.html',
+      currentContent: withPreloads.replace('<p>', '  <link rel="stylesheet" href="/nueva.css?v=20261112-100000">\n<p>'),
+      committedContent: committed
+    })).toBe(true);
+    // Y un texto visible nuevo tambien.
+    expect(isSignificantlyDirty({
+      status: ' M index.html',
+      currentContent: withPreloads.replace('Texto de la guia', 'Texto reescrito de la guia'),
+      committedContent: committed
+    })).toBe(true);
+  });
+
   it('preserves the self-stamped date across pre-commit and CI git fallbacks', () => {
     const content = '<script type="application/ld+json">{"dateModified":"2026-07-18T12:00:00+02:00"}</script>';
 

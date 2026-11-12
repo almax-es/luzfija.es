@@ -338,6 +338,7 @@ estes auditando; no hace falta leerlo entero.
 - [Historico PVPC Completo Frente A REE Y Re-Verificacion Del Catalogo (Ronda 82, 15/10/2026)](AUDITORIA-REGISTRO.md#historico-pvpc-ree-y-recheck-catalogo-ronda-82-15-10-2026)
 - [Errores Reales De Produccion En La Telemetria (Ronda 83, 16/10/2026)](AUDITORIA-REGISTRO.md#telemetria-errores-produccion-ronda-83-16-10-2026)
 - [Revision Normativa Externa: Bono Social, Lecturas, DA 58 Y Excedentes PVPC (Ronda 84, 02/11/2026)](AUDITORIA-REGISTRO.md#normativa-bono-lecturas-da58-excedentes-ronda-84-02-11-2026)
+- [Carga En Serie Por El Meta CSP Y INP Del Cambio De Tema (Ronda 85, 12/11/2026)](AUDITORIA-REGISTRO.md#preloads-meta-csp-y-tema-inp-ronda-85-12-11-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

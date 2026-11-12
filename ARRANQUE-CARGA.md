@@ -66,16 +66,17 @@ documento despues del parseo y antes de `DOMContentLoaded`.
 HEAD (bloqueante, sin defer)
   <meta CSP>                      script-src 'self' + sha256 (inline + JSON-LD)
   <script inline>                 currentYear + filtro unhandledrejection legacy
+  preload js/frame-guard.js       solo descarga; se baja igual en un iframe ajeno (4.8)
   js/error-bootstrap.js           buffer + watchdog + fallback visual de tema
   js/frame-guard.js               antiincrustacion: en iframe ajeno para y va al aviso (4.7)
+  preload config.js, theme.js, styles.css, pro.css, desglose-factura.css, fonts.css,
+          outfit-latin-400 (LCP movil) y outfit-latin-900 (LCP escritorio)   (4.8)
   js/config.js                    currentYear, guard GoatCounter, PVPC_DATASET_BASE
   [bloques application/ld+json]   inertes, tambien hasheados en la CSP
   js/theme.js                     aplica .light-mode a <html>
   styles.css                      \
   pro.css                          | cascada estricta (ver seccion 4.4)
   desglose-factura.css            /
-  preload outfit-latin-400-normal.woff2  peso del elemento LCP en movil
-  preload outfit-latin-900-normal.woff2  peso del elemento LCP en escritorio
   fonts.css
 
 BODY (todos con defer, en orden de documento)
@@ -120,9 +121,11 @@ orden real de ejecucion mezcla parseo y cola diferida.
 
 ```
 HEAD
-  <meta CSP> -> error-bootstrap.js -> frame-guard.js -> config.js -> [JSON-LD x3] -> theme.js
-  -> [JSON-LD] -> styles.css -> pro.css -> preload desglose-factura.css
-  -> desglose-factura.css -> preload woff2 400 -> fonts.css -> bv-sim.css
+  <meta CSP> -> preload frame-guard.js -> error-bootstrap.js -> frame-guard.js
+  -> preload config.js, theme.js, styles.css, pro.css, desglose-factura.css, fonts.css,
+     bv-sim.css, comparador-solar-mejorado.css, woff2 400 (4.8)
+  -> config.js -> [JSON-LD x3] -> theme.js
+  -> [JSON-LD] -> styles.css -> pro.css -> desglose-factura.css -> fonts.css -> bv-sim.css
   -> comparador-solar-mejorado.css
 
   Los bloques JSON-LD son inertes (no ejecutan), asi que el que queda detras de
@@ -151,7 +154,8 @@ Esta pagina no lleva el guard inline de `currentYear` en el `<head>`; lo cubre
 
 ```
 HEAD
-  <meta CSP> -> <script inline> -> error-bootstrap.js -> frame-guard.js -> config.js -> theme.js
+  <meta CSP> -> <script inline> -> preload frame-guard.js -> error-bootstrap.js -> frame-guard.js
+  -> preload config.js, theme.js y las cinco hojas (4.8) -> config.js -> theme.js
   -> fonts.css -> styles.css -> pro.css
   -> estadisticas/estadisticas.css -> estadisticas/estadisticas-mejorado.css
 
@@ -666,6 +670,66 @@ que la defensa es `js/frame-guard.js`:
 - **Limites**: un iframe con `sandbox` sin `allow-scripts` no ejecuta el guard, pero tampoco la
   app. Copiar el codigo a otro dominio no lo para el guard, lo cubre la licencia.
 
+### 4.8 Preloads explicitos del `<head>` (meta CSP sin descubrimiento especulativo)
+
+**Causa** (medida y confirmada en el codigo de Chromium el 12/11/2026): con un
+`<meta http-equiv="Content-Security-Policy">`, el escaner de precarga de Chromium no
+pide nada. `html_preload_scanner.cc` (`if (!RuntimeEnabledFeatures::
+AllowPreloadingWithCSPMetaTagEnabled())`, comentario "Don't preload anything if a CSP
+meta tag is found") resetea el tokenizer y devuelve; la feature es `status:
+"experimental"`, apagada en estable. Ocurre con cualquier contenido de la CSP y en
+cualquier posicion del `<head>`. Consecuencia: cada script sincrono y cada hoja se
+descubria solo cuando el parser llegaba a ella, en serie (traza de PageSpeed:
+error-bootstrap 208-380 ms, frame-guard 385-497, config 500-684, theme 688-847 y el CSS
+desde 852). Es un comportamiento de Chromium, no una regla de HTML; Firefox y Safari no
+estan medidos.
+
+**Contrato**:
+
+- El parser procesa los `<link rel="preload">` antes de bloquearse en el siguiente
+  `<script>`, asi que arrancan la descarga sin cambiar el orden de EJECUCION de 4.1-4.4.
+- Antes de `frame-guard.js` solo se precarga el propio `frame-guard.js`: dentro de un
+  iframe ajeno se descarga igualmente. El resto va justo detras de su `<script>`, asi que
+  alli nunca se pide (el meta CSP impide ademas que el escaner se adelante).
+- Cada preload de script o estilo lleva el MISMO href que su consumidor (`?v=` incluido;
+  el .bat lo reescribe en ambos) y sin `crossorigin`; las fuentes, con `crossorigin`.
+  Cualquier diferencia de URL, destino o modo es una doble descarga.
+- Todo script sincrono u hoja nueva del `<head>` posterior a frame-guard necesita su
+  preload. `desglose-factura.css` se precarga aunque sea de un modal: es `media="all"` y
+  bloquea el renderizado, asi que adelantarla no puede retrasar el primer pintado.
+- No se precargan fuentes nuevas sin evidencia de que las use el elemento LCP (por eso
+  solar solo lleva la 400 y `/estadisticas/` ninguna).
+- Ninguno va antes del meta CSP. `maskVolatileSeoChanges` ignora preloads y comentarios
+  HTML: no son contenido y no deben fechar la pagina.
+- Lo fija `tests/head-preloads.test.js`.
+
+**Medicion de la disposicion** (servidor local con 300 ms por recurso, sin cache ni SW,
+inicio de descarga del CSS y de las fuentes 400/900 en la home): actual 1380 ms; todo
+detras de frame-guard 679 ms; esta disposicion 367 ms; todo antes de error-bootstrap
+29 ms (descartada: descargaba CSS y fuentes dentro de un iframe ajeno). Ninguna variante
+duplico peticiones.
+
+**Validacion** (12/11/2026, base = HEAD frente al cambio, servidos en local en las
+mismas condiciones):
+
+- Lighthouse 13.6.0 movil, 3 pasadas por variante: home FCP/LCP 2,56 s -> 1,36 s (93 ->
+  99-100); solar FCP 7,73-7,75 s -> 6,76-7,21 s con LCP igual (8,64 s); `/estadisticas/`
+  FCP 6,61 s -> 6,31 s. En estas dos el resto lo bloquean los scripts del `<body>`.
+- Mismos recursos y sin ninguna doble descarga en las tres paginas, en frio y con el SW
+  controlando la pagina (registro de peticiones del servidor, no Resource Timing).
+- Iframe de otro origen: base y cambio piden exactamente lo mismo antes del aviso (la
+  pagina, `error-bootstrap.js` y `frame-guard.js`; solo cambia el orden).
+- Fallo inyectado (503) en `frame-guard.js`, `config.js` y `theme.js`: misma recarga,
+  mismo tema y misma recuperacion que la base. Chrome no reutiliza un preload que
+  respondio con error: el `<script>` vuelve a pedirlo (una peticion mas). El `<link>`
+  emite ademas su propio `error`, que puede sumar un `error-resource-load` de tipo `pre`
+  al del script.
+
+**Fuera de alcance**: los scripts sincronos del `<body>` de `/estadisticas/` y de solar
+(en solar van antes de `</main>`) siguen descubriendose en serie. Precargarlos adelanta la
+red, no su ejecucion, y puede competir con CSS y fuentes: se evalua aparte, empezando por
+Chart.js y `lf-csv-utils.js`, y no se convierten a `defer` sin redisenar 2.2-2.3.
+
 ## 5. Fallos Ruidosos Y Fallos Silenciosos
 
 Distincion util al revisar un cambio de carga: si algo se rompe, hay que saber si
@@ -740,6 +804,9 @@ Antes de tocar `<script>`, `<link>`, `defer`, `async` o `preload`:
 5. Si tocas el `<head>`, confirma que `theme.js` sigue delante del primer
    stylesheet y sin `defer`.
 6. Si tocas CSS, confirma la cadena `styles.css -> pro.css -> especifico`.
+6b. Si anades, quitas o renombras un script sincrono o una hoja del `<head>` de una
+   aplicacion, haz lo mismo con su `<link rel="preload">` detras de frame-guard, con el
+   mismo href (seccion 4.8; `tests/head-preloads.test.js` lo exige).
 7. Si tocas el script inline del `<head>`, regenera los hashes de la CSP con el
    script de despliegue.
 7b. Si anades una pagina HTML con scripts, carga `js/frame-guard.js` como en la
@@ -894,10 +961,10 @@ controlada, no solo por su aparicion en el arbol.
   delante de cualquier hoja de estilo, asi que no sufren el bloqueo
   script-tras-CSS. Lighthouse los identifica como render-blocking, pero en esta
   documentacion no consta una alternativa segura que mejore el resultado.
-- Los navegadores modernos utilizan descubrimiento especulativo de recursos y en
-  esta documentacion no consta un beneficio medido de mover los preloads dentro
-  del `<head>`. Si alguien quiere reabrirlo, debe aportar una medicion, no solo un
-  razonamiento sobre como parsea el navegador.
+- ~~Los navegadores modernos utilizan descubrimiento especulativo de recursos~~.
+  **Corregido el 12/11/2026**: con el meta CSP que llevan estas paginas, Chromium
+  NO lo hace (4.8). Esa premisa sostenia esta decision para el `<head>`; la
+  reapertura parcial esta en 8.7.
 - En la medicion documentada, el volumen transferido de CSS esta en torno a
   34 KB gzip repartidos en cuatro hojas y domina el peso de los recursos
   render-blocking. La auditoria no basta para justificar CSS critico inline,
@@ -925,7 +992,24 @@ decision hace falta:
 
 Un recurso render-blocking, por si solo, no es un hallazgo.
 
-### 8.7 Referencias primarias
+### 8.7 Reapertura parcial del 12/11/2026: preloads del `<head>`
+
+Se cumplieron los cuatro requisitos de 8.6 solo para el DESCUBRIMIENTO de los recursos
+del `<head>`, no para su orden de ejecucion:
+
+1. CrUX movil de la home empeoro (FCP y LCP de 1,3 a 1,7 s entre julio y el periodo del
+   13/10 al 09/11/2026) y PageSpeed reproducia la cadena en serie.
+2. A/B con 3 pasadas por variante contra la misma base servida igual.
+3. Hipotesis con mecanismo verificado en el codigo de Chromium (4.8) y mejora medida, no
+   estimada.
+4. Regresion de SW, iframe ajeno, fallo de carga y recarga (4.8, "Validacion"), mas
+   `tests/head-preloads.test.js`.
+
+Sigue vigente todo lo demas de esta seccion: no se reordenan ni se difieren scripts u
+hojas, no hay CSS critico inline ni purga, y los scripts del `<body>` de estadisticas y
+solar exigen su propia medicion.
+
+### 8.8 Referencias primarias
 
 - Informe PageSpeed conservado:
   `https://pagespeed.web.dev/analysis/http-luzfija-es/6b20tubb7z?form_factor=mobile`

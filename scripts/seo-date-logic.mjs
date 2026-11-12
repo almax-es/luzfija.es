@@ -50,6 +50,13 @@ export function maskVolatileSeoChanges(text) {
     // Antiincrustacion (js/frame-guard.js): cargador de infraestructura, no contenido. Darlo
     // de alta en 36 paginas (18/10/2026) las habria fechado todas como actualizadas.
     .replace(/[ \t]*<script\b[^>]*\bsrc=["'][^"']*\/js\/frame-guard\.js[^"']*["'][^>]*><\/script>[ \t]*\n?/gi, '')
+    // Preloads y comentarios HTML: pistas de carga y notas para quien mantiene el codigo,
+    // invisibles para el lector y sin contenido indexable. Los preloads explicitos del head
+    // (12/11/2026, meta CSP sin descubrimiento especulativo) habrian fechado como actualizadas
+    // las tres aplicaciones. Una hoja o un script nuevos (<link rel="stylesheet">, <script>)
+    // siguen contando.
+    .replace(/[ \t]*<link\b[^>]*\brel=["']preload["'][^>]*>[ \t]*\n?/gi, '')
+    .replace(/[ \t]*<!--[\s\S]*?-->[ \t]*\n?/g, '')
     // Semantica de accesibilidad: nombres de landmarks, roles y el NIVEL de un encabezado cuyo
     // texto no cambia. Afectan a como se navega con lector de pantalla, no a lo que se lee: la
     // pasada axe del 24/09/2026 los toco en 25 guias y 3 aplicaciones y, sin esto, las habria

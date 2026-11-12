@@ -147,6 +147,15 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   documento tras `window.stop()` (Chrome deja el iframe en blanco y WebKit no dispara `load`)
   ni lo quites de `maskVolatileSeoChanges`. Toda pagina nueva con scripts debe cargarlo; lo
   vigila `tests/frame-guard.test.js`. Detalle en `ARRANQUE-CARGA.md` 4.7.
+- **El `<head>` de las tres aplicaciones lleva `<link rel="preload">` explicitos** (12/11/2026):
+  con un `<meta>` CSP, Chromium no hace descubrimiento especulativo y sin ellos cada script y
+  hoja del head se pide en serie. Antes de frame-guard solo se precarga frame-guard; todo
+  script sincrono u hoja nueva del head necesita su preload con el mismo href. Lo vigila
+  `tests/head-preloads.test.js`. Detalle en `ARRANQUE-CARGA.md` 4.8.
+- **El cambio de tema de la home anula las transiciones mientras se aplica**
+  (`lf-theme-switching`, `toggleTheme()` en `js/lf-ui.js`): con resultados pintados, animar los
+  colores costaba 1-2 s de INP en movil. No lo quites ni muevas el aviso fuera de la liberacion;
+  lo vigila `tests/theme-switch-transitions.test.js`.
 - **Cada geo de `data/pvpc` y `data/surplus` va en la hora civil de su zona** (`8742` en
   `Atlantic/Canary`; el resto en `Europe/Madrid`), tambien el indicador 1739 aunque sea una serie
   nacional. Los consumidores cruzan la hora LOCAL de la curva del usuario con la etiqueta horaria
