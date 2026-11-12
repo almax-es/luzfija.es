@@ -155,18 +155,16 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
-  it('treats preload hints and HTML comments as infrastructure, but not new stylesheets', () => {
+  it('treats preload hints as infrastructure, but not new stylesheets', () => {
     const committed = [
       '<meta charset="utf-8"/>',
       '  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>',
       '  <link rel="stylesheet" href="/styles.css?v=20261108-190217">',
       '<p>Texto de la guia que lee el usuario.</p>'
     ].join('\n');
-    // Alta del 12/11/2026: bloque de preloads con su comentario y la fuente movida de sitio.
+    // Alta del 12/11/2026: bloque de preloads y la fuente movida de sitio.
     const withPreloads = [
       '<meta charset="utf-8"/>',
-      '  <!-- Preloads explicitos: con un <meta> CSP, Chromium no hace',
-      '       descubrimiento especulativo. -->',
       '  <link rel="preload" href="/styles.css?v=20261112-100000" as="style">',
       '  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>',
       '  <link rel="stylesheet" href="/styles.css?v=20261112-100000">',
@@ -190,27 +188,24 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
-  it('does not let a "<!--" inside a script, or a conditional comment, hide visible content', () => {
-    // La regex no es un parser: sin limites, el "<!--" del script se comeria el parrafo
-    // hasta el "-->" del comentario real y el cambio de texto no fecharia la pagina.
-    const page = (texto) => [
-      '<script>var marca = "<!--";</script>',
-      `<p>${texto}</p>`,
-      '<!-- nota de mantenimiento -->'
-    ].join('\n');
-    expect(isSignificantlyDirty({
-      status: ' M guias/x.html', currentContent: page('Texto reescrito'), committedContent: page('Texto original')
-    })).toBe(true);
-
-    // Un comentario condicional puede contener HTML que un navegador antiguo pinta.
-    const cond = (texto) => `<!--[if IE]><p>${texto}</p><![endif]-->\n<p>Resto</p>`;
-    expect(isSignificantlyDirty({
-      status: ' M guias/x.html', currentContent: cond('Aviso nuevo'), committedContent: cond('Aviso viejo')
-    })).toBe(true);
-
-    // Un comentario normal sigue siendo invisible para la fecha.
-    expect(maskVolatileSeoChanges('<p>A</p>\n  <!-- una nota -->\n<p>B</p>'))
-      .toBe(maskVolatileSeoChanges('<p>A</p>\n<p>B</p>'));
+  it('does not ignore HTML comments: a regex cannot tell them from text in style, textarea, title or attributes', () => {
+    // Revision de ChatGPT del 12/11/2026: una mascara de comentarios por regex ocultaba cambios
+    // reales. Se retiro; el fallo aceptado es el inofensivo (tocar un comentario fecha la pagina).
+    const dirty = (antes, despues) => isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: despues, committedContent: antes
+    });
+    // Un comentario nuevo fecha la pagina (conservador, a proposito).
+    expect(dirty('<p>A</p>', '<p>A</p>\n<!-- una nota -->')).toBe(true);
+    // CSS dentro de CDO/CDC: el cambio de color se detecta.
+    expect(dirty('<style>\n<!--\n.card{color:red}\n-->\n</style>', '<style>\n<!--\n.card{color:blue}\n-->\n</style>')).toBe(true);
+    // Texto visible de un textarea y del titulo.
+    expect(dirty('<textarea><!-- Pon tu consumo --></textarea>', '<textarea><!-- Pon tu consumo anual --></textarea>')).toBe(true);
+    expect(dirty('<title><!-- Guia --> Factura</title>', '<title><!-- Guia --> Factura nueva</title>')).toBe(true);
+    // Valor de un atributo.
+    expect(dirty('<button title="<!-- Ayuda -->">?</button>', '<button title="<!-- Ayuda ampliada -->">?</button>')).toBe(true);
+    // "<!--" dentro de un script y comentario condicional.
+    expect(dirty('<script>var m = "<!--";</script>\n<p>Texto original</p>\n<!-- c -->', '<script>var m = "<!--";</script>\n<p>Texto reescrito</p>\n<!-- c -->')).toBe(true);
+    expect(dirty('<!--[if IE]><p>Aviso viejo</p><![endif]-->', '<!--[if IE]><p>Aviso nuevo</p><![endif]-->')).toBe(true);
   });
 
   it('preserves the self-stamped date across pre-commit and CI git fallbacks', () => {

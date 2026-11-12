@@ -178,9 +178,10 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   la causa raiz de la clase de bugs "SO != tema web" ya vista en la auditoria del
   28/07/2026. Medido en las cuatro combinaciones el 07/08/2026. En tema web claro si
   computa `light` limpio; la asimetria es solo del modo oscuro.
-- **Los resultados de la home se abren en el mismo tick del clic en Calcular, con espacio
-  reservado.** `calculate()` (`js/lf-app.js`) llama a `reserveResultsSpace()` (`js/lf-render.js`)
-  ANTES de su primer `await`: abre `#seccionResultados`, pasa `.grid` a dos columnas y fija un
+- **Los resultados de la home se abren justo despues del primer pintado tras el clic en
+  Calcular, con espacio reservado.** `calculate()` (`js/lf-app.js`) pinta "Calculando..." y,
+  tras `afterNextPaint()` (siguiente frame; como mucho 100 ms), llama a `reserveResultsSpace()`
+  (`js/lf-render.js`) ANTES de pedir `tarifas.json`: abre `#seccionResultados`, pasa `.grid` a dos columnas y fija un
   `min-height` hasta 160 px por debajo del borde inferior de la ventana. En el `finally` llama a
   `releaseResultsSpace()`, que quita esa altura; si el calculo no llego a pintar resultados
   (sin red, error), NO cierra la seccion: la deja abierta con su altura y `.is-error` (aviso de
@@ -200,9 +201,12 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   cuenta los saltos de los 500 ms posteriores a una entrada del usuario: al abrir en el acto,
   el footer se mueve dentro de esa ventana y lo que crece despues ya no se ve. Medido el
   23/10/2026 con clic real y 1,5 s de red simulada: 0,0001 con la pagina a 500 px y al fondo
-  (control sin el arreglo: 0,3906) y 0,001 arriba. No muevas la llamada detras de un `await`
-  ni dentro de `renderAll()`, no quites el `finally` y no conviertas el aviso en un elemento en
-  flujo: cualquiera de las tres reintroduce el salto. Sustituye al hueco permanente
+  (control sin el arreglo: 0,3906) y 0,001 arriba. Hasta el 12/11/2026 se abria en el mismo tick
+  del clic; pasarlo detras del primer pintado bajo el INP de Calcular de 112-120 a 40-48 ms (CPU
+  4x) con el mismo CLS (clic real, tarifas a 1,5 s, arriba, bajada 500 px, al fondo y monitor
+  alto). No la muevas detras de la descarga ni dentro de `renderAll()`, no alargues la espera
+  mas alla de un frame (el limite de 100 ms existe por eso), no quites el `finally` y no
+  conviertas el aviso en un elemento en flujo: cualquiera de ellas reintroduce el salto. Sustituye al hueco permanente
   `.grid:not(.has-results){min-height:100vh}` del 22/10, que no cubria a quien scrollea antes
   de calcular (0,22 con scroll 500); no lo reintroduzcas. Tampoco ocultes el footer hasta
   calcular (esconde privacidad y aviso legal). Lo vigila `tests/cls-reserva-resultados.test.js`.
@@ -265,7 +269,7 @@ Tests especialmente utiles:
 
 Falsos positivos ya conocidos y documentados:
 
-- "Precargar los scripts sincronos del `<body>` de `/estadisticas/` o del simulador solar mejora la carga." Medido y descartado el 12/11/2026 con tiempos reales (HTTP/2 + gzip, movil lento): toda variante empeora FCP y/o LCP para adelantar la pagina lista, tambien con `fetchpriority="low"`. Para decidir sobre esto, mide tiempos reales con HTTP/2 y gzip: un servidor local sin compresion exagera el peso del JS (dio un FCP de Lighthouse de 6,3 s frente a ~1,4 s medido). Ver `ARRANQUE-CARGA.md` 4.8.
+- "Precargar los scripts sincronos del `<body>` de `/estadisticas/` o del simulador solar mejora la carga." Medido y descartado el 12/11/2026 con tiempos reales (HTTP/2 + gzip, movil lento): toda variante empeora FCP y/o LCP para adelantar la pagina lista, tambien con `fetchpriority="low"`. Para decidir sobre esto, mide tiempos reales con HTTP/2 y gzip: un servidor local HTTP/1.1 sin compresion exagera el peso del JS (Lighthouse dio un FCP de 6,3 s frente a ~1,4 s medido despues, con cambios simultaneos de protocolo, compresion y metodo). Ver `ARRANQUE-CARGA.md` 4.8.
 - "El IEE de PVPC se calcula sin restar el descuento del bono social." Falso: el descuento se resta antes de calcular el IEE. Ver `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
 - "La BV se aplica a tarifas que no tienen BV." Falso: el simulador comprueba `tarifa.fv.bv`; sin BV, el sobrante no se acumula. Ver `SIMULADOR-BV.md`.
 - "El ranking del simulador solar deberia ordenar por coste neto (`pagado - bvFinal`)." No es un bug actual: el ranking ordena por lo efectivamente pagado en el periodo, usa `bvFinal` solo como desempate y muestra el coste neto como metrica secundaria condicionada a seguir con la comercializadora.

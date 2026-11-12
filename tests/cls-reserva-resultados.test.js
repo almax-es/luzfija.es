@@ -16,9 +16,11 @@ import path from 'path';
  *
  * El primer arreglo (22/10) fue un hueco permanente `.grid:not(.has-results){min-height:100vh}`:
  * no cubria a quien scrollea antes de calcular (0,22 con scroll 500). El definitivo (23/10)
- * abre la seccion en el MISMO tick del clic con espacio reservado, dentro de los 500 ms que
- * Chrome no cuenta, y la libera al terminar. Medido con clic real y 1,5 s de red simulada:
- * 0,0001 con la pagina a 500 px y al fondo (control sin el arreglo: 0,3906), 0,001 arriba.
+ * abre la seccion con espacio reservado dentro de los 500 ms que Chrome no cuenta, y la libera
+ * al terminar. Medido con clic real y 1,5 s de red simulada: 0,0001 con la pagina a 500 px y al
+ * fondo (control sin el arreglo: 0,3906), 0,001 arriba. Hasta el 12/11/2026 se abria en el
+ * MISMO tick del clic; desde entonces, justo despues del primer pintado (INP de Calcular
+ * 112-120 -> 40-48 ms con CPU 4x, mismo CLS) y siempre antes de pedir tarifas.json.
  *
  * Nada falla en consola si se rompe: solo empeora el CLS de campo semanas despues. Estos tests
  * vigilan las tres piezas: la reserva/liberacion, que calculate() reserve ANTES del primer
@@ -334,16 +336,58 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     delete window.__LF_CALC_INFLIGHT;
   });
 
-  it('reserva de forma sincrona, antes de la primera descarga (dentro de la ventana del clic)', async () => {
-    bootApp({ fetchTarifas: vi.fn(() => new Promise(() => {})) });
+  it('pinta primero el estado del boton y reserva justo despues, antes de la primera descarga', async () => {
+    // INP (12/11/2026): abrir el bloque en el mismo tick metia su layout en el clic. Ahora se
+    // reserva tras el siguiente pintado, pero SIEMPRE antes de pedir tarifas.json y como mucho
+    // a 100 ms del clic (dentro de los 500 ms que Chrome excluye del CLS).
+    vi.useFakeTimers();
+    const frames = [];
+    const realRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = (cb) => { frames.push(cb); return frames.length; };
+    try {
+      bootApp({ fetchTarifas: vi.fn(() => new Promise(() => {})) });
+      window.calculate(true, false); // sin await: se inspecciona lo que ya ocurrio en cada paso
+      const { reserveResultsSpace, fetchTarifas, setStatus } = window.LF;
 
-    window.calculate(true, false); // sin await: lo que importa es lo que ya ocurrio
+      // En el tick del clic: estado "Calculando..." si; bloque y descarga todavia no.
+      expect(setStatus).toHaveBeenCalledWith('Calculando...', 'loading');
+      expect(reserveResultsSpace).not.toHaveBeenCalled();
+      expect(fetchTarifas).not.toHaveBeenCalled();
 
-    const { reserveResultsSpace, fetchTarifas } = window.LF;
-    expect(reserveResultsSpace).toHaveBeenCalledTimes(1);
-    expect(fetchTarifas).toHaveBeenCalledTimes(1);
-    expect(reserveResultsSpace.mock.invocationCallOrder[0])
-      .toBeLessThan(fetchTarifas.mock.invocationCallOrder[0]);
+      // Siguiente pintado (rAF) + tarea: se reserva y, despues, se descarga.
+      frames.splice(0).forEach((cb) => cb(0));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(reserveResultsSpace).toHaveBeenCalledTimes(1);
+      expect(fetchTarifas).toHaveBeenCalledTimes(1);
+      expect(reserveResultsSpace.mock.invocationCallOrder[0])
+        .toBeLessThan(fetchTarifas.mock.invocationCallOrder[0]);
+      expect(setStatus.mock.invocationCallOrder[0])
+        .toBeLessThan(reserveResultsSpace.mock.invocationCallOrder[0]);
+    } finally {
+      window.requestAnimationFrame = realRaf;
+      vi.useRealTimers();
+    }
+  });
+
+  it('sin frames (pestana oculta) reserva igualmente a los 100 ms, antes de la descarga', async () => {
+    vi.useFakeTimers();
+    const realRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = () => 0; // nunca llega un frame
+    try {
+      bootApp({ fetchTarifas: vi.fn(() => new Promise(() => {})) });
+      window.calculate(true, false);
+      const { reserveResultsSpace, fetchTarifas } = window.LF;
+      await vi.advanceTimersByTimeAsync(99);
+      expect(reserveResultsSpace).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+      expect(reserveResultsSpace).toHaveBeenCalledTimes(1);
+      expect(fetchTarifas).toHaveBeenCalledTimes(1);
+      expect(reserveResultsSpace.mock.invocationCallOrder[0])
+        .toBeLessThan(fetchTarifas.mock.invocationCallOrder[0]);
+    } finally {
+      window.requestAnimationFrame = realRaf;
+      vi.useRealTimers();
+    }
   });
 
   it('libera al terminar, pasando si la abrio este calculo', async () => {

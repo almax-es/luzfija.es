@@ -1000,7 +1000,8 @@
   // empujaba entonces el footer y, si estaba a la vista (monitor alto o pagina scrolleada),
   // Chrome lo contaba como salto de layout: 0,155 con el footer asomando 182 px y 0,43 con 488
   // px, medidos con clic real. Chrome NO cuenta los saltos de los 500 ms posteriores a una
-  // entrada del usuario, asi que calculate() abre la seccion en el mismo tick del clic con una
+  // entrada del usuario, asi que calculate() abre la seccion justo despues del primer pintado
+  // tras el clic (como mucho 100 ms; antes del 12/11/2026, en el mismo tick) con una
   // altura minima que deja el footer por debajo del borde de la ventana: lo que crezca despues
   // ya no mueve nada visible. Sustituye al hueco permanente bajo el formulario
   // (`.grid:not(.has-results){min-height:100vh}`, 22/10/2026), que no cubria a quien scrollea.
@@ -1036,8 +1037,8 @@
     // Reintento tras un fallo (ver releaseResultsSpace): la seccion sigue abierta y el aviso
     // pasa de "error" a "Calculando…". La altura se recalcula para la posicion actual: si el
     // usuario bajo la pagina despues del fallo, la reserva del primer intento ya no deja el
-    // footer fuera de la vista (revision de ChatGPT, 23/10/2026). Ampliarla aqui, en el tick
-    // del clic, no cuenta como CLS.
+    // footer fuera de la vista (revision de ChatGPT, 23/10/2026). Ampliarla aqui, dentro de los
+    // 500 ms del clic (calculate() la llama tras el primer pintado), no cuenta como CLS.
     if (seccion.classList.contains('is-error')) {
       seccion.classList.remove('is-error');
       seccion.classList.add('is-reserving');

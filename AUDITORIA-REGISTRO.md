@@ -7472,7 +7472,9 @@ scripts sincronos y las hojas del head se pedian en serie. Las tres aplicaciones
 antes de `error-bootstrap.js` y el resto justo detras de frame-guard, sin cambiar el orden de ejecucion. Lighthouse
 movil local: home FCP/LCP 2,56 s -> 1,36 s. Sin dobles descargas (frio y con SW), mismo comportamiento ante fallos
 y nada de CSS ni fuentes en un iframe ajeno. Contrato y mediciones en `ARRANQUE-CARGA.md` 4.8 y 8.7;
-`tests/head-preloads.test.js`. `maskVolatileSeoChanges` ignora preloads y comentarios HTML.
+`tests/head-preloads.test.js`. `maskVolatileSeoChanges` ignora los preloads; una mascara de comentarios HTML por
+regex se probo y se retiro el mismo dia (ocultaba cambios en `<style>`, `<textarea>`, `<title>` o atributos;
+revision de ChatGPT): editar un comentario fecha la pagina, que es el fallo inofensivo.
 
 **2. INP del cambio de tema: CORREGIDO.** Con la tabla de resultados pintada, las transiciones de color/fondo
 (filas, celda del total, botones, enlaces, `body`, `.card`) convertian el clic en tres recalculos de estilo de toda
@@ -7502,3 +7504,11 @@ de "moverlos detras de `</main>`" partia de un dato mal leido.
 ahora los pide a la vez (`js/pvpc-stats-ui.js`). Graficos 6,82 -> 6,27 s en movil lento, con FCP, LCP, pixeles y
 datasets identicos. Adelantar tambien los anhos de la comparativa no mejoro nada y no se hizo. Test en
 `tests/pvpc-stats-ui.test.js`.
+
+**6. INP de Calcular: CORREGIDO.** El clic abria el bloque de resultados en el mismo tick (pasar el grid a dos
+columnas y medir la altura reservada), y ese layout de pagina entera entraba en el INP. Ahora `calculate()` pinta
+"Calculando..." y abre/reserva el bloque tras el siguiente pintado (`afterNextPaint()`, como mucho 100 ms), siempre
+antes de pedir `tarifas.json`. INP de Calcular 112-128 -> 48-56 ms con CPU 4x (movil y escritorio); CLS igual con
+clic real, tarifas a 1,5 s, pagina arriba, bajada 500 px, al fondo y monitor alto. Invariante actualizada en
+`AGENTS.md`; tests en `tests/cls-reserva-resultados.test.js`. Probablemente pesa mas en el INP de campo que el
+cambio de tema: Calcular lo pulsa casi todo el mundo.

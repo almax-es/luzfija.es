@@ -696,12 +696,15 @@ estan medidos.
   Cualquier diferencia de URL, destino o modo es una doble descarga.
 - Todo script sincrono u hoja nueva del `<head>` posterior a frame-guard necesita su
   preload. `desglose-factura.css` se precarga aunque sea de un modal: es `media="all"` y
-  bloquea el renderizado: no anade bytes antes del primer pintado, porque ya hacia falta
-  para pintar. Su efecto neto aislado (orden frente a CSS y fuentes) no se ha medido.
+  bloquea el renderizado. No anade un recurso ni una transferencia extra (el consumidor
+  reutiliza el preload): adelanta la descarga de una hoja que ya era bloqueante. Su
+  impacto neto sobre FCP y LCP no se ha medido de forma aislada.
 - No se precargan fuentes nuevas sin evidencia de que las use el elemento LCP (por eso
   solar solo lleva la 400 y `/estadisticas/` ninguna).
-- Ninguno va antes del meta CSP. `maskVolatileSeoChanges` ignora preloads y comentarios
-  HTML: no son contenido y no deben fechar la pagina.
+- Ninguno va antes del meta CSP. `maskVolatileSeoChanges` ignora los preloads (no son
+  contenido y no deben fechar la pagina), pero NO los comentarios HTML: una regex no los
+  distingue de texto en `<style>`, `<textarea>`, `<title>` o un atributo. Editar un
+  comentario de una pagina la fecha como actualizada.
 - Lo fija `tests/head-preloads.test.js`.
 
 **Medicion de la disposicion** (servidor local con 300 ms por recurso, sin cache ni SW,
@@ -732,8 +735,9 @@ mismas condiciones):
 **Scripts del `<body>` de `/estadisticas/` y solar: NO se precargan** (medido y descartado
 el 12/11/2026). Van al final del `<body>`, detras de `</main>` (en solar, tambien del pie),
 y se siguen descubriendo en serie. Se midieron preloads al final del `<head>` con tiempos
-REALES, no con Lighthouse sobre un servidor local (sin compresion daba un FCP de 6,3 s
-frente a ~1,4 s medido, por el peso del JS sin gzip): servidor local HTTP/2 con gzip (como GitHub Pages), 1,6 Mbps, 150 ms, CPU 4x,
+REALES, no con Lighthouse sobre un servidor local HTTP/1.1 sin compresion (daba un FCP de
+6,3 s frente a ~1,4 s medido despues; cambiaban a la vez el protocolo, la compresion y el
+metodo): servidor local HTTP/2 con gzip (como GitHub Pages), 1,6 Mbps, 150 ms, CPU 4x,
 5 pasadas alternas. Medianas (FCP / LCP / pagina lista):
 
 | Pagina | Actual | Preload de los pesados | Preload de todos |
@@ -741,8 +745,8 @@ frente a ~1,4 s medido, por el peso del JS sin gzip): servidor local HTTP/2 con 
 | `/estadisticas/` | 1,41 / 1,64 / 6,87 s | Chart.js + csv-utils: 1,48 / 1,94 / 6,49 s | 1,74 / 2,22 / 5,50 s |
 | Solar | 1,71 / 2,04 / 5,09 s | csv-utils + bv-ui: 1,94 / 2,07 / 4,36 s | 2,44 / 2,58 / 3,00 s |
 
-Toda variante empeora FCP y/o LCP (los scripts roban ancho de banda al CSS y a las
-fuentes) para adelantar la pagina lista; `fetchpriority="low"` no cambio nada. Limite
+Toda variante empeora FCP y/o LCP para adelantar la pagina lista (resultado compatible
+con que los scripts compitan por ancho de banda con el CSS y las fuentes); `fetchpriority="low"` no cambio nada. Limite
 conocido: la limitacion de red de DevTools no reparte ancho de banda por prioridad como
 una red real, asi que `fetchpriority` no queda descartado del todo; se reabre solo con
 una medicion en red real. No se convierten a `defer` sin redisenar 2.2-2.3.

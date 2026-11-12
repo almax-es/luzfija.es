@@ -315,6 +315,22 @@
     return nextValues;
   }
 
+  // Resuelve justo despues del siguiente pintado (rAF + tarea), para que el navegador muestre
+  // antes la respuesta al clic. Sin frames (pestana oculta, rAF ausente) o si el pintado
+  // tarda, el temporizador lo resuelve a los 100 ms: el bloque se abre igualmente mucho antes
+  // de los 500 ms del clic que Chrome excluye del CLS.
+  const NEXT_PAINT_FALLBACK_MS = 100;
+  function afterNextPaint() {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => setTimeout(finish, 0));
+      }
+      setTimeout(finish, NEXT_PAINT_FALLBACK_MS);
+    });
+  }
+
   async function calculate(isUserAction, forceRefresh = false) {
     if (!validateInputs()) {
       setStatus('Corrige los datos para calcular', 'err');
@@ -346,14 +362,21 @@
 
     if (window.__LF_CALC_INFLIGHT) return;
     window.__LF_CALC_INFLIGHT = true;
-    // CLS: abrir el bloque de resultados en este mismo tick (antes del primer await), dentro
-    // de los 500 ms del clic que Chrome no cuenta. Detalle en reserveResultsSpace(), lf-render.js.
-    // Acceso opcional y en tiempo de llamada: no cambia el contrato de carga de este modulo.
-    const resultadosAbiertos = Boolean(window.LF.reserveResultsSpace?.());
+    let resultadosAbiertos = false;
 
     try {
       saveInputs();
       setStatus('Calculando...', 'loading');
+      // INP + CLS: primero se pinta la respuesta al clic (el boton "Calculando..."), y justo
+      // despues se abre y se reserva el bloque de resultados. Abrirlo en el mismo tick metia
+      // en el clic su layout de pagina entera (pasar el grid a dos columnas + medir la altura):
+      // INP de Calcular 112-120 ms -> 40-48 ms con CPU 4x, movil y escritorio (12/11/2026).
+      // Sigue siendo antes de la primera descarga y a menos de 100 ms del clic, dentro de los
+      // 500 ms que Chrome no cuenta como CLS: medido con clic real, tarifas a 1,5 s, pagina
+      // arriba, bajada 500 px, al fondo y monitor alto, el CLS no cambia. Acceso opcional y en
+      // tiempo de llamada: no cambia el contrato de carga. Detalle en reserveResultsSpace().
+      await afterNextPaint();
+      resultadosAbiertos = Boolean(window.LF.reserveResultsSpace?.());
 
       const loaded = await fetchTarifas(forceRefresh, {
         silent: true,
