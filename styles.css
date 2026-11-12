@@ -1943,7 +1943,8 @@ html.light-mode .qr-factura-import-aviso--warning .qr-factura-import-aviso-icono
 
 #modalFactura .body{ padding:12px; }
 #modalFactura .head{ padding:12px 12px 10px 12px; }
-#modalFactura .help{ margin-top:10px; padding:8px; font-size:10px; line-height:1.3; }
+/* 12 px y no 10: es la nota de privacidad del PDF, una frase entera que debe leerse sin esfuerzo (12/11/2026). */
+#modalFactura .help{ margin-top:10px; padding:8px 10px; font-size:12px; line-height:1.4; }
 
 @keyframes __lf_slideUp{
   from{ transform:translateY(10px); opacity:.6; }
