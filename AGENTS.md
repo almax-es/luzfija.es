@@ -265,6 +265,7 @@ Tests especialmente utiles:
 
 Falsos positivos ya conocidos y documentados:
 
+- "Precargar los scripts sincronos del `<body>` de `/estadisticas/` o del simulador solar mejora la carga." Medido y descartado el 12/11/2026 con tiempos reales (HTTP/2 + gzip, movil lento): toda variante empeora FCP y/o LCP para adelantar la pagina lista, tambien con `fetchpriority="low"`. No te fies del FCP simulado de Lighthouse en esas paginas: cuenta esos scripts como bloqueantes. Ver `ARRANQUE-CARGA.md` 4.8.
 - "El IEE de PVPC se calcula sin restar el descuento del bono social." Falso: el descuento se resta antes de calcular el IEE. Ver `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
 - "La BV se aplica a tarifas que no tienen BV." Falso: el simulador comprueba `tarifa.fv.bv`; sin BV, el sobrante no se acumula. Ver `SIMULADOR-BV.md`.
 - "El ranking del simulador solar deberia ordenar por coste neto (`pagado - bvFinal`)." No es un bug actual: el ranking ordena por lo efectivamente pagado en el periodo, usa `bvFinal` solo como desempate y muestra el coste neto como metrica secundaria condicionada a seguir con la comercializadora.

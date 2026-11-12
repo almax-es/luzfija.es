@@ -7490,5 +7490,15 @@ tienen una tabla comparable ni una medicion. `tests/theme-switch-transitions.tes
 - "Un preload fallido se reutiliza y el script no vuelve a pedirlo": medido con 503, Chrome SI vuelve a pedirlo
   (una peticion mas). El resultado visible es el mismo que sin preload.
 
-**Pendiente con medicion propia:** los scripts sincronos del `<body>` de `/estadisticas/` y solar (Chart.js y
-`lf-csv-utils.js` dominan el bloqueo); no se pasan a `defer` sin redisenar `ARRANQUE-CARGA.md` 2.2-2.3.
+**4. Fase 2 (scripts del `<body>` de `/estadisticas/` y solar): MEDIDA Y DESCARTADA.** Preloads al final del
+`<head>` medidos con tiempos reales (HTTP/2 + gzip, 1,6 Mbps, CPU 4x, 5 pasadas): toda variante empeora FCP y/o
+LCP para adelantar la pagina lista, y `fetchpriority="low"` no cambia nada. Tabla y limites en
+`ARRANQUE-CARGA.md` 4.8. Dos trampas del primer intento: la simulacion de Lighthouse cuenta los scripts del final
+del `<body>` como bloqueantes del pintado (FCP de 6,3 s simulado frente a ~1,4 s real), y un servidor local sin
+compresion triplica el peso de Chart.js y exagera la competencia. Los scripts ya van detras de `</main>`: la idea
+de "moverlos detras de `</main>`" partia de un dato mal leido.
+
+**5. Datos del observatorio: CORREGIDO.** El render pedia el anho anterior (media movil) solo al terminar el actual;
+ahora los pide a la vez (`js/pvpc-stats-ui.js`). Graficos 6,82 -> 6,27 s en movil lento, con FCP, LCP, pixeles y
+datasets identicos. Adelantar tambien los anhos de la comparativa no mejoro nada y no se hizo. Test en
+`tests/pvpc-stats-ui.test.js`.

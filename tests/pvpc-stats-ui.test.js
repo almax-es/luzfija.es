@@ -257,6 +257,20 @@ describe('Observatorio: una carga obsoleta no puede pintar un error sobre la sel
   });
 });
 
+describe('Observatorio: el año anterior se pide a la vez que el actual', () => {
+  // En serie, los graficos llegaban 0,5 s mas tarde en movil con red lenta (12/11/2026).
+  it('arranca la carga del año anterior, con su catch, antes de esperar la del año actual', () => {
+    const prev = uiCode.search(
+      /const prevYearPromise = PVPC_STATS\s*\.loadYearData\(Number\(state\.geo\), Number\(state\.year\) - 1, state\.type\)\s*\.catch\(\(\) => null\);/
+    );
+    const current = uiCode.indexOf('yearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year), state.type);');
+    expect(prev, 'falta la carga anticipada del año anterior').toBeGreaterThan(-1);
+    expect(current).toBeGreaterThan(-1);
+    expect(prev).toBeLessThan(current);
+    expect(uiCode).toContain('const prevYearData = await prevYearPromise;');
+  });
+});
+
 
 describe('Observatorio: degradacion explicita por meses remotos fallidos', () => {
   it('muestra que los indicadores son parciales e identifica los meses fallidos', () => {

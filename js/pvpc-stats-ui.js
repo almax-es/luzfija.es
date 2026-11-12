@@ -1282,6 +1282,16 @@
       const accent = getCssVar('--accent', '#8B5CF6');
       const { gridColor, textColor } = getChartThemeColors();
 
+      // El año anterior (media móvil de 12 meses) se pide A LA VEZ que el actual, no al
+      // terminar este: son independientes. En serie, los graficos llegaban 0,5 s mas tarde
+      // en movil con red lenta (HTTP/2, gzip, 1,6 Mbps, CPU 4x; 12/11/2026). Adelantar
+      // tambien los años de la comparativa no mejoraba nada (la red ya va llena). El
+      // `.catch` adjunto al crear la promesa evita un rechazo no gestionado si este render
+      // sale antes por error o por quedar obsoleto; el resultado se usa abajo, como antes.
+      const prevYearPromise = PVPC_STATS
+        .loadYearData(Number(state.geo), Number(state.year) - 1, state.type)
+        .catch(() => null);
+
       let yearData;
       try {
         yearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year), state.type);
@@ -1296,11 +1306,8 @@
       }
       if (myToken !== _rerenderToken) return;
 
-      // Cargar año anterior para media móvil 12 meses
-      let prevYearData = null;
-      try {
-        prevYearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year) - 1, state.type);
-      } catch (_) {}
+      // Año anterior para media móvil 12 meses (ya en vuelo desde arriba).
+      const prevYearData = await prevYearPromise;
       if (myToken !== _rerenderToken) return;
 
       const status = PVPC_STATS.getYearStatus(yearData);

@@ -712,9 +712,12 @@ duplico peticiones.
 **Validacion** (12/11/2026, base = HEAD frente al cambio, servidos en local en las
 mismas condiciones):
 
-- Lighthouse 13.6.0 movil, 3 pasadas por variante: home FCP/LCP 2,56 s -> 1,36 s (93 ->
-  99-100); solar FCP 7,73-7,75 s -> 6,76-7,21 s con LCP igual (8,64 s); `/estadisticas/`
-  FCP 6,61 s -> 6,31 s. En estas dos el resto lo bloquean los scripts del `<body>`.
+- Lighthouse 13.6.0 movil, 3 pasadas por variante, servidor local SIN compresion (sirve
+  para comparar, no como cifra absoluta): home FCP/LCP 2,56 s -> 1,36 s (93 -> 99-100);
+  solar FCP 7,73-7,75 s -> 6,76-7,21 s con LCP igual; `/estadisticas/` FCP 6,61 s -> 6,31 s.
+  PageSpeed de produccion tras el despliegue: home movil 97 -> 100, FCP/LCP 1,6 -> 1,0 s.
+- Capturas pixel a pixel antes/despues de las tres paginas, movil y escritorio, tema claro
+  y oscuro: 0 pixeles distintos.
 - Mismos recursos y sin ninguna doble descarga en las tres paginas, en frio y con el SW
   controlando la pagina (registro de peticiones del servidor, no Resource Timing).
 - Iframe de otro origen: base y cambio piden exactamente lo mismo antes del aviso (la
@@ -725,11 +728,29 @@ mismas condiciones):
   emite ademas su propio `error`, que puede sumar un `error-resource-load` de tipo `pre`
   al del script.
 
-**Fuera de alcance**: los scripts sincronos del `<body>` de `/estadisticas/` y de solar
-(en ambas al final del `<body>`, detras de `</main>`; en solar tambien detras del pie)
-siguen descubriendose en serie. Precargarlos adelanta la
-red, no su ejecucion, y puede competir con CSS y fuentes: se evalua aparte, empezando por
-Chart.js y `lf-csv-utils.js`, y no se convierten a `defer` sin redisenar 2.2-2.3.
+**Scripts del `<body>` de `/estadisticas/` y solar: NO se precargan** (medido y descartado
+el 12/11/2026). Van al final del `<body>`, detras de `</main>` (en solar, tambien del pie),
+y se siguen descubriendo en serie. Se midieron preloads al final del `<head>` con tiempos
+REALES, no la simulacion de Lighthouse, que cuenta esos scripts como si bloquearan el
+pintado: servidor local HTTP/2 con gzip (como GitHub Pages), 1,6 Mbps, 150 ms, CPU 4x,
+5 pasadas alternas. Medianas (FCP / LCP / pagina lista):
+
+| Pagina | Actual | Preload de los pesados | Preload de todos |
+| --- | --- | --- | --- |
+| `/estadisticas/` | 1,41 / 1,64 / 6,87 s | Chart.js + csv-utils: 1,48 / 1,94 / 6,49 s | 1,74 / 2,22 / 5,50 s |
+| Solar | 1,71 / 2,04 / 5,09 s | csv-utils + bv-ui: 1,94 / 2,07 / 4,36 s | 2,44 / 2,58 / 3,00 s |
+
+Toda variante empeora FCP y/o LCP (los scripts roban ancho de banda al CSS y a las
+fuentes) para adelantar la pagina lista; `fetchpriority="low"` no cambio nada. Limite
+conocido: la limitacion de red de DevTools no reparte ancho de banda por prioridad como
+una red real, asi que `fetchpriority` no queda descartado del todo; se reabre solo con
+una medicion en red real. No se convierten a `defer` sin redisenar 2.2-2.3.
+
+En `/estadisticas/` el cuello real tras `DOMContentLoaded` eran los datos: el render
+pedia el anho anterior (media movil) solo al terminar el actual. Ahora los pide a la vez
+(`js/pvpc-stats-ui.js`): graficos 6,82 -> 6,27 s, sin cambios de FCP, LCP ni pixeles.
+Adelantar tambien los anhos de la comparativa no mejoro nada (la red ya va llena) y no se
+hizo.
 
 ## 5. Fallos Ruidosos Y Fallos Silenciosos
 
