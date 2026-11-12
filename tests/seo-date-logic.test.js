@@ -273,6 +273,19 @@ describe('SEO date policy', () => {
     expect(dirty(page(css(''), '<div style="color:red; /* display:none */">x</div>'), page(css(''), '<div style="color:red">x</div>'))).toBe(false);
   });
 
+  it('covers the third ChatGPT review: variables in style="", ";" inside strings, literal markup', () => {
+    const page = (head, body) => '<html><head>\n<style>\n.aviso::before{content:var(--mensaje)}\n' + head + '\n</style>\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (x, y) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: y, committedContent: x });
+    // Variable con texto en un style="" que pinta un content: var()
+    expect(dirty(page('', "<p class=\"aviso\" style='--mensaje:\"Precio anterior\"'>T</p>"), page('', "<p class=\"aviso\" style='--mensaje:\"Precio actualizado\"'>T</p>"))).toBe(true);
+    // Punto y coma dentro de la cadena de content
+    expect(dirty(page('.paso::before{content:"Paso; conecta el contador"}', '<p>A</p>'), page('.paso::before{content:"Paso; revisa el contador"}', '<p>A</p>'))).toBe(true);
+    // HTML literal dentro de un textarea es texto visible
+    expect(dirty(page('', '<textarea><span style="color:red">Ejemplo</span></textarea>'), page('', '<textarea><span style="color:blue">Ejemplo</span></textarea>'))).toBe(true);
+    // Y lo que no es texto sigue sin contar
+    expect(dirty(page('.x{color:red}', '<p style="color:red">A</p>'), page('.x{color:blue}', '<p style="color:blue">A</p>'))).toBe(false);
+  });
+
   it('does not re-date the privacy policy for a CSS-only fix', () => {
     const committed = '<style>\n.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}\n</style>\n<p>Texto legal.</p>';
     const withRule = committed.replace('var(--muted)}\n', 'var(--muted)}\n.accordion-item .accordion-content{overflow-wrap:anywhere}\n');

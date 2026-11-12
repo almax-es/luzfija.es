@@ -46,7 +46,14 @@ const PAGE_STYLE_BLOCK = /^[ \t]*<style\b[^>]*>(?:(?!<\/?style\b|<!--|-->)[\s\S]
 // var(), counter(), attr()...) y cada propiedad personalizada cuyo valor lleve comillas (puede
 // llegar a un content: con var()). Antes se quitan los comentarios CSS (revision de ChatGPT).
 const CSS_COMMENT = /\/\*[\s\S]*?\*\//g;
-const CSS_TEXT_DECL = /(?:^|[;{\s])(content\s*:[^;}]*|--[\w-]+\s*:[^;}]*["'][^;}]*)/gi;
+const CSS_STR = String.raw`"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'`;
+const CSS_TEXT_DECL = new RegExp(String.raw`(?:^|[;{\s])((?:content|--[\w-]+)\s*:(?:${CSS_STR}|[^;}"'])*)`, 'gi');
+function cssTextDecls(css) {
+  return [...css.replace(CSS_COMMENT, ' ').matchAll(CSS_TEXT_DECL)]
+    .map((m) => m[1].replace(/\s+/g, ' ').trim())
+    .filter((d) => /^content\s*:/i.test(d) || /["']/.test(d))
+    .join(';');
+}
 // Atributos leidos como atributos (con sus comillas), no por texto suelto: un style="" escrito
 // dentro de title='...' no es un atributo style.
 const HTML_TAG = /<[a-zA-Z][\w:-]*(?:\s+[^\s"'<>\/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*\s*\/?>/g;
@@ -54,16 +61,22 @@ const TAG_ATTR = /(\s+)([^\s"'<>\/=]+)(?:(\s*=\s*)("[^"]*"|'[^']*'|[^\s"'=<>`]+)
 const HIDES_CONTENT = /display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse)|content-visibility\s*:\s*hidden|(?:^|[;\s])opacity\s*:\s*0*(?:\.0*)?\s*(?:;|$|!)/i;
 
 function maskStyleBlock(block) {
-  const css = block.replace(CSS_COMMENT, ' ');
-  const textDecls = [...css.matchAll(CSS_TEXT_DECL)].map((m) => m[1].replace(/\s+/g, ' ').trim()).join(';');
-  return '<style>X ' + textDecls + '</style>';
+  return '<style>X ' + cssTextDecls(block) + '</style>';
 }
 
 function maskStyleAttrs(html) {
+  const literales = [];
+  const protegido = html.replace(/(<(textarea|title|script)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)/gi, (m, open, tag, body, close) => { literales.push(body); return open + '\u0000L' + (literales.length - 1) + '\u0000' + close; });
+  return maskTags(protegido).replace(/\u0000L(\d+)\u0000/g, (m, i) => literales[Number(i)]);
+}
+
+function maskTags(html) {
   return html.replace(HTML_TAG, (tag) => tag.replace(TAG_ATTR, (m, sp, name, eq, value) => {
     if (name.toLowerCase() !== 'style' || value === undefined) return m;
-    const css = value.replace(/^["']|["']$/g, '').replace(CSS_COMMENT, ' ');
-    return sp + 'style="X' + (HIDES_CONTENT.test(css) ? ':oculto' : '') + '"';
+    const raw = value.replace(/^["']|["']$/g, '');
+    const css = raw.replace(CSS_COMMENT, ' ');
+    const textos = cssTextDecls(raw);
+    return sp + 'style="X' + (HIDES_CONTENT.test(css) ? ':oculto' : '') + (textos ? ' ' + textos : '') + '"';
   }));
 }
 
