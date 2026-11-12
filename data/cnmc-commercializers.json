@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-11",
+    "syncedAt": "2026-11-12",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -2779,7 +2779,7 @@
     "R2-554": {
       "name": "ENERGYSAVE PROJECTS S.L",
       "phone": "800 009 008",
-      "website": "http://www.energysaveprojects.com/"
+      "website": "http://www.voltioenergia.es/"
     },
     "R2-555": {
       "name": "ENGIE CLIENTES, S.L.",
@@ -2976,7 +2976,7 @@
     },
     "R2-594": {
       "name": "RONDA OESTE ENERGÍA, S.L",
-      "phone": "900 701 013",
+      "phone": "900 909 806",
       "website": "http://www.rondaoesteenergia.com/"
     },
     "R2-595": {
@@ -2990,7 +2990,7 @@
     },
     "R2-597": {
       "name": "ENSTROGA, S.L.",
-      "phone": "900 670 012",
+      "phone": "900 988 307",
       "website": "http://www.enstroga.es/"
     },
     "R2-598": {
