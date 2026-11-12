@@ -66,7 +66,10 @@ export function maskVolatileSeoChanges(text) {
     // de privacidad incluida). El bloque solo se reconoce con <style> y </style> al principio de
     // linea, como los escribe el sitio, asi que un "<style>" dentro de una cadena de un script no
     // se traga contenido. Un texto, enlace o elemento nuevo fuera del CSS sigue contando.
-    .replace(/^[ \t]*<style\b[^>]*>[\s\S]*?^[ \t]*<\/style>/gm, '<style>X</style>')
+    // El contenido del bloque no puede contener otra etiqueta <style> o </style>: si un cierre
+    // quedara a mitad de linea, la mascara no saltaria al siguiente bloque tragandose el HTML
+    // de en medio (el bloque, simplemente, no se enmascara y cuenta como cambio).
+    .replace(/^[ \t]*<style\b[^>]*>(?:(?!<\/?style\b)[\s\S])*?^[ \t]*<\/style>/gm, '<style>X</style>')
     .replace(/\sstyle="[^"]*"/g, ' style="X"')
     // Semantica de accesibilidad: nombres de landmarks, roles y el NIVEL de un encabezado cuyo
     // texto no cambia. Afectan a como se navega con lector de pantalla, no a lo que se lee: la

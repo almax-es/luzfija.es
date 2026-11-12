@@ -214,6 +214,15 @@ describe('SEO date policy', () => {
     expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: current, committedContent: committed })).toBe(true);
   });
 
+  it('never lets a <style> mask jump over HTML when a block closes mid-line', () => {
+    // Primer bloque con </style> al final de una linea; entre los dos bloques, texto visible.
+    const committed = '<style>\n.a{color:red}</style>\n<p>Texto original entre bloques</p>\n<style>\n.b{color:blue}\n</style>';
+    const dirty = (current) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: current, committedContent: committed });
+    expect(dirty(committed.replace('Texto original', 'Texto reescrito'))).toBe(true);
+    // El segundo bloque, bien formado, sigue siendo presentacion.
+    expect(dirty(committed.replace('.b{color:blue}', '.b{color:green}'))).toBe(false);
+  });
+
   it('does not re-date the privacy policy for a CSS-only fix', () => {
     const committed = '<style>\n.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}\n</style>\n<p>Texto legal.</p>';
     const withRule = committed.replace('var(--muted)}\n', 'var(--muted)}\n.accordion-item .accordion-content{overflow-wrap:anywhere}\n');
