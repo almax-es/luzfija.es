@@ -110,7 +110,9 @@
     const url = `${base}/${geo}/${yyyyMM}.json`;
     const p = __pvpcFetchJsonWithDeadline(url, { cache: 'no-cache' }).then(({ response, data }) => {
       if (!response || !response.ok) {
-        throw new Error(`Dataset no disponible: ${url} (${response ? response.status : 'unknown'})`);
+        const noDisponible = new Error(`Dataset no disponible: ${url} (${response ? response.status : 'unknown'})`);
+        noDisponible.__lfPvpcHttpStatus = response ? response.status : 0;
+        throw noDisponible;
       }
       return data;
     });
@@ -274,6 +276,9 @@
       // de un fallo de red real, y ambos acababan ocultando la pestanha en silencio.
       const sinDatos = new Error('Sin datos (dataset estático)');
       sinDatos.__lfPvpcDiaNoPublicado = true;
+      // Mas estricto que la marca anterior: el fichero del mes es bueno y simplemente no trae
+      // ese dia (frente a un dia presente pero incompleto o un fichero de otra zona).
+      sinDatos.__lfPvpcDiaAusente = identityOk && dayPairs === undefined;
       throw sinDatos;
     }
     // El validador compartido ordena una copia antes de comprobar la continuidad, asi que
@@ -304,6 +309,10 @@
 
 
       let pvpcHoy = null;
+      // true cuando el dataset responde bien pero aun no trae el dia de hoy: pasa cada noche
+      // desde las 00:00 hasta que corre la descarga diaria (medido 08-12/11/2026: entre la
+      // 01:11 y las 04:09). No es un error ni se arregla reintentando al momento.
+      let pvpcHoyPendiente = false;
       let pvpcManana = null;
       let pvpcCacheKey = null;
       let modalType = 'pvpc';
@@ -383,6 +392,7 @@
 
       function resetModalData() {
         pvpcHoy = null;
+        pvpcHoyPendiente = false;
         pvpcManana = null;
         diaActivo = 'hoy';
         limpiarResumen();
@@ -412,9 +422,17 @@
     }
 
 
+    // Texto de la lista cuando no hay precios de hoy que pintar.
+      function mensajeSinPreciosHoy() {
+        return pvpcHoyPendiente
+          ? '<p class="u-loading-text">🕐 Los precios de hoy todavía no están disponibles. Vuelve a probar más tarde.</p>'
+          : '<p class="u-loading-text">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
+      }
+
     // Cargar precios de HOY
       async function cargarHoy() {
         const myTypeToken = __pvpcTypeToken;
+        pvpcHoyPendiente = false;
         try {
           const __ctx = __pvpcGetUserContext();
           const cfg = getModalConfig(modalType);
@@ -448,7 +466,15 @@
           idxMax
         };
       } catch (e) {
-        console.error('[PVPC] Error hoy:', e);
+        // Dia de hoy aun sin publicar (o, el dia 1, el mes entero: 404): estado esperado, se
+        // explica como tal y no se registra como error.
+        const pendiente = !!(e && (e.__lfPvpcDiaAusente || e.__lfPvpcHttpStatus === 404));
+        if (myTypeToken === __pvpcTypeToken) pvpcHoyPendiente = pendiente;
+        if (pendiente) {
+          if (window.__LF_DEBUG) console.log('[PVPC] Hoy aun no publicado');
+        } else {
+          console.error('[PVPC] Error hoy:', e);
+        }
       }
     }
 
@@ -709,7 +735,7 @@
             cambiarTab('hoy');
           } else {
             // Sin este else la lista se quedaba en "Cargando..." para siempre.
-            document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
+            document.getElementById('modalPVPCHoursList').innerHTML = mensajeSinPreciosHoy();
           }
         });
         applyModalType(pvpcTypeSelector.value || 'pvpc');
@@ -798,7 +824,7 @@
             if (pvpcHoy) {
               cambiarTab(diaActivo);
             } else {
-              document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
+              document.getElementById('modalPVPCHoursList').innerHTML = mensajeSinPreciosHoy();
             }
           } else {
             cambiarTab(diaActivo);

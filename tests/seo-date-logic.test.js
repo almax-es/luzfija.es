@@ -286,6 +286,28 @@ describe('SEO date policy', () => {
     expect(dirty(page('.x{color:red}', '<p style="color:red">A</p>'), page('.x{color:blue}', '<p style="color:blue">A</p>'))).toBe(false);
   });
 
+  it('keeps other CSS that paints text (own review, 13/11/2026) and still ignores fonts and images', () => {
+    const page = (head, body) => '<html><head>\n<style>\n' + head + '\n</style>\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (x, y) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: y, committedContent: x });
+    const v = '.a::before{content:var(--m)}';
+    // Comillas como entidades dentro de un style=""
+    expect(dirty(page(v, '<p class="a" style="--m:&quot;Antes&quot;">T</p>'), page(v, '<p class="a" style="--m:&quot;Despues&quot;">T</p>'))).toBe(true);
+    // Marcadores de lista, comillas de <q> y contadores
+    expect(dirty(page('ul{list-style-type:"-> "}', '<p>a</p>'), page('ul{list-style-type:"=> "}', '<p>a</p>'))).toBe(true);
+    expect(dirty(page('q{quotes:"«" "»"}', '<p>a</p>'), page('q{quotes:"<" ">"}', '<p>a</p>'))).toBe(true);
+    expect(dirty(page('ol{counter-reset:paso 0}', '<p>a</p>'), page('ol{counter-reset:paso 5}', '<p>a</p>'))).toBe(true);
+    // Cadenas con } y con comillas escapadas
+    expect(dirty(page('.a::before{content:"a } b"}', '<p>a</p>'), page('.a::before{content:"a } c"}', '<p>a</p>'))).toBe(true);
+    expect(dirty(page('.a::before{content:"di \\"hola\\""}', '<p>a</p>'), page('.a::before{content:"di \\"adios\\""}', '<p>a</p>'))).toBe(true);
+    // Tipografia, imagenes de fondo y tamanos siguen siendo presentacion
+    expect(dirty(page('p{font-family:"Outfit",sans-serif}', '<p>a</p>'), page('p{font-family:"Inter",sans-serif}', '<p>a</p>'))).toBe(false);
+    expect(dirty(page('p{background:url("a.png")}', '<p>a</p>'), page('p{background:url("b.png")}', '<p>a</p>'))).toBe(false);
+    expect(dirty(page('', '<img src="a.png" alt="A" style="width:10px">'), page('', '<img src="a.png" alt="A" style="width:12px">'))).toBe(false);
+    // Y el texto alternativo o el destino de un enlace cuentan aunque cambie tambien el estilo
+    expect(dirty(page('', '<img src="a.png" alt="Antes" style="width:10px">'), page('', '<img src="a.png" alt="Despues" style="width:12px">'))).toBe(true);
+    expect(dirty(page('', '<a href="/a" style="color:red">x</a>'), page('', '<a href="/b" style="color:blue">x</a>'))).toBe(true);
+  });
+
   it('does not re-date the privacy policy for a CSS-only fix', () => {
     const committed = '<style>\n.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}\n</style>\n<p>Texto legal.</p>';
     const withRule = committed.replace('var(--muted)}\n', 'var(--muted)}\n.accordion-item .accordion-content{overflow-wrap:anywhere}\n');

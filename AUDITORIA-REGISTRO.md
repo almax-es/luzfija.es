@@ -7576,3 +7576,23 @@ Causas y arreglo (mismos tonos de marca, solo luminosidad; fondos, bordes y boto
   de linea exacta del punto 8. Un "<style>" dentro de una cadena de script no se traga contenido (test).
 Tests: `tests/seo-date-logic.test.js`, `tests/accessibility-regressions.test.js`, `tests/mi-tarifa-chip.test.js`.
 
+**10. Revision nocturna desatendida del 12 al 13/11/2026 sobre produccion (e370d15): 1 defecto real, CORREGIDO.**
+680 casos funcionales (5 anchos x claro/oscuro), contraste a pixel en modo estricto (peor 10 % de pixeles) en 336
+estados de 393, 768 y 1366 px, WebKit, lint y 2.819 tests: sin regresiones de los cambios del dia 12.
+- Modal PVPC entre las 00:00 y la descarga diaria: el cron de `pvpc.yml` (21:01 UTC) llega con horas de retraso
+  (ejecuciones del 08 al 12/11: 01:11, 01:32, 04:09, 01:59 y 03:06, hora peninsular), asi que cada noche el fichero
+  del mes responde bien pero aun no trae el dia de hoy y el modal decia "Error al cargar precios. Intentalo de nuevo".
+  Ahora `cargarHoy()` distingue ese estado (`__lfPvpcDiaAusente`, o 404 del mes el dia 1) y explica que los precios
+  de hoy todavia no estan disponibles, sin `console.error`; un 503, un fichero de otra zona o un dia con huecos
+  siguen siendo error. NO se toco el cron: una sola pasada y sin disparador externo es decision del promotor del
+  06/11/2026 (su comentario "siguen llegando antes del dia al que corresponden" no se cumple; queda a su criterio).
+- `maskVolatileSeoChanges`: tras tres revisiones de ChatGPT y una propia, el CSS que pinta texto sigue contando
+  aunque el resto del CSS de pagina sea presentacion: `content`, `counter-*`, y -si llevan cadena- `quotes`,
+  `list-style(-type)` y variables; tambien dentro de `style=""` (comillas como entidades incluidas) y los cambios
+  que ocultan o muestran contenido. Tipografias, `url()` y tamanos no fechan; `alt` y `href` si.
+NO son bugs (medidos): los 32 avisos del contraste estricto eran del medidor, que leia el color de botones con
+`transition` mientras volvian de "texto oculto" (color real blanco estable sobre #7C3AED y sobre el degradado del
+solar; con espera tras cada captura, 0); el aviso que queda en "Compartir esta comparacion" es el emoji, que no se
+oculta con `color:transparent` y cuenta como fondo (mediana 15,7:1).
+Tests: `tests/pvpc-modal-hoy-pendiente.test.js` (validado con 4 mutaciones), `tests/seo-date-logic.test.js`.
+

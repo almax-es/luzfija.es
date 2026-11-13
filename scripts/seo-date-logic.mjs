@@ -47,11 +47,13 @@ const PAGE_STYLE_BLOCK = /^[ \t]*<style\b[^>]*>(?:(?!<\/?style\b|<!--|-->)[\s\S]
 // llegar a un content: con var()). Antes se quitan los comentarios CSS (revision de ChatGPT).
 const CSS_COMMENT = /\/\*[\s\S]*?\*\//g;
 const CSS_STR = String.raw`"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'`;
-const CSS_TEXT_DECL = new RegExp(String.raw`(?:^|[;{\s])((?:content|--[\w-]+)\s*:(?:${CSS_STR}|[^;}"'])*)`, 'gi');
+// Propiedades que pintan texto: content, los contadores que alimentan counter(), y -solo si
+// llevan una cadena- las comillas de <q>, los marcadores de lista y las variables.
+const CSS_TEXT_DECL = new RegExp(String.raw`(?:^|[;{\s])((?:content|counter-(?:reset|increment|set)|quotes|list-style(?:-type)?|--[\w-]+)\s*:(?:${CSS_STR}|[^;}"'])*)`, 'gi');
 function cssTextDecls(css) {
   return [...css.replace(CSS_COMMENT, ' ').matchAll(CSS_TEXT_DECL)]
     .map((m) => m[1].replace(/\s+/g, ' ').trim())
-    .filter((d) => /^content\s*:/i.test(d) || /["']/.test(d))
+    .filter((d) => /^(?:content|counter-)/i.test(d) || /["']/.test(d))
     .join(';');
 }
 // Atributos leidos como atributos (con sus comillas), no por texto suelto: un style="" escrito
@@ -73,7 +75,8 @@ function maskStyleAttrs(html) {
 function maskTags(html) {
   return html.replace(HTML_TAG, (tag) => tag.replace(TAG_ATTR, (m, sp, name, eq, value) => {
     if (name.toLowerCase() !== 'style' || value === undefined) return m;
-    const raw = value.replace(/^["']|["']$/g, '');
+    // Dentro de un atributo las comillas de una cadena CSS pueden venir como entidades.
+    const raw = value.replace(/^["']|["']$/g, '').replace(/&quot;|&#0*34;|&#x0*22;/gi, '"').replace(/&apos;|&#0*39;|&#x0*27;/gi, "'");
     const css = raw.replace(CSS_COMMENT, ' ');
     const textos = cssTextDecls(raw);
     return sp + 'style="X' + (HIDES_CONTENT.test(css) ? ':oculto' : '') + (textos ? ' ' + textos : '') + '"';
