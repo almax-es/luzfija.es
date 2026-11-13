@@ -1021,6 +1021,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nordy 24H",
+      "cPunta": 0.179,
+      "cLlano": 0.179,
+      "cValle": 0.179,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://nordy.es/tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "BonArea Solar Relax",
       "cPunta": 0.179,
       "cLlano": 0.179,
@@ -1322,26 +1342,6 @@
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Nordy 24H",
-      "cPunta": 0.229,
-      "cLlano": 0.229,
-      "cValle": 0.229,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://nordy.es/tarifas",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 2.99
       },
       "requiereFV": false
     },
@@ -2526,5 +2526,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-12T20:27:16.051Z"
+  "updatedAt": "2026-11-13T08:06:39.454Z"
 }
