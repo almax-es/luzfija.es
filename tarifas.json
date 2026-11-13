@@ -351,6 +351,26 @@
       "maxConsumoAnual": 7000.0
     },
     {
+      "nombre": "Fenie Fijo Energético",
+      "cPunta": 0.144926,
+      "cLlano": 0.144926,
+      "cValle": 0.144926,
+      "p1": 0.113699,
+      "p2": 0.113699,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Plenitude Fácil Plus",
       "cPunta": 0.146559,
       "cLlano": 0.146559,
@@ -371,26 +391,6 @@
       },
       "requiereFV": false,
       "potenciaMaxKw": 5.0
-    },
-    {
-      "nombre": "Fenie Fijo Energético",
-      "cPunta": 0.146926,
-      "cLlano": 0.146926,
-      "cValle": 0.146926,
-      "p1": 0.113699,
-      "p2": 0.113699,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
     },
     {
       "nombre": "Esluz Fija 24h",
@@ -1327,9 +1327,9 @@
     },
     {
       "nombre": "Fenie Fijo Uniprecio",
-      "cPunta": 0.228926,
-      "cLlano": 0.228926,
-      "cValle": 0.228926,
+      "cPunta": 0.226926,
+      "cLlano": 0.226926,
+      "cValle": 0.226926,
       "p1": 0.075903,
       "p2": 0.001987,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
@@ -1848,9 +1848,9 @@
     },
     {
       "nombre": "Fenie Fijo Energético 3P",
-      "cPunta": 0.216884,
-      "cLlano": 0.135616,
-      "cValle": 0.109322,
+      "cPunta": 0.214884,
+      "cLlano": 0.133616,
+      "cValle": 0.107322,
       "p1": 0.113699,
       "p2": 0.113699,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
@@ -2427,10 +2427,10 @@
     },
     {
       "nombre": "Fenie Fijo 3P",
-      "cPunta": 0.298884,
-      "cLlano": 0.217616,
-      "cValle": 0.191322,
-      "p1": 0.075901,
+      "cPunta": 0.295984,
+      "cLlano": 0.215616,
+      "cValle": 0.189322,
+      "p1": 0.075903,
       "p2": 0.001987,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
       "tipo": "3P",
@@ -2526,5 +2526,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-13T08:06:39.454Z"
+  "updatedAt": "2026-11-13T10:07:54.397Z"
 }
