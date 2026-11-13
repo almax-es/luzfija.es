@@ -156,27 +156,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Repsol Waylet Luz Precio Fijo",
-      "cPunta": 0.129,
-      "cLlano": 0.129,
-      "cValle": 0.129,
-      "p1": 0.068,
-      "p2": 0.068,
-      "web": "https://www.repsol.es/waylet/casa/waylet-luz/",
-      "tipo": "1P",
-      "requisitos": "Solo se contrata desde la app Waylet de Repsol. Precio fijo durante 3 años.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Loviluz Tarifa 2.0TD",
       "cPunta": 0.1299,
       "cLlano": 0.1299,
@@ -2526,5 +2505,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-13T10:07:54.397Z"
+  "updatedAt": "2026-11-13T14:29:32.126Z"
 }
