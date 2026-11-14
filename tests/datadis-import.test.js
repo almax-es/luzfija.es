@@ -1075,10 +1075,10 @@ describe('importar (fetch simulado)', () => {
     expect(llamadas.length).toBe(2);
   });
 
-  it('un error de login que no es 500 (pasarela caida) no cuenta el intento', async () => {
-    respuestas.login = () => json(502, 'Bad Gateway');
+  it.each([502, 503, 504, 429])('un error de login que no es 500 (%i: pasarela o limite de frecuencia) no cuenta el intento', async (status) => {
+    respuestas.login = () => json(status, 'Error');
     const e = await ejecutar().catch((x) => x);
-    expect(e).toMatchObject({ code: 'http', status: 502, paso: 'login' });
+    expect(e).toMatchObject({ code: 'http', status, paso: 'login' });
     expect(storage.has('lf_datadis_fallos')).toBe(false);
     expect(D.textoError(e)).toContain('Inténtalo más tarde');
   });
