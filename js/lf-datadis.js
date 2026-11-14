@@ -570,9 +570,14 @@
     return arr.filter((s) => s && typeof s.cups === 'string' && s.cups && s.distributorCode !== undefined && s.distributorCode !== null);
   }
 
-  /** "12345678-z " -> "12345678Z". Datadis usa el documento en mayusculas y sin separadores. */
+  /**
+   * "12345678-z " -> "12345678Z". Datadis usa el documento en mayusculas y sin separadores.
+   * Se queda solo con letras y cifras: un DNI/NIE/CIF no lleva nada mas, y los invisibles que
+   * pueden colarse al pegar o autorrellenar en el movil (U+200B, U+200E, U+2060...) no son
+   * `\s` y antes llegaban a Datadis, saltandose ademas la comprobacion de la letra.
+   */
   function normalizarDocumento(v) {
-    return String(v == null ? '' : v).toUpperCase().replace(/[\s.\-_/]/g, '');
+    return String(v == null ? '' : v).toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
 
   /**
@@ -663,6 +668,12 @@
     if (/user blocked/i.test(m)) throw new DatadisError('bloqueado', r.status);
     if (r.status === 401 || r.status === 403 || /bad credentials/i.test(m)) throw new DatadisError('credenciales', r.status);
     const err = new DatadisError('http', r.status);
+    err.paso = 'login';
+    // Datadis responde 500 a TODOS los fallos de login (Bad credentials, User blocked) y no
+    // documenta el resto. Un 500 con otro mensaje ("Data not found exception", 14/11/2026, sin
+    // significado conocido) podria contar para su bloqueo de 3 intentos: se cuenta tambien aqui.
+    // Perder un intento de LuzFija durante 24 h cuesta menos que una cuenta bloqueada.
+    if (r.status === 500) err.cuentaIntento = true;
     err.servidor = `login: ${textoTecnicoLimpio(m || String(r.text || '').slice(0, 120))}`;
     throw err;
   }
@@ -813,7 +824,7 @@
           guardarFallos(0);
           return t;
         } catch (e) {
-          if (e && e.code === 'credenciales') guardarFallos(leerFallos() + 1);
+          if (e && (e.code === 'credenciales' || e.cuentaIntento)) guardarFallos(leerFallos() + 1);
           throw e;
         }
       });
@@ -1452,6 +1463,16 @@
       case 'parseo':
         return (err.detalle || 'No hemos podido interpretar los consumos recibidos.') + ' Puedes probar con el CSV descargado desde Datadis.';
       case 'http':
+        if (err.paso === 'login' && err.cuentaIntento) {
+          return `Datadis ha devuelto un error al iniciar sesión${err.status ? ` (código ${err.status})` : ''}. ` +
+            'No significa necesariamente que tu NIF o tu contraseña estén mal. ' +
+            'Antes de volver a intentarlo, comprueba que puedes entrar en datadis.es con los mismos datos: ' +
+            'no sabemos si Datadis cuenta este error entre sus 3 intentos antes de bloquear la cuenta, así que aquí lo contamos como uno. ' +
+            (fallos >= MAX_FALLOS_LOGIN
+              ? 'Para no arriesgar tu cuenta no seguimos intentándolo: cuando hayas entrado bien en datadis.es, pulsa «Ya he entrado bien en datadis.es». '
+              : '') +
+            'Mientras tanto puedes descargar el CSV desde Datadis e importarlo con «Importar CSV».';
+        }
         return `Datadis ha respondido con un error${err.status ? ` (código ${err.status})` : ''}.` +
           (err.paso === 'consumos'
             ? ' Si ya importaste estos consumos en las últimas 24 horas, es el límite de Datadis: no deja repetir la misma consulta hasta el día siguiente.'

@@ -263,6 +263,14 @@ describe('documento (NIF/NIE/CIF)', () => {
     expect(D.normalizarDocumento(' 12.345.678-z ')).toBe('12345678Z');
     expect(D.normalizarDocumento('x-1234567-l')).toBe('X1234567L');
   });
+  // 14/11/2026: invisibles que no son `\s` (pegar o autorrellenar en el movil) llegaban a Datadis
+  // y, al no casar con el patron de DNI, se saltaban la comprobacion de la letra.
+  it('quita los invisibles de ancho cero y la letra se sigue comprobando', () => {
+    for (const c of ['\u200B', '\u200C', '\u200D', '\u200E', '\u2060', '\uFEFF', '\u00A0']) {
+      expect(D.normalizarDocumento(`12345678${c}Z`)).toBe('12345678Z');
+    }
+    expect(D.errorDocumento(D.normalizarDocumento('12345678\u200BA'))).toBe('letra');
+  });
   it('acepta DNI y NIE con letra correcta y deja pasar CIF y formatos raros', () => {
     expect(D.errorDocumento('12345678Z')).toBe('');
     expect(D.errorDocumento('X1234567L')).toBe('');
@@ -1044,6 +1052,35 @@ describe('importar (fetch simulado)', () => {
     await expect(ejecutar()).rejects.toMatchObject({ code: 'credenciales' });
     expect(fallosGuardados()).toBe(2);
     expect(D.textoError({ code: 'credenciales' })).toContain('no seguimos intentándolo');
+  });
+
+  // 14/11/2026: un usuario real recibio 500 "Data not found exception" en el login, un mensaje que
+  // Datadis no documenta. Como no se sabe si cuenta para su bloqueo de 3 intentos, se cuenta aqui.
+  it('500 con un mensaje desconocido en el login: cuenta el intento y no culpa a la contrasena', async () => {
+    respuestas.login = () => json(500, { status: 500, error: 'Internal Server Error', message: 'Data not found exception' });
+    const e = await ejecutar().catch((x) => x);
+    expect(e).toMatchObject({ code: 'http', status: 500, paso: 'login' });
+    expect(fallosGuardados()).toBe(1);
+    expect(llamadas.length).toBe(1);
+    const texto = D.textoError(e);
+    expect(texto).toContain('No significa necesariamente que tu NIF o tu contraseña estén mal');
+    expect(texto).toContain('lo contamos como uno');
+    expect(texto).not.toContain('no seguimos intentándolo');
+    expect(D.codigoInforme(e)).toBe('http');
+
+    const e2 = await ejecutar().catch((x) => x);
+    expect(fallosGuardados()).toBe(2);
+    expect(D.textoError(e2)).toContain('no seguimos intentándolo');
+    await expect(ejecutar()).rejects.toMatchObject({ code: 'agotado' });
+    expect(llamadas.length).toBe(2);
+  });
+
+  it('un error de login que no es 500 (pasarela caida) no cuenta el intento', async () => {
+    respuestas.login = () => json(502, 'Bad Gateway');
+    const e = await ejecutar().catch((x) => x);
+    expect(e).toMatchObject({ code: 'http', status: 502, paso: 'login' });
+    expect(storage.has('lf_datadis_fallos')).toBe(false);
+    expect(D.textoError(e)).toContain('Inténtalo más tarde');
   });
 
   it('un login correcto reinicia el contador de fallos', async () => {
