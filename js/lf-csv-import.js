@@ -807,7 +807,7 @@
         </label>
         <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted); line-height: 1.4;">
           ${resultado.isDatadisMonthly
-            ? 'No disponible con datos mensuales de Datadis (no hay traza horaria). El PVPC se calculará con precios recientes.'
+            ? 'No disponible con datos mensuales (no hay traza horaria). El PVPC se calculará con precios recientes.'
             : 'Activado: usa los precios PVPC de cuando consumiste (impuestos y costes regulados se calculan con los valores actuales). Desactivado: usa los precios PVPC de hoy (para comparar opciones).'}
         </p>
       </div>

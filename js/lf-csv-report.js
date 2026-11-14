@@ -173,7 +173,10 @@
       : 'Lo que funciona es la curva horaria del contador (consumo hora a hora en kWh)';
     if (FORMAT_CODES.has(errorCode) || errorCode === 'otro') {
       return `${needs}, que descargas del área de clientes de tu distribuidora o de Datadis. ` +
-        'Los informes de la app de las placas o del inversor y los resúmenes mensuales no sirven. ' +
+        (context === 'estadisticas'
+          ? 'Los informes de la app de las placas o del inversor y los resúmenes mensuales no sirven. '
+          // Home y solar aceptan dos resumenes mensuales con P1/P2/P3 (Datadis y UFD).
+          : 'Los informes de la app de las placas o del inversor no sirven, ni los resúmenes sin el consumo separado en P1, P2 y P3. ') +
         'Si lo has abierto y guardado con Excel, prueba con el archivo original.';
     }
     if (errorCode === 'datos-subhorarios') {

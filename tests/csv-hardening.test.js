@@ -60,6 +60,24 @@ describe('Desambiguacion hora / periodo tarifario por contenido', () => {
     expect(u.csvErrorCodeForTracking(lanzado.message)).toBe('agregado-por-periodo');
   });
 
+  // Periodos en COLUMNAS sin unidad (no se sabe si son kWh o importes): rechazo explicito como
+  // agregado. Con las columnas en kWh es el resumen mensual de UFD, que si se importa
+  // (tests/csv-ufd-mensual.test.js).
+  it('rechaza P1/P2/P3 en columnas sin unidad como agregado por periodo', () => {
+    let lanzado = null;
+    try {
+      parse('Fecha;P1;P2;P3', '11/2025;147,27;119,37;188,00', '12/2025;161,85;112,76;90,96');
+    } catch (e) { lanzado = e; }
+    expect(lanzado).not.toBeNull();
+    expect(lanzado.message).toMatch(/agregado por periodo tarifario \(columnas p1, p2, p3/);
+    expect(u.csvErrorCodeForTracking(lanzado.message)).toBe('agregado-por-periodo');
+  });
+
+  it('sin columnas de periodo, la falta de hora sigue saliendo como columna de hora', () => {
+    expect(() => parse('Fecha;Consumo_kWh', '01/04/2026;10,0'))
+      .toThrow(/columna obligatoria de "hora"/);
+  });
+
   it('nunca asigna la misma columna a hora y a periodo a la vez', () => {
     // El 24 es el discriminador horario: sin ningun valor 0 o >3 la columna se considera
     // indistinguible de P1/P2/P3 y se rechaza (ver test siguiente).

@@ -335,6 +335,10 @@
   //   RECHAZADO a proposito: UFD (Naturgy) "consumptions.xlsx" (27/10/2026), Fecha;Hora;Consumo
   //   kWh con solo 4 fechas repetidas en ~34.000 filas y 4 perfiles diarios: no es curva real.
   //   El error lo dice (contarReinicioHorasMismaFecha); no se importa ni se "arregla".
+  //   UFD (Naturgy) "consumptions.xlsx" MENSUAL (14/11/2026, implementado sin el fichero, desde
+  //     la cabecera y la muestra del aviso): hoja consumptions, CUPS;Fecha (MM/AAAA);Consumo (kWh);
+  //     P1 (kWh);P2 (kWh);P3 (kWh);Metodo de obtencion ("Estimado" en la muestra). Un mes por
+  //     fila, sin excedentes. isMonthlyPeriodColumnsFormat(); tests/csv-hardening.test.js.
   const HEADER_ALIASES = {
     fecha: [
       'fecha', 'date', 'dia', 'fecha_lectura', 'fecha_consumo', 'dia_lectura'
@@ -701,6 +705,149 @@
     };
   }
 
+  // ===== RESUMEN MENSUAL CON P1/P2/P3 EN COLUMNAS (UFD) =====
+  // UFD (Naturgy) "consumptions.xlsx" con granularidad mensual (14/11/2026, llego por el aviso
+  // de importacion fallida; implementado a partir de la cabecera y la muestra del aviso, sin el
+  // fichero): CUPS;Fecha (MM/AAAA);Consumo (kWh);P1 (kWh);P2 (kWh);P3 (kWh);Metodo de obtencion.
+  // Reutiliza el camino del Datadis mensual (`isDatadisMonthly`: un mes entero por fila, sin
+  // traza horaria), con tres diferencias: no trae excedentes, el mes en curso se descarta (no ha
+  // terminado y se contaria entero en los dias) y conserva el "Estimado" de la distribuidora.
+  // Solo con columnas etiquetadas en kWh: un "P1" sin unidad podria ser un importe.
+  const MONTHLY_PERIOD_COLUMNS = ['p1_kwh', 'p2_kwh', 'p3_kwh'];
+
+  function isMonthlyPeriodColumnsFormat(headersNorm) {
+    const set = new Set(headersNorm);
+    if (!set.has('fecha') || !MONTHLY_PERIOD_COLUMNS.every(c => set.has(c))) return false;
+    // Con una columna de hora o de fecha-hora es una curva, no un resumen mensual.
+    return !headersNorm.some(h => HEADER_ALIASES.hora.includes(h) || HEADER_ALIASES.fechaHora.includes(h));
+  }
+
+  // MM/AAAA (el de UFD), AAAA/MM o AAAA-MM; una fecha completa solo si es dia 1 (Excel puede
+  // guardar el mes como fecha). Cualquier otro dia delata datos diarios y se rechaza.
+  function parseMonthCell(value) {
+    const str = String(value ?? '').trim().split(/[T\s]/)[0];
+    let m = str.match(/^(\d{1,2})[/-](\d{4})$/);
+    if (m) return makeStrictDate(Number(m[2]), Number(m[1]), 1);
+    m = str.match(/^(\d{4})[/-](\d{1,2})$/);
+    if (m) return makeStrictDate(Number(m[1]), Number(m[2]), 1);
+    m = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+    if (m && Number(m[1]) === 1) return makeStrictDate(Number(m[3]), Number(m[2]), 1);
+    m = str.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+    if (m && Number(m[3]) === 1) return makeStrictDate(Number(m[1]), Number(m[2]), 1);
+    return null;
+  }
+
+  function parseMonthlyPeriodColumnsRows(rows, options = {}) {
+    const headerRowIndex = Number.isFinite(options.headerRowIndex) ? options.headerRowIndex : 0;
+    const separator = options.separator || null;
+    const parseNumber = options.parseNumber || parseNumberFlexible;
+    const r2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+    const today = options.today instanceof Date && !isNaN(options.today.getTime()) ? options.today : new Date();
+    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    const headersNorm = normalizeHeaders(rows[headerRowIndex]);
+    const fail = (message) => { throw buildHeaderError(message, headersNorm, { separator }); };
+
+    if (['p4_kwh', 'p5_kwh', 'p6_kwh'].some(c => headersNorm.includes(c))) {
+      fail('El resumen mensual trae más de tres periodos (P4-P6, tarifa 3.0TD). El comparador calcula tarifas 2.0TD, con P1, P2 y P3.');
+    }
+
+    const fechaIdx = headersNorm.indexOf('fecha');
+    const [p1Idx, p2Idx, p3Idx] = MONTHLY_PERIOD_COLUMNS.map(c => headersNorm.indexOf(c));
+    const totalIdx = headersNorm.indexOf('consumo_kwh');
+    const metodoIdx = headersNorm.findIndex(h => h === 'metodo_de_obtencion' || HEADER_ALIASES.realEstimado.includes(h));
+
+    const records = [];
+    const seenMonths = new Set();
+    const monthsInProgress = [];
+    const estimatedMonths = [];
+    let monthsTotal = 0;
+
+    for (const row of rows.slice(headerRowIndex + 1)) {
+      if (!row || !Array.isArray(row)) continue;
+      if (!row.some(cell => String(cell ?? '').trim() !== '')) continue;
+
+      const fechaRaw = String(row[fechaIdx] ?? '').trim();
+      const fecha = parseMonthCell(row[fechaIdx]);
+      if (!fecha) {
+        fail(`Resumen mensual: fecha no reconocida en una fila de datos ("${fechaRaw}"). ` +
+          'Se espera un mes por fila, como 11/2025.');
+      }
+      const monthKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+
+      if (seenMonths.has(monthKey)) {
+        throw buildImportError(
+          `Hay un mes duplicado en el resumen mensual (${formatMonthYear(monthKey)}). ` +
+          'La importación se ha cancelado; no se ha incorporado ningún dato de este archivo.',
+          { headersNorm, separator }
+        );
+      }
+      seenMonths.add(monthKey);
+
+      const valores = [p1Idx, p2Idx, p3Idx].map(idx => parseNumber(row[idx]));
+      valores.forEach((v, i) => {
+        if (!Number.isFinite(v) || v < 0) {
+          const idx = [p1Idx, p2Idx, p3Idx][i];
+          fail(`Error en ${formatMonthYear(monthKey)}: el campo "P${i + 1}" no contiene un número válido (valor: "${row[idx]}").`);
+        }
+      });
+      const [p1, p2, p3] = valores;
+
+      if (totalIdx !== -1) {
+        const total = parseNumber(row[totalIdx]);
+        if (!Number.isFinite(total) || Math.abs(total - (p1 + p2 + p3)) > 0.05) {
+          fail(`Error en ${formatMonthYear(monthKey)}: el consumo total (${row[totalIdx]} kWh) no coincide con ` +
+            `P1 + P2 + P3 (${r2(p1 + p2 + p3)} kWh). Descarga el archivo de nuevo.`);
+        }
+      }
+
+      if (monthKey >= currentMonthKey) {
+        monthsInProgress.push(monthKey);
+        continue;
+      }
+      monthsTotal++;
+
+      // El "Estimado" se avisa por meses. esReal queda en null: la vista previa cuenta lecturas
+      // por registro y aqui hay tres registros sinteticos por mes ("36 estimadas" en 12 meses).
+      if (metodoIdx !== -1 && !isNoDataCellValue(row[metodoIdx])) {
+        const estado = String(row[metodoIdx] ?? '').trim().toLowerCase();
+        if (estado.startsWith('estimad') || estado === 'e') estimatedMonths.push(monthKey);
+      }
+      const esReal = null;
+
+      // Mismo reparto sintetico que el Datadis mensual: una fila por periodo, fechada el dia 1.
+      records.push({ fecha, hora: 1, kwh: r2(p3), excedente: 0, autoconsumo: 0, periodo: 'P3', esReal });
+      records.push({ fecha, hora: 11, kwh: r2(p2), excedente: 0, autoconsumo: 0, periodo: 'P2', esReal });
+      records.push({ fecha, hora: 12, kwh: r2(p1), excedente: 0, autoconsumo: 0, periodo: 'P1', esReal });
+    }
+
+    if (records.length === 0) {
+      fail(monthsInProgress.length
+        ? `Resumen mensual: solo trae el mes en curso (${formatMonthYear(monthsInProgress[0])}), que aún no ha terminado. Descarga meses completos.`
+        : 'Resumen mensual: no se encontraron filas de datos válidas.');
+    }
+
+    const warnings = [];
+    if (monthsInProgress.length) {
+      warnings.push(`Se ha descartado ${monthsInProgress.map(formatMonthYear).join(', ')}: el mes aún no ha terminado ` +
+        'y con un resumen mensual no se sabe cuántos días incluye.');
+    }
+    if (estimatedMonths.length) {
+      const todos = estimatedMonths.length === monthsTotal;
+      warnings.push(`Tu distribuidora marca como «Estimado» ${todos ? 'todos los meses' : `${estimatedMonths.length} de ${monthsTotal} meses`}` +
+        `${todos ? '' : ` (${estimatedMonths.map(formatMonthYear).join(', ')})`}: ese consumo no procede de una lectura real del contador.`);
+    }
+    warnings.push('Resumen mensual: se cuenta cada mes como completo. Si tu contrato empezó o terminó a mitad de un mes, corrige los días antes de calcular.');
+
+    return {
+      records,
+      warnings,
+      hasExcedenteColumn: false,
+      hasAutoconsumoColumn: false,
+      isDatadisMonthly: true
+    };
+  }
+
   function buildHeaderError(message, headersNorm, options = {}) {
     const headersList = headersNorm.length ? headersNorm.join(', ') : '(sin cabeceras)';
     const separatorLabel = options.separator ? `"${options.separator}"` : 'N/A';
@@ -771,6 +918,14 @@
         'fecha', 'valle', 'llano', 'punta',
         'energia_vertida_kwh', 'energia_generada_kwh', 'energia_autoconsumida_kwh'
       ].forEach((name) => {
+        const idx = headersNorm.indexOf(name);
+        if (idx >= 0) relevant.add(idx);
+      });
+      return relevant;
+    }
+
+    if (isMonthlyPeriodColumnsFormat(headersNorm)) {
+      ['fecha', 'consumo_kwh', ...MONTHLY_PERIOD_COLUMNS].forEach((name) => {
         const idx = headersNorm.indexOf(name);
         if (idx >= 0) relevant.add(idx);
       });
@@ -1406,6 +1561,19 @@
       if (periodoResuelto !== null) {
         throw buildHeaderError(
           `El archivo está agregado por periodo tarifario ("${headersNorm[periodoResuelto]}" contiene P1/P2/P3) y no trae ninguna columna de hora. Se necesita una curva horaria para calcular; no se puede repartir un agregado por periodos entre las 24 horas.`,
+          headersNorm,
+          options
+        );
+      }
+      // Mismo caso con los periodos en COLUMNAS (una por periodo) en vez de en filas. Con las
+      // columnas en kWh (p1_kwh...) ni se llega aqui: es el resumen mensual que se importa
+      // (isMonthlyPeriodColumnsFormat). Sin unidad no se sabe si son kWh o importes.
+      const columnasPeriodo = [
+        ['p1', 'p2', 'p3'], ['punta', 'llano', 'valle']
+      ].find(trio => trio.every(nombre => headersNorm.includes(nombre)));
+      if (columnasPeriodo) {
+        throw buildHeaderError(
+          `El archivo está agregado por periodo tarifario (columnas ${columnasPeriodo.join(', ')}; suele ser un resumen con una fila por mes) y no trae ninguna columna de hora. Se necesita la curva horaria (una fila por hora); no se puede repartir un total por periodos entre las 24 horas.`,
           headersNorm,
           options
         );
@@ -2048,6 +2216,9 @@
     // porque Datadis no tiene columna 'importacion' y la función fallaría
     if (isDatadisMonthlyFormat(headersNorm)) {
       return parseDatadisMonthlyRows(rows, options);
+    }
+    if (isMonthlyPeriodColumnsFormat(headersNorm)) {
+      return parseMonthlyPeriodColumnsRows(rows, options);
     }
 
     const headersRaw = (headerRow || []).map(cell => stripBomAndTrim(cell));
@@ -3868,6 +4039,7 @@
     guessEnergyHeaderRow,
     bestEnergyHeaderCandidate,
     isDatadisMonthlyFormat,
+    isMonthlyPeriodColumnsFormat,
     parseDatadisMonthlyRows,
 
     // Mapeo de columnas y centinelas
