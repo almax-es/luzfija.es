@@ -2330,6 +2330,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // "Mi tarifa" vive dentro del <details> plegado "Comparar con mi tarifa actual". Con datos
+  // guardados de otra visita, el error podia salir solo como aviso, sin el campo a la vista
+  // (ForoCoches, 14/11/2026: BV marcada sin cuota, "no encuentro la casilla"). Abre el
+  // desplegable, lleva al primer campo marcado y le pone el foco.
+  function revealMiTarifaError() {
+    const ids = ['mtP1', 'mtP2', 'mtPunta', 'mtLlano', 'mtValle', 'mtExc', 'mtPrecioBV'];
+    const target = ids.map((id) => document.getElementById(id))
+      .find((el) => el && el.classList.contains('error')) || document.getElementById('mtP1');
+    if (!target) return;
+    for (let d = target.closest('details'); d; d = d.parentElement && d.parentElement.closest('details')) {
+      d.open = true;
+    }
+    if (typeof target.scrollIntoView === 'function') target.scrollIntoView({ block: 'center' });
+    try { target.focus({ preventScroll: true }); } catch { target.focus(); }
+  }
+
   function getCustomTarifa() {
     // Valores crudos ANTES de parsear: distinguen "campo vacio" (aplicar fallback a otro
     // periodo/potencia) de "el usuario escribio 0" (mantener 0). parseInput('') tambien da 0,
@@ -3040,6 +3056,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const firstError = p1Error || p2Error || saldoError || miTarifaError;
     if (firstError) {
       showToast(firstError, 'err');
+      if (firstError === miTarifaError) revealMiTarifaError();
       return;
     }
 

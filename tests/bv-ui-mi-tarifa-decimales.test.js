@@ -430,3 +430,38 @@ describe('Simulador solar - "Mi tarifa": opciones avanzadas (14/08/2026)', () =>
     expect(tarifa.fv.exc).toBe(0.07);
   });
 });
+
+// ForoCoches, 14/11/2026: con una Mi tarifa guardada (BV marcada y sin cuota), el error salia solo
+// como aviso y el campo seguia escondido dentro del <details> plegado "Comparar con mi tarifa
+// actual". Ahora el error abre el desplegable y pone el foco en el campo.
+describe('Simulador solar - "Mi tarifa": el error lleva al campo aunque el desplegable este cerrado', () => {
+  it('BV marcada sin cuota: abre el desplegable y enfoca la cuota', () => {
+    bootSolarUi();
+    const details = document.createElement('details');
+    details.appendChild(document.createElement('summary'));
+    document.body.appendChild(details);
+    MT_IDS.concat(['mtBV']).forEach((id) => details.appendChild(document.getElementById(id)));
+    setCustomTarifa({ bv: true, precioBV: '' });
+    expect(details.open).toBe(false);
+
+    document.getElementById('bv-simulate').click();
+
+    expect(document.getElementById('toastText').textContent).toContain('cuota mensual de la batería virtual');
+    expect(details.open).toBe(true);
+    expect(document.activeElement).toBe(document.getElementById('mtPrecioBV'));
+  });
+
+  it('un error que no es de Mi tarifa no abre el desplegable', () => {
+    bootSolarUi();
+    const details = document.createElement('details');
+    details.appendChild(document.createElement('summary'));
+    document.body.appendChild(details);
+    MT_IDS.concat(['mtBV']).forEach((id) => details.appendChild(document.getElementById(id)));
+    setCustomTarifa({ bv: true, precioBV: '' });
+    document.getElementById('bv-p1').value = '';
+
+    document.getElementById('bv-simulate').click();
+
+    expect(details.open).toBe(false);
+  });
+});
