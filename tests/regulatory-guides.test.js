@@ -25,14 +25,20 @@ describe('Guide regulatory guardrails', () => {
   // salvaguarda para noviembre (IPC de electricidad de septiembre) y diciembre (IPC de
   // octubre): IVA 10% e IEE 0,5% solo si la variacion anual supera el 15%.
   // INE, tabla 76128 (14/10/2026): IPC de electricidad de septiembre 11,4% -> noviembre sin rebaja.
-  it('documents October at the general rates and the November/December safeguard', () => {
+  // INE, tabla 76128 (13/11/2026): IPC de electricidad de octubre 11,1% -> diciembre sin rebaja.
+  it('documents October to December at the general rates and the unactivated safeguard', () => {
     const facturaGuide = readGuideText('guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html');
 
     expect(facturaGuide).toContain('el IVA de la luz es el general del 21% y lo sigue siendo en octubre');
     expect(facturaGuide).toContain('el RDL 25/2026 (BOE de 30/09/2026) no prevé rebaja para octubre');
     expect(facturaGuide).toContain('supera el 15% en septiembre (para noviembre) o en octubre (para diciembre)');
     expect(facturaGuide).toContain('subió un 11,4%, por debajo del 15%, así que en noviembre siguen el IVA del 21%');
-    expect(facturaGuide).toContain('21% de agosto a noviembre de 2026; en diciembre');
+    expect(facturaGuide).toContain('subió un 11,1%, también por debajo del 15%, así que en diciembre siguen el IVA del 21%');
+    expect(facturaGuide).toContain('En octubre, noviembre y diciembre de 2026 es del 5,11269632%');
+    expect(facturaGuide).toContain('21% de agosto a diciembre de 2026)');
+    expect(facturaGuide).not.toContain('Diciembre depende del IPC de octubre');
+    expect(facturaGuide).not.toContain('en diciembre solo bajaría al 0,5%');
+    expect(facturaGuide).not.toContain('21% de agosto a noviembre de 2026; en diciembre');
     expect(facturaGuide).not.toContain('21% de agosto a octubre de 2026');
     expect(facturaGuide).not.toContain('En agosto de 2026 esa variación fue del 9,2%');
     expect(facturaGuide).not.toContain('mientras no se publique una prórroga');

@@ -7596,3 +7596,36 @@ solar; con espera tras cada captura, 0); el aviso que queda en "Compartir esta c
 oculta con `color:transparent` y cuenta como fondo (mediana 15,7:1).
 Tests: `tests/pvpc-modal-hoy-pendiente.test.js` (validado con 4 mutaciones), `tests/seo-date-logic.test.js`.
 
+
+<a id="revision-normativa-diciembre-cobertura-ronda-86-16-11-2026"></a>
+### Revision Normativa Externa: Fiscalidad De Diciembre Y Transparencia Del Comparador (Ronda 86, 16/11/2026)
+
+Informe de ChatGPT (lectura remota del repo y de las 25 guias, sin ejecutar tests). Verificado por Claude contra
+el repo y las fuentes. **1 hallazgo real, aplicado; el resto ya estaba resuelto, es una decision cerrada o no aplica.**
+
+**Aplicado:**
+- **Guia de factura, diciembre.** Seguia diciendo que diciembre dependia del IPC de octubre. El INE lo publico el
+  13/11/2026: 11,1% (serie IPC291482 y tabla 76128, subclase 04.5.1.0, definitivo), por debajo del 15% del RDL
+  25/2026. Diciembre queda al 21% e IEE 5,11269632%. Solo era texto: `LF_CONFIG` ya aplicaba los tipos generales.
+  Detalle en la entrada del 16/11/2026 de `MANTENIMIENTO-NORMATIVO.md`; test en `tests/regulatory-guides.test.js`.
+
+**No se cambia:**
+- **"Aviso de cobertura obligatorio por el art. 14 de la Directiva 2019/944".** Los requisitos del art. 14.1 se
+  exigen a la herramienta de comparacion que el Estado garantiza (en Espana, el comparador de la CNMC) y a las
+  que obtienen la marca de confianza del art. 14.3. LuzFija no es ninguna de las dos. El alcance del catalogo
+  (seleccion revisada, no censo) ya consta en el aviso legal.
+- **`verifiedAt` por tarifa.** Decision cerrada en la ronda 73: `updatedAt` es la fecha de la ultima revision del
+  catalogo completo, contrastado con los validadores diarios.
+- **Bono social y RDL 35/2026.** Ya anotado el 12/11/2026 en `MANTENIMIENTO-NORMATIVO.md`: efectos el 01/01/2027
+  y pendiente de convalidacion; se revisa en enero. El arrastre de kWh bonificables ya se avisa en la UI.
+- **FAQ de errores: "15 dias habiles".** No es incorrecta: el paso habla de reclamar a la comercializadora, y el
+  plazo de 5 dias habiles es solo para reclamaciones a la distribuidora (medida, facturas, cortes, < 15 kW), que
+  la guia de reclamaciones ya explica.
+- **Contradiccion en la guia de mudanzas.** No la hay: el parrafo dice que avisar no resuelve el contrato, que lo
+  resuelve el nuevo contrato del siguiente ocupante y que, si no lo hay, se pide la baja con 5 dias habiles.
+- **LSSI (domicilio y NIF).** Falso positivo conocido (ronda 71): sin ingresos, no hay actividad economica.
+- **Sello de `guias.html` y version de `lf-config.js`.** El sello solo se mueve tras reverificar todo lo que cubre;
+  la version de `lf-config.js` cambia cuando cambian sus valores, no con cada revision.
+
+**Pendiente de decision del promotor:** el plazo concreto de conservacion de los correos en `privacidad.html`
+(hoy "plazo razonable"); el art. 13.2.a RGPD admite el plazo o los criterios para fijarlo.
