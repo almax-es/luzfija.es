@@ -627,28 +627,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Iberdrola Online",
-      "cPunta": 0.1499,
-      "cLlano": 0.1499,
-      "cValle": 0.1499,
-      "p1": 0.119151,
-      "p2": 0.078055,
-      "web": "https://www.iberdrola.es/luz/plan-online",
-      "tipo": "1P",
-      "requisitos": "Precio válido para potencia ≤ 10 kW.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 3.446281
-      },
-      "requiereFV": false,
-      "potenciaMaxKw": 10.0
-    },
-    {
       "nombre": "Bonpreu Hagámoslo Fácil",
       "cPunta": 0.149937,
       "cLlano": 0.149937,
@@ -688,6 +666,28 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.1519,
+      "cLlano": 0.1519,
+      "cValle": 0.1519,
+      "p1": 0.106822,
+      "p2": 0.106822,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Precio válido para potencia ≤ 10 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 3.446281
+      },
+      "requiereFV": false,
+      "potenciaMaxKw": 10.0
     },
     {
       "nombre": "Chippio Constante",
@@ -773,11 +773,11 @@
     },
     {
       "nombre": "Iberdrola Online +10kW",
-      "cPunta": 0.1599,
-      "cLlano": 0.1599,
-      "cValle": 0.1599,
-      "p1": 0.119151,
-      "p2": 0.078055,
+      "cPunta": 0.1619,
+      "cLlano": 0.1619,
+      "cValle": 0.1619,
+      "p1": 0.106822,
+      "p2": 0.106822,
       "web": "https://www.iberdrola.es/luz/plan-online",
       "tipo": "1P",
       "requisitos": "Precio válido para potencia > 10 kW. Permanencia de 12 meses.",
@@ -1574,11 +1574,11 @@
     },
     {
       "nombre": "Iberdrola Online +10kW 3P",
-      "cPunta": 0.186286,
-      "cLlano": 0.160702,
-      "cValle": 0.14791,
-      "p1": 0.119151,
-      "p2": 0.078055,
+      "cPunta": 0.188566,
+      "cLlano": 0.162662,
+      "cValle": 0.14971,
+      "p1": 0.106822,
+      "p2": 0.106822,
       "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
       "tipo": "3P",
       "requisitos": "Precio válido para potencia > 10 kW. Permanencia de 12 meses.",
@@ -1785,11 +1785,11 @@
     },
     {
       "nombre": "Iberdrola Online 3P",
-      "cPunta": 0.2116,
-      "cLlano": 0.1566,
-      "cValle": 0.1236,
+      "cPunta": 0.208952,
+      "cLlano": 0.153952,
+      "cValle": 0.120952,
       "p1": 0.090411,
-      "p2": 0.023562,
+      "p2": 0.030137,
       "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
       "tipo": "3P",
       "requisitos": "Precio válido para potencia ≤ 10 kW.",
@@ -2505,5 +2505,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-16T11:21:35.814Z"
+  "updatedAt": "2026-11-16T19:38:20.489Z"
 }
