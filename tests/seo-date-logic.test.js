@@ -1,0 +1,396 @@
+/**
+ * @vitest-environment node
+ */
+
+import { describe, expect, it } from 'vitest';
+import {
+  getSelfStampedDate,
+  isSignificantlyDirty,
+  maskVolatileSeoChanges,
+  resolvePageDate,
+  resolveSitemapLastmod
+} from '../scripts/seo-date-logic.mjs';
+
+describe('SEO date policy', () => {
+  it('treats deploy-only changes as non-significant', () => {
+    const committed = [
+      '<script src="/js/app.js?v=20260718-101010"></script>',
+      "'sha256-abcDEF012+/='",
+      '{"dateModified":"2026-07-18T12:00:00+02:00"}',
+      '<span class="updated-badge">Act. 18 jul 2026</span>',
+      '<p><em>Última actualización: 18 de julio de 2026</em></p>'
+    ].join('\n');
+    const current = [
+      '<script src="/js/app.js?v=20260719-090000"></script>',
+      "'sha256-newHash456+/='",
+      '{"dateModified":"2026-07-19T12:00:00+02:00"}',
+      '<span class="updated-badge">Act. 19 jul 2026</span>',
+      '<p><em>Última actualización: 19 de julio de 2026</em></p>'
+    ].join('\n');
+
+    expect(maskVolatileSeoChanges(current)).toBe(maskVolatileSeoChanges(committed));
+    expect(isSignificantlyDirty({ status: ' M index.html', currentContent: current, committedContent: committed })).toBe(false);
+    expect(isSignificantlyDirty({
+      status: ' M index.html',
+      currentContent: `${current}\n<main>Contenido nuevo</main>`,
+      committedContent: committed
+    })).toBe(true);
+  });
+
+  it('treats accessibility-only markup as non-editorial, but not new visible text', () => {
+    const committed = [
+      '<div class="topbar">',
+      '<nav class="breadcrumbs"><a href="/">Inicio</a></nav>',
+      '<h3 class="u-h3-strong-10">Sobre el Comparador</h3>',
+      '<table><tr><th></th><th>PVPC</th></tr></table>'
+    ].join('\n');
+    const a11yOnly = committed
+      .replace('<div class="topbar">', '<div class="topbar" role="banner">')
+      .replace('<nav class="breadcrumbs">', '<nav class="breadcrumbs" aria-label="Ruta de navegación">')
+      .replace('<h3 class="u-h3-strong-10">Sobre el Comparador</h3>', '<h2 class="u-h3-strong-10">Sobre el Comparador</h2>');
+    expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: a11yOnly, committedContent: committed })).toBe(false);
+
+    // Un rotulo visible nuevo SI es un cambio de contenido y debe sellar fecha.
+    const visibleText = a11yOnly.replace('<th></th>', '<th>Aspecto</th>');
+    expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: visibleText, committedContent: committed })).toBe(true);
+    // Y cambiar el texto de un encabezado tambien, aunque cambie su nivel.
+    const newHeading = a11yOnly.replace('Sobre el Comparador</h2>', 'Sobre LuzFija</h2>');
+    expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: newHeading, committedContent: committed })).toBe(true);
+  });
+
+  it('treats robots directives and Article image metadata as non-editorial', () => {
+    const base = [
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>',
+      '<h1>Estafas y llamadas comerciales</h1>',
+      '<p>Texto de la guia que lee el usuario.</p>'
+    ].join('\n');
+    const committed = [
+      base,
+      '<script type="application/ld+json">{"@type":"Article","image":{"@type":"ImageObject","url":"https://luzfija.es/og.png","width":1200,"height":630}}</script>'
+    ].join('\n');
+
+    // 1. Anadir meta robots, por si solo, no es un cambio editorial.
+    const robotsOnly = [
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>',
+      '<meta name="robots" content="index,follow,max-image-preview:large"/>',
+      '<h1>Estafas y llamadas comerciales</h1>',
+      '<p>Texto de la guia que lee el usuario.</p>',
+      '<script type="application/ld+json">{"@type":"Article","image":{"@type":"ImageObject","url":"https://luzfija.es/og.png","width":1200,"height":630}}</script>'
+    ].join('\n');
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: robotsOnly, committedContent: committed
+    })).toBe(false);
+
+    // 2. Corregir la imagen del Article, por si solo, tampoco lo es.
+    const imageOnly = [
+      base,
+      '<script type="application/ld+json">{"@type":"Article","image":{"@type":"ImageObject","url":"https://luzfija.es/img/hero.png","width":658,"height":753}}</script>'
+    ].join('\n');
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: imageOnly, committedContent: committed
+    })).toBe(false);
+
+    // 3. Ambos a la vez siguen sin sellar fecha nueva.
+    const both = robotsOnly.replace(
+      '"url":"https://luzfija.es/og.png","width":1200,"height":630',
+      '"url":"https://luzfija.es/img/hero.png","width":658,"height":753'
+    );
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: both, committedContent: committed
+    })).toBe(false);
+
+    // 4. Cambiar el texto visible SI actualiza la fecha.
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html',
+      currentContent: both.replace('Texto de la guia que lee el usuario.', 'Texto reescrito con datos nuevos.'),
+      committedContent: committed
+    })).toBe(true);
+
+    // 5. Cambiar la imagen de verdad tambien: og:image y el <img> visible no
+    //    estan enmascarados, asi que el fichero sigue contando como sucio.
+    const realImageSwap = [
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>',
+      '<meta property="og:image" content="https://luzfija.es/img/otra.png"/>',
+      '<h1>Estafas y llamadas comerciales</h1>',
+      '<p>Texto de la guia que lee el usuario.</p>',
+      '<script type="application/ld+json">{"@type":"Article","image":{"@type":"ImageObject","url":"https://luzfija.es/img/otra.png","width":900,"height":600}}</script>'
+    ].join('\n');
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: realImageSwap, committedContent: committed
+    })).toBe(true);
+  });
+
+  it('treats the anti-framing loader as infrastructure, but not other new scripts', () => {
+    const committed = [
+      '<meta charset="utf-8"/>',
+      '<meta name="color-scheme" content="dark light"/>',
+      '<script>',
+      '    (function(){ /* tema */ })();',
+      '</script>',
+      '<p>Texto de la guia que lee el usuario.</p>'
+    ].join('\n');
+    // Alta del 18/10/2026: una linea con el guard justo antes del primer script.
+    const withGuard = committed.replace(
+      '<script>\n',
+      '<script src="/js/frame-guard.js?v=20261016-092957"></script>\n<script>\n'
+    );
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: withGuard, committedContent: committed
+    })).toBe(false);
+    // Con sangria, como en las aplicaciones, tampoco.
+    const indented = `  ${committed.replace('<script>\n', '<script src="/js/frame-guard.js?v=20261016-092957"></script>\n  <script>\n')}`;
+    expect(maskVolatileSeoChanges(indented)).toBe(maskVolatileSeoChanges(`  ${committed.replace('<script>\n', '  <script>\n')}`));
+
+    // Un texto visible nuevo junto al guard SI sella fecha.
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html',
+      currentContent: withGuard.replace('Texto de la guia', 'Texto reescrito de la guia'),
+      committedContent: committed
+    })).toBe(true);
+    // Y la excepcion es solo para el guard: otro script nuevo sigue contando.
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html',
+      currentContent: committed.replace('<script>\n', '<script src="/js/otro.js?v=20261016-092957"></script>\n<script>\n'),
+      committedContent: committed
+    })).toBe(true);
+  });
+
+  it('treats preload hints as infrastructure, but not new stylesheets', () => {
+    const committed = [
+      '<meta charset="utf-8"/>',
+      '  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>',
+      '  <link rel="stylesheet" href="/styles.css?v=20261108-190217">',
+      '<p>Texto de la guia que lee el usuario.</p>'
+    ].join('\n');
+    // Alta del 12/11/2026: bloque de preloads y la fuente movida de sitio.
+    const withPreloads = [
+      '<meta charset="utf-8"/>',
+      '  <link rel="preload" href="/styles.css?v=20261112-100000" as="style">',
+      '  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>',
+      '  <link rel="stylesheet" href="/styles.css?v=20261112-100000">',
+      '<p>Texto de la guia que lee el usuario.</p>'
+    ].join('\n');
+    expect(isSignificantlyDirty({
+      status: ' M index.html', currentContent: withPreloads, committedContent: committed
+    })).toBe(false);
+
+    // Una hoja de estilo nueva sigue contando.
+    expect(isSignificantlyDirty({
+      status: ' M index.html',
+      currentContent: withPreloads.replace('<p>', '  <link rel="stylesheet" href="/nueva.css?v=20261112-100000">\n<p>'),
+      committedContent: committed
+    })).toBe(true);
+    // Y un texto visible nuevo tambien.
+    expect(isSignificantlyDirty({
+      status: ' M index.html',
+      currentContent: withPreloads.replace('Texto de la guia', 'Texto reescrito de la guia'),
+      committedContent: committed
+    })).toBe(true);
+  });
+
+  it('treats page CSS (<style> blocks and style attributes) as presentation, not content', () => {
+    const committed = [
+      '<style>',
+      '.header{position:sticky;top:0;padding:16px 0;z-index:100}',
+      '.card{color:red}',
+      '</style>',
+      '<p style="color:#8b5cf6">Texto de la guia.</p>'
+    ].join('\n');
+    const dirty = (current) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: current, committedContent: committed });
+    // Cabecera no fija en movil, colores, una regla nueva: presentacion.
+    expect(dirty(committed.replace('z-index:100}\n', 'z-index:100}\n@media (max-width:640px),(max-height:500px){.header{position:static}}\n'))).toBe(false);
+    expect(dirty(committed.replace('.card{color:red}', '.card{color:blue}'))).toBe(false);
+    expect(dirty(committed.replace('color:#8b5cf6', 'color:var(--accent-text)'))).toBe(false);
+    expect(dirty(committed.replace(/\n/g, '\r\n'))).toBe(false);
+    // El texto, un enlace o un elemento nuevo siguen contando.
+    expect(dirty(committed.replace('Texto de la guia.', 'Texto nuevo de la guia.'))).toBe(true);
+    expect(dirty(committed + '\n<p>Parrafo nuevo</p>')).toBe(true);
+    expect(dirty(committed.replace('<p style', '<p class="nota" style'))).toBe(true);
+  });
+
+  it('only masks <style> blocks written at line start: a "<style>" string inside a script cannot swallow content', () => {
+    const committed = '<script>var css = "<style>";</script>\n<p>Texto original</p>\n<script>var fin = "</style>";</script>';
+    const current = committed.replace('Texto original', 'Texto reescrito');
+    expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: current, committedContent: committed })).toBe(true);
+  });
+
+  it('never lets a <style> mask jump over HTML when a block closes mid-line', () => {
+    // Primer bloque con </style> al final de una linea; entre los dos bloques, texto visible.
+    const committed = '<style>\n.a{color:red}</style>\n<p>Texto original entre bloques</p>\n<style>\n.b{color:blue}\n</style>';
+    const dirty = (current) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: current, committedContent: committed });
+    expect(dirty(committed.replace('Texto original', 'Texto reescrito'))).toBe(true);
+    // El segundo bloque, bien formado, sigue siendo presentacion.
+    expect(dirty(committed.replace('.b{color:blue}', '.b{color:green}'))).toBe(false);
+  });
+
+  it('keeps every visible-text case of the CSS mask counting (ChatGPT review, 12/11/2026)', () => {
+    const page = (head, body) => '<html><head>\n' + head + '\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (a, b) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: b, committedContent: a });
+    const css = '<style>\n.dato::before{content:\'Dato Clave\'}\n.a{color:red}\n</style>';
+    // Texto pintado por CSS: cuenta.
+    expect(dirty(page(css, '<p>A</p>'), page(css.replace('Dato Clave', 'Dato Clave 2026'), '<p>A</p>'))).toBe(true);
+    // Solo el color: no cuenta.
+    expect(dirty(page(css, '<p>A</p>'), page(css.replace('color:red', 'color:blue'), '<p>A</p>'))).toBe(false);
+    // Mayusculas: tambien se reconoce el bloque.
+    expect(dirty(page(css.toUpperCase().replace('DATO CLAVE', 'Dato Clave'), '<p>A</p>'), page(css.toUpperCase().replace('DATO CLAVE', 'Dato Clave').replace('COLOR:RED', 'COLOR:BLUE'), '<p>A</p>'))).toBe(false);
+    // Un "<style>" en una cadena de un script del cuerpo no enmascara nada.
+    const js = '<script>\nconst h = ' + String.fromCharCode(96) + '\n<style>\n.n::before{content:"Precio anterior"}\n</style>\n' + String.fromCharCode(96) + ';\n</script>';
+    expect(dirty(page(css, js), page(css, js.replace('Precio anterior', 'Precio actualizado')))).toBe(true);
+    // Un comentario no puede abrir un bloque que se trague el texto visible.
+    const trampa = '<!--\n<style>\n-->\n<p>TEXTO VISIBLE</p>\n</style>';
+    expect(dirty(page(trampa, '<p>A</p>'), page(trampa.replace('TEXTO VISIBLE', 'OTRO TEXTO'), '<p>A</p>'))).toBe(true);
+    // "style=" escrito como texto no es un atributo.
+    expect(dirty(page(css, '<p>Ejemplo: style="color:red"</p>'), page(css, '<p>Ejemplo: style="color:blue"</p>'))).toBe(true);
+    // Ocultar o mostrar un bloque con style="" cuenta; cambiar su color no.
+    expect(dirty(page(css, '<p style="display:block">Info</p>'), page(css, '<p style="display:none">Info</p>'))).toBe(true);
+    expect(dirty(page(css, '<p style="color:red">Info</p>'), page(css, '<p style="color:blue">Info</p>'))).toBe(false);
+  });
+
+  it('covers the second ChatGPT review: var(), counter(), comments, attributes and head scripts', () => {
+    const page = (head, body) => '<html><head>\n' + head + '\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (x, y) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: y, committedContent: x });
+    const css = (inner) => '<style>\n' + inner + '\n.a{color:red}\n</style>';
+    // Texto en una variable que usa content: var()
+    expect(dirty(page(css(':root{--label:"Oferta anterior"}\n.b::before{content:var(--label)}'), '<p>A</p>'), page(css(':root{--label:"Oferta nueva"}\n.b::before{content:var(--label)}'), '<p>A</p>'))).toBe(true);
+    // content con counter() o attr()
+    expect(dirty(page(css('.b::before{content:"Precio: " counter(total)}'), '<p>A</p>'), page(css('.b::before{content:"Precio: " counter(descuento)}'), '<p>A</p>'))).toBe(true);
+    expect(dirty(page(css('.b::before{content:attr(data-a)}'), '<p>A</p>'), page(css('.b::before{content:attr(data-b)}'), '<p>A</p>'))).toBe(true);
+    // Comentario entre content: y el texto
+    expect(dirty(page(css('.b::before{content:/* etiqueta */ "Anterior"}'), '<p>A</p>'), page(css('.b::before{content:/* etiqueta */ "Nuevo"}'), '<p>A</p>'))).toBe(true);
+    // Un comentario CSS con "content:" no cuenta: es solo CSS
+    expect(dirty(page(css('/* content: "viejo" */'), '<p>A</p>'), page(css('/* content: "otro" */'), '<p>A</p>'))).toBe(false);
+    // style="" escrito dentro de un title cuenta (es texto del tooltip)
+    expect(dirty(page(css(''), "<button title='Ayuda: style=\"color:red\"'>i</button>"), page(css(''), "<button title='Ayuda: style=\"color:blue\"'>i</button>"))).toBe(true);
+    // Atributo style real con comillas simples: solo color, no cuenta
+    expect(dirty(page(css(''), "<p style='color:red'>A</p>"), page(css(''), "<p style='color:blue'>A</p>"))).toBe(false);
+    // Plantilla JS del <head> con un <style>: cuenta
+    const js = (label) => '<script>\nconst c = ' + String.fromCharCode(96) + '\n<style>\n:root{--l:"' + label + '"}\n</style>\n' + String.fromCharCode(96) + ';\n</script>';
+    expect(dirty(page(js('Anterior') + '\n' + css(''), '<p>A</p>'), page(js('Nuevo') + '\n' + css(''), '<p>A</p>'))).toBe(true);
+    // Otras formas de ocultar contenido cuentan
+    expect(dirty(page(css(''), '<p style="opacity:0">Info</p>'), page(css(''), '<p style="opacity:1">Info</p>'))).toBe(true);
+    expect(dirty(page(css(''), '<p style="visibility:visible">Info</p>'), page(css(''), '<p style="visibility:collapse">Info</p>'))).toBe(true);
+    // Un "display:none" dentro de un comentario del style no es ocultar
+    expect(dirty(page(css(''), '<div style="color:red; /* display:none */">x</div>'), page(css(''), '<div style="color:red">x</div>'))).toBe(false);
+  });
+
+  it('covers the third ChatGPT review: variables in style="", ";" inside strings, literal markup', () => {
+    const page = (head, body) => '<html><head>\n<style>\n.aviso::before{content:var(--mensaje)}\n' + head + '\n</style>\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (x, y) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: y, committedContent: x });
+    // Variable con texto en un style="" que pinta un content: var()
+    expect(dirty(page('', "<p class=\"aviso\" style='--mensaje:\"Precio anterior\"'>T</p>"), page('', "<p class=\"aviso\" style='--mensaje:\"Precio actualizado\"'>T</p>"))).toBe(true);
+    // Punto y coma dentro de la cadena de content
+    expect(dirty(page('.paso::before{content:"Paso; conecta el contador"}', '<p>A</p>'), page('.paso::before{content:"Paso; revisa el contador"}', '<p>A</p>'))).toBe(true);
+    // HTML literal dentro de un textarea es texto visible
+    expect(dirty(page('', '<textarea><span style="color:red">Ejemplo</span></textarea>'), page('', '<textarea><span style="color:blue">Ejemplo</span></textarea>'))).toBe(true);
+    // Y lo que no es texto sigue sin contar
+    expect(dirty(page('.x{color:red}', '<p style="color:red">A</p>'), page('.x{color:blue}', '<p style="color:blue">A</p>'))).toBe(false);
+  });
+
+  it('keeps other CSS that paints text (own review, 13/11/2026) and still ignores fonts and images', () => {
+    const page = (head, body) => '<html><head>\n<style>\n' + head + '\n</style>\n</head><body>\n' + body + '\n</body></html>';
+    const dirty = (x, y) => isSignificantlyDirty({ status: ' M guias/x.html', currentContent: y, committedContent: x });
+    const v = '.a::before{content:var(--m)}';
+    // Comillas como entidades dentro de un style=""
+    expect(dirty(page(v, '<p class="a" style="--m:&quot;Antes&quot;">T</p>'), page(v, '<p class="a" style="--m:&quot;Despues&quot;">T</p>'))).toBe(true);
+    // Marcadores de lista, comillas de <q> y contadores
+    expect(dirty(page('ul{list-style-type:"-> "}', '<p>a</p>'), page('ul{list-style-type:"=> "}', '<p>a</p>'))).toBe(true);
+    expect(dirty(page('q{quotes:"«" "»"}', '<p>a</p>'), page('q{quotes:"<" ">"}', '<p>a</p>'))).toBe(true);
+    expect(dirty(page('ol{counter-reset:paso 0}', '<p>a</p>'), page('ol{counter-reset:paso 5}', '<p>a</p>'))).toBe(true);
+    // Cadenas con } y con comillas escapadas
+    expect(dirty(page('.a::before{content:"a } b"}', '<p>a</p>'), page('.a::before{content:"a } c"}', '<p>a</p>'))).toBe(true);
+    expect(dirty(page('.a::before{content:"di \\"hola\\""}', '<p>a</p>'), page('.a::before{content:"di \\"adios\\""}', '<p>a</p>'))).toBe(true);
+    // Tipografia, imagenes de fondo y tamanos siguen siendo presentacion
+    expect(dirty(page('p{font-family:"Outfit",sans-serif}', '<p>a</p>'), page('p{font-family:"Inter",sans-serif}', '<p>a</p>'))).toBe(false);
+    expect(dirty(page('p{background:url("a.png")}', '<p>a</p>'), page('p{background:url("b.png")}', '<p>a</p>'))).toBe(false);
+    expect(dirty(page('', '<img src="a.png" alt="A" style="width:10px">'), page('', '<img src="a.png" alt="A" style="width:12px">'))).toBe(false);
+    // Y el texto alternativo o el destino de un enlace cuentan aunque cambie tambien el estilo
+    expect(dirty(page('', '<img src="a.png" alt="Antes" style="width:10px">'), page('', '<img src="a.png" alt="Despues" style="width:12px">'))).toBe(true);
+    expect(dirty(page('', '<a href="/a" style="color:red">x</a>'), page('', '<a href="/b" style="color:blue">x</a>'))).toBe(true);
+  });
+
+  it('does not re-date the privacy policy for a CSS-only fix', () => {
+    const committed = '<style>\n.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}\n</style>\n<p>Texto legal.</p>';
+    const withRule = committed.replace('var(--muted)}\n', 'var(--muted)}\n.accordion-item .accordion-content{overflow-wrap:anywhere}\n');
+    const dirty = (current) => isSignificantlyDirty({ status: ' M privacidad.html', currentContent: current, committedContent: committed });
+    expect(dirty(withRule)).toBe(false);
+    expect(dirty(withRule.replace('Texto legal.', 'Texto legal nuevo.'))).toBe(true);
+  });
+
+  it('does not ignore HTML comments: a regex cannot tell them from text in style, textarea, title or attributes', () => {
+    // Revision de ChatGPT del 12/11/2026: una mascara de comentarios por regex ocultaba cambios
+    // reales. Se retiro; el fallo aceptado es el inofensivo (tocar un comentario fecha la pagina).
+    const dirty = (antes, despues) => isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: despues, committedContent: antes
+    });
+    // Un comentario nuevo fecha la pagina (conservador, a proposito).
+    expect(dirty('<p>A</p>', '<p>A</p>\n<!-- una nota -->')).toBe(true);
+    // CSS dentro de CDO/CDC: desde el 12/11/2026 el CSS de pagina es presentacion y no fecha (ver
+    // el test de bloques <style>); aqui importa que el comentario no oculte el texto de al lado.
+    expect(dirty('<style>\n<!--\n.card{color:red}\n-->\n</style>\n<p>A</p>', '<style>\n<!--\n.card{color:blue}\n-->\n</style>\n<p>B</p>')).toBe(true);
+    // Texto visible de un textarea y del titulo.
+    expect(dirty('<textarea><!-- Pon tu consumo --></textarea>', '<textarea><!-- Pon tu consumo anual --></textarea>')).toBe(true);
+    expect(dirty('<title><!-- Guia --> Factura</title>', '<title><!-- Guia --> Factura nueva</title>')).toBe(true);
+    // Valor de un atributo.
+    expect(dirty('<button title="<!-- Ayuda -->">?</button>', '<button title="<!-- Ayuda ampliada -->">?</button>')).toBe(true);
+    // "<!--" dentro de un script y comentario condicional.
+    expect(dirty('<script>var m = "<!--";</script>\n<p>Texto original</p>\n<!-- c -->', '<script>var m = "<!--";</script>\n<p>Texto reescrito</p>\n<!-- c -->')).toBe(true);
+    expect(dirty('<!--[if IE]><p>Aviso viejo</p><![endif]-->', '<!--[if IE]><p>Aviso nuevo</p><![endif]-->')).toBe(true);
+  });
+
+  it('preserves the self-stamped date across pre-commit and CI git fallbacks', () => {
+    const content = '<script type="application/ld+json">{"dateModified":"2026-07-18T12:00:00+02:00"}</script>';
+
+    expect(resolvePageDate({
+      dirty: false,
+      content,
+      today: '2026-07-19',
+      gitLastModifiedDate: '2026-07-18'
+    })).toBe('2026-07-18');
+    expect(resolvePageDate({
+      dirty: false,
+      content,
+      today: '2026-07-19',
+      gitLastModifiedDate: '2026-07-19'
+    })).toBe('2026-07-18');
+  });
+
+  it('preserves an existing sitemap lastmod for clean pages without a date field', () => {
+    const input = {
+      dirty: false,
+      content: '<!doctype html><title>Home</title>',
+      existingLastmod: '2026-07-18',
+      today: '2026-07-19'
+    };
+
+    expect(resolveSitemapLastmod({ ...input, gitLastModifiedDate: '2026-07-18' })).toBe('2026-07-18');
+    expect(resolveSitemapLastmod({ ...input, gitLastModifiedDate: '2026-07-19' })).toBe('2026-07-18');
+  });
+
+  it('uses today only for a real content change', () => {
+    expect(resolveSitemapLastmod({
+      dirty: true,
+      content: '<!doctype html><title>Changed</title>',
+      existingLastmod: '2026-07-18',
+      today: '2026-07-19',
+      gitLastModifiedDate: '2026-07-18'
+    })).toBe('2026-07-19');
+  });
+
+  it('self-heals a malformed durable stamp instead of falling back to git history', () => {
+    const input = {
+      dirty: false,
+      content: '<span class="updated-badge">Act. fecha rota</span>',
+      today: '2026-07-19',
+      gitLastModifiedDate: '2026-07-18'
+    };
+
+    expect(resolvePageDate(input)).toBe('2026-07-19');
+    expect(resolveSitemapLastmod({ ...input, existingLastmod: '2026-07-18' })).toBe('2026-07-19');
+  });
+
+  it('reads all supported durable date stamps', () => {
+    expect(getSelfStampedDate('<span class="updated-badge">Act. 8 jul 2026</span>')).toBe('2026-07-08');
+    expect(getSelfStampedDate('<p><em>Última actualización: 18 de julio de 2026</em></p>')).toBe('2026-07-18');
+    expect(getSelfStampedDate('{"dateModified":"2026-02-31"}')).toBeNull();
+  });
+});

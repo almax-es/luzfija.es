@@ -1,0 +1,10 @@
+# Commits de higiene masiva que conviene ignorar en git blame.
+# GitHub lo detecta automaticamente por el nombre del archivo; en local:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Vacio a proposito: el historial de main se aplasta periodicamente en un unico commit
+# raiz (checkpoint), asi que git blame atribuye todas las lineas a ese commit y no hay
+# commits de higiene que ignorar. Los dos que habia (normalizacion a LF y espacios
+# finales, 11/06/2026) desaparecieron con el primer squash del 04/07/2026.
+# No borrar el fichero: si blame.ignoreRevsFile apunta a un fichero inexistente,
+# git blame falla.

@@ -1,0 +1,261 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+
+/**
+ * @vitest-environment jsdom
+ */
+
+const configCode = fs.readFileSync(path.resolve(__dirname, '../js/config.js'), 'utf8');
+
+function bootstrapConfig() {
+  const fn = new Function(configCode);
+  fn();
+}
+
+function dispatchUnhandledRejection(reason) {
+  const evt = new Event('unhandledrejection', { cancelable: true });
+  Object.defineProperty(evt, 'reason', {
+    value: reason,
+    configurable: true
+  });
+  window.dispatchEvent(evt);
+  return evt;
+}
+
+beforeEach(() => {
+  try { delete window.goatcounter; } catch (_) {}
+  delete window.currentYear;
+  delete window.__LF_LEGACY_CURRENTYEAR_FILTER_CONFIG;
+  delete window.__LF_LEGACY_GOAT_GUARD_CONFIG;
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe('Config legacy rejection filter', () => {
+  it('define currentYear y bloquea ruido legacy', () => {
+    bootstrapConfig();
+
+    const tailListener = vi.fn();
+    window.addEventListener('unhandledrejection', tailListener);
+
+    const evt = dispatchUnhandledRejection('Promise reject: currentYear is not defined event');
+
+    expect(typeof window.currentYear).toBe('number');
+    expect(tailListener).not.toHaveBeenCalled();
+    expect(evt.defaultPrevented).toBe(true);
+  });
+
+  it('no bloquea rechazos no relacionados', () => {
+    bootstrapConfig();
+
+    const tailListener = vi.fn();
+    window.addEventListener('unhandledrejection', tailListener);
+
+    const evt = dispatchUnhandledRejection('Promise reject: network failed');
+
+    expect(tailListener).toHaveBeenCalledTimes(1);
+    expect(evt.defaultPrevented).toBe(false);
+  });
+
+  it('reclasifica ruido legacy en goatcounter.count cuando ya existe goatcounter', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-promise',
+      title: 'Promise reject: currentYear is not defined event'
+    });
+    window.goatcounter.count({
+      path: 'error-javascript',
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    expect(rawCount).toHaveBeenCalledTimes(2);
+    expect(rawCount).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        path: 'error-legacy-filtrado/currentyear-stale/desconocido',
+        event: true,
+        title: expect.stringContaining('tipo:currentyear-stale')
+      })
+    );
+    expect(rawCount).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        path: 'error-legacy-filtrado/index-extra-compat/desconocido',
+        event: true,
+        title: expect.stringContaining('tipo:index-extra-compat')
+      })
+    );
+  });
+
+  it('reclasifica ruido legacy tambien en los paths de error con segmentos', () => {
+    // Desde 2026-07 los errores llevan fichero/linea/build en el path. Si el
+    // guard siguiera comparando la ruta exacta, este ruido se colaria.
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-promise/index-extra/101/20260721-075326',
+      title: 'Promise reject: currentYear is not defined event'
+    });
+    window.goatcounter.count({
+      path: 'error-javascript/index-extra/12/desconocido',
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    expect(rawCount).toHaveBeenCalledTimes(2);
+    expect(rawCount).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ path: 'error-legacy-filtrado/currentyear-stale/desconocido', event: true })
+    );
+    expect(rawCount).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ path: 'error-legacy-filtrado/index-extra-compat/desconocido', event: true })
+    );
+  });
+
+  it('no reclasifica un path de producto que empiece parecido', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-javascript-manual/algo',
+      title: 'currentYear is not defined'
+    });
+
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({ path: 'error-javascript-manual/algo' })
+    );
+  });
+
+  it('reclasifica variantes legacy con path normalizable', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: '/error-promise/?from=old',
+      title: 'currentYear is undefined'
+    });
+
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado/currentyear-stale/desconocido',
+        event: true,
+        title: expect.stringContaining('tipo:currentyear-stale')
+      })
+    );
+  });
+
+  it('incluye la ruta actual al reclasificar para facilitar diagnostico', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+    window.history.replaceState({}, '', '/guias.html');
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-promise',
+      title: 'Promise reject: currentYear is not defined event'
+    });
+
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado/currentyear-stale/desconocido',
+        title: expect.stringContaining('@/guias.html')
+      })
+    );
+  });
+
+  it('reclasifica ruido legacy en goatcounter.count cuando goatcounter se asigna después', () => {
+    bootstrapConfig();
+
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+    window.goatcounter.count({
+      path: 'error-javascript',
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado/index-extra-compat/desconocido',
+        event: true,
+        title: expect.stringContaining('tipo:index-extra-compat')
+      })
+    );
+  });
+
+  it('envuelve count cuando el sender añade el método al objeto preexistente', () => {
+    bootstrapConfig();
+
+    const rawCount = vi.fn();
+    window.goatcounter = {};
+    window.goatcounter.count = rawCount;
+
+    const sender = document.createElement('script');
+    sender.src = '/vendor/goatcounter/count.js?v=build';
+    document.head.appendChild(sender);
+    sender.dispatchEvent(new Event('load'));
+
+    window.goatcounter.count({
+      path: 'error-javascript/app/10/20260722-103502',
+      title: 'currentYear is not defined'
+    });
+
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado/currentyear-stale/desconocido',
+        event: true,
+        title: expect.stringContaining('tipo:currentyear-stale')
+      })
+    );
+  });
+
+  it('permite eventos normales en goatcounter.count', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    const payload = {
+      path: 'calculo-realizado',
+      title: 'Usuario calculó tarifas',
+      event: true
+    };
+    window.goatcounter.count(payload);
+
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(payload);
+  });
+
+  it('no reclasifica payloads con menciones parciales de currentYear', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    const payload = {
+      path: 'error-javascript',
+      title: 'currentYear helper inicializado correctamente',
+      event: true
+    };
+    window.goatcounter.count(payload);
+
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(payload);
+  });
+});
