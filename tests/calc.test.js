@@ -446,6 +446,66 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(await marca({ dias: 365 })).toBe(true);
     expect(await marca({ dias: 365, exTotal: 0 })).toBe(false);
     expect(await marca({ dias: 365, solarOn: false })).toBe(false);
+
+    // Ninguna tarifa compensa: el ranking no puede avisar de una compensacion que no aplica
+    // (en el desglose tampoco sale, porque `compensa` es false en todas).
+    window.LF.cachedTarifas = [{
+      nombre: 'Sin compensacion', tipo: '1P', p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      fv: { exc: 0, tipo: 'NO COMPENSA', bv: false }, esPVPC: false
+    }];
+    expect(await marca({ dias: 365 })).toBe(false);
+  });
+
+  it('getDiasAvisoCompensacion: spanDays solo con curva vigente y clearCsvImportState lo limpia', () => {
+    try {
+      window.LF.consumosHorarios = [{ fecha: '2025-04-01', hora: 1, kwh: 0.2 }];
+      window.LF.csvSpanDays = 365;
+      expect(window.LF.getDiasAvisoCompensacion(30)).toBe(365);
+      expect(window.LF.getDiasAvisoCompensacion(370)).toBe(370);
+      window.LF.consumosHorarios = [];
+      expect(window.LF.getDiasAvisoCompensacion(30)).toBe(30);
+      window.LF.consumosHorarios = [{ fecha: '2025-04-01', hora: 1, kwh: 0.2 }];
+      window.LF.clearCsvImportState();
+      expect(window.LF.csvSpanDays).toBe(0);
+      expect(window.LF.getDiasAvisoCompensacion(30)).toBe(30);
+    } finally {
+      window.LF.clearCsvImportState();
+    }
+  });
+
+  // Curva con huecos: 30 dias con lecturas repartidos en un año. Los cargos usan dias=30, pero
+  // los excedentes se agregan igual sobre todo el tramo, asi que el aviso mira spanDays.
+  it('el aviso de periodo largo usa los dias de calendario de una curva importada vigente', async () => {
+    window.LF.cachedTarifas = [{
+      nombre: 'Solar', tipo: '1P', p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      fv: { exc: 0.05, tipo: 'SIMPLE', bv: false }, esPVPC: false
+    }];
+    const marca = async (dias) => {
+      await window.LF.calculateLocal({
+        p1: 4, p2: 4, dias, cPunta: 100, cLlano: 0, cValle: 0,
+        zonaFiscal: 'Península', viviendaCanarias: false,
+        solarOn: true, exTotal: 50, bvSaldo: 0,
+        bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+        fechaYmd: '2026-03-20'
+      });
+      return window.LF.renderAll.mock.calls.at(-1)?.[0].periodoLargoConExcedentes;
+    };
+    try {
+      window.LF.consumosHorarios = [{ fecha: '2025-04-01', hora: 1, kwh: 0.2 }];
+      window.LF.csvSpanDays = 365;
+      expect(await marca(30)).toBe(true);
+      // Caso habitual: curva continua, nada cambia.
+      window.LF.csvSpanDays = 30;
+      expect(await marca(30)).toBe(false);
+      // Curva ya invalidada (el usuario cambio el formulario): un spanDays rezagado no cuenta.
+      window.LF.consumosHorarios = null;
+      window.LF.csvSpanDays = 365;
+      expect(await marca(30)).toBe(false);
+    } finally {
+      window.LF.clearCsvImportState();
+    }
   });
 
   it('Debe ordenar correctamente (Barato primero)', async () => {

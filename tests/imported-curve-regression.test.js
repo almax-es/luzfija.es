@@ -57,6 +57,13 @@ describe('Regresión - Persistencia de curva horaria importada', () => {
     expect(csvImportCode).toMatch(/buildCsvConsumosRef/);
   });
 
+  // El aviso de compensacion agregada usa el tramo de calendario del archivo (spanDays) solo
+  // mientras la curva esta vigente; los cargos siguen con resultado.dias.
+  it('al aplicar CSV guarda spanDays para el aviso de periodo largo, sin tocar dias', () => {
+    expect(csvImportCode).toMatch(/window\.LF\.csvSpanDays\s*=\s*importedCurve\s*\?\s*\(Number\(resultado\.spanDays\)/);
+    expect(csvImportCode).toMatch(/diasInput\.value\s*=\s*resultado\.dias/);
+  });
+
   it('al aplicar factura invalida completo el estado CSV previo', () => {
     expect(facturaCode).toMatch(/clearCsvImportState/);
     expect(facturaCode).toMatch(/pvpcPeriodoCSV\s*=\s*false|clearCsvImportState/);

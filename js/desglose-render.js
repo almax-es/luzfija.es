@@ -220,7 +220,10 @@
       // pero la ley lo aplica en cada factura (maximo un mes; RD 244/2019 art. 14.3). 35 dias y no
       // 31 porque una factura real puede abarcar 32-34 dias entre lecturas y sigue siendo un solo
       // periodo de facturacion.
-      const periodoLargoConExcedentes = compensa && diasCalc > 35;
+      // diasAviso: dias de calendario de la curva importada si tiene huecos (solo para el aviso;
+      // los cargos usan datos.dias).
+      const diasAviso = Math.max(diasCalc, safeNum(datos.diasAviso));
+      const periodoLargoConExcedentes = compensa && diasAviso > 35;
       // kWh de excedentes realmente usados vs sobrantes (más intuitivo que solo €).
       // Se reconstruyen desde euros ya redondeados al céntimo, así que se acotan a los kWh
       // vertidos: sin tope, 3,00 € / 0,037494 €/kWh daba "80,01 kWh compensados" de 80 generados.
@@ -319,7 +322,7 @@
           <div class="desglose-solar-simulator-icon" aria-hidden="true">☀️</div>
           <div>
             <strong>${periodoLargoConExcedentes ? 'Periodo de más de un mes: cálculo orientativo.' : 'Para autoconsumo, este ranking es orientativo.'}</strong>
-            ${periodoLargoConExcedentes ? `<p class="desglose-solar-periodo-largo">Aquí el tope de compensación se aplica una sola vez a los ${this.fmtNum(diasCalc, 0)} días. En la realidad se aplica en cada factura (como máximo, un mes): los excedentes de una factura no compensan el consumo de otra, salvo que la tarifa permita acumularlos en una batería virtual. Por eso este resultado puede sobrestimar el ahorro por excedentes, sobre todo en tarifas sin batería virtual.</p>` : ''}
+            ${periodoLargoConExcedentes ? `<p class="desglose-solar-periodo-largo">Aquí el tope de compensación se aplica una sola vez a los ${this.fmtNum(diasAviso, 0)} días. En la realidad se aplica en cada factura (como máximo, un mes): los excedentes de una factura no compensan el consumo de otra, salvo que la tarifa permita acumularlos en una batería virtual. Por eso este resultado puede sobrestimar el ahorro por excedentes, sobre todo en tarifas sin batería virtual.</p>` : ''}
             <p>Para decidir qué tarifa solar te conviene, usa el <a href="/comparador-tarifas-solares.html">Simulador Solar</a>: calcula mes a mes, arrastra la batería virtual entre facturas, permite elegir el mes de inicio y puede usar tu CSV de consumo.</p>
           </div>
         </aside>` : ''}

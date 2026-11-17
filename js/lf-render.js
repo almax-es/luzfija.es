@@ -772,6 +772,8 @@
     if (excluidas.length) parts.push(`${excluidas.length} ${excluidas.length === 1 ? 'tarifa excluida' : 'tarifas excluidas'} por requisitos de consumo.`);
     const porPotencia = d?.limitesConsumo?.excluidasPotenciaAviso || [];
     if (porPotencia.length) parts.push(`${porPotencia.length} ${porPotencia.length === 1 ? 'tarifa excluida' : 'tarifas excluidas'} por tu potencia contratada.`);
+    // El aviso visual (#solarHomePeriodoLargo) es role="note", no una region viva: se resume aqui.
+    if (d?.solarOn && d?.periodoLargoConExcedentes) parts.push('Atención: con más de 35 días, la compensación de excedentes se calcula de una vez y no factura a factura.');
 
     live.textContent = '';
     if (__lf_resultsAnnounceTimer) clearTimeout(__lf_resultsAnnounceTimer);

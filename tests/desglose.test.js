@@ -442,6 +442,12 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(aviso({ dias: 365, excedentes: 2000 })).not.toBeNull();
     expect(aviso({ dias: 365, excedentes: 2000, tipoCompensacion: 'SIMPLE + BV', tieneBV: true })).not.toBeNull();
 
+    // Curva con huecos: 30 dias de cargos, 365 de calendario -> avisa con los 365.
+    const aHuecos = aviso({ dias: 30, diasAviso: 365, excedentes: 2000 });
+    expect(aHuecos).not.toBeNull();
+    expect(aHuecos.textContent).toContain('una sola vez a los 365 días');
+    expect(aviso({ dias: 30, diasAviso: 30, excedentes: 2000 })).toBeNull();
+
     expect(aviso({ dias: 365, excedentes: 0 })).toBeNull();
     expect(aviso({ dias: 365, excedentes: 2000, tipoCompensacion: 'NO COMPENSA' })).toBeNull();
 

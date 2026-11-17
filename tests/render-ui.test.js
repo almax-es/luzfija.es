@@ -406,7 +406,7 @@ describe('Renderizado UI (lf-render.js)', () => {
 
   // Mas de 35 dias con excedentes: el ranking aplica el tope de compensacion una vez sobre todo
   // el periodo. El aviso solar lo dice expresamente, y solo para ESE calculo renderizado.
-  it('El aviso solar explica la compensacion agregada solo con periodo largo y excedentes', () => {
+  it('El aviso solar explica la compensacion agregada solo con periodo largo y excedentes', async () => {
     const notice = document.getElementById('solarHomeEstimatorNotice');
     const largo = document.getElementById('solarHomePeriodoLargo');
     const render = (extra) => window.LF.renderAll({
@@ -424,6 +424,17 @@ describe('Renderizado UI (lf-render.js)', () => {
     render({ solarOn: true, periodoLargoConExcedentes: false });
     expect(notice.hidden).toBe(false);
     expect(largo.hidden).toBe(true);
+
+    // El recuadro es role="note" (no region viva): el resumen accesible lo anuncia. El anuncio
+    // llega tras pintar la tabla (renderAll devuelve esa promesa) y un setTimeout(0).
+    const live = document.getElementById('resultsLiveStatus');
+    const anuncio = async (extra) => {
+      await render(extra);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      return live.textContent;
+    };
+    expect(await anuncio({ solarOn: true, periodoLargoConExcedentes: true })).toContain('con más de 35 días, la compensación');
+    expect(await anuncio({ solarOn: true, periodoLargoConExcedentes: false })).not.toContain('35 días');
 
     render({ solarOn: false, periodoLargoConExcedentes: true });
     expect(notice.hidden).toBe(true);

@@ -161,6 +161,19 @@
     window.LF.consumosHorarios = null;
     window.LF.csvConsumosRef = null;
     window.LF.pvpcPeriodoCSV = false;
+    window.LF.csvSpanDays = 0;
+  }
+
+  // Dias que cuentan para el aviso de compensacion agregada (mas de 35 dias). Con una curva
+  // importada y vigente, manda el tramo de calendario del archivo (spanDays) si supera a `dias`:
+  // un CSV con huecos puede traer 30 dias con lecturas repartidos en un año, y sus excedentes se
+  // agregan igual. Solo para el AVISO: los cargos diarios siguen usando `dias` (AGENTS.md,
+  // spanDays frente a dias).
+  function getDiasAvisoCompensacion(dias) {
+    const diasNum = Number(dias) || 0;
+    const curvaVigente = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0;
+    const span = curvaVigente ? (Number(window.LF?.csvSpanDays) || 0) : 0;
+    return Math.max(diasNum, span);
   }
 
   // ===== SIGNATURE =====
@@ -699,6 +712,7 @@
     assessCsvConsumosRef,
     csvConsumosRefMatches,
     clearCsvImportState,
+    getDiasAvisoCompensacion,
     signatureFromValues,
     migrateExcedentes,
     updateZonaFiscalUI,

@@ -457,6 +457,10 @@
       fechaFin: fechas.fin,        // ✅ Fecha calculada
       fechaYmd: fechas.fechaYmd,
       dias: inputs.dias,
+      // Solo para el aviso de periodo largo: dias de calendario de la curva importada si los hay.
+      diasAviso: typeof window.LF?.getDiasAvisoCompensacion === 'function'
+        ? window.LF.getDiasAvisoCompensacion(inputs.dias)
+        : inputs.dias,
 
       potenciaP1: inputs.p1,
       potenciaP2: inputs.p2,

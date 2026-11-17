@@ -929,6 +929,9 @@
         window.LF = window.LF || {};
         const importedCurve = Array.isArray(resultado.consumosHorarios) ? resultado.consumosHorarios : null;
         window.LF.consumosHorarios = importedCurve;
+        // Tramo de calendario del archivo, solo para el aviso de compensacion agregada
+        // (getDiasAvisoCompensacion); los cargos diarios siguen con resultado.dias.
+        window.LF.csvSpanDays = importedCurve ? (Number(resultado.spanDays) || 0) : 0;
         window.LF.csvConsumosRef = importedCurve
           ? window.LF.buildCsvConsumosRef({
               dias: resultado.dias,

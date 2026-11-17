@@ -149,6 +149,29 @@ describe('Desglose integration UX guardrails', () => {
     );
   });
 
+  // Curva importada con huecos: los cargos siguen con `dias`, el aviso de periodo largo recibe
+  // aparte los dias de calendario de la curva (getDiasAvisoCompensacion).
+  it('pasa diasAviso al desglose sin tocar dias', async () => {
+    window.LF.getDiasAvisoCompensacion = vi.fn(() => 365);
+    try {
+      document.getElementById('tbody').innerHTML = `
+        <tr data-tarifa-nombre="Tarifa X">
+          <td class="tarifa-cell">Tarifa X</td>
+          <td class="total-cell">40,00 €</td>
+        </tr>
+      `;
+      bootstrapIntegration();
+
+      await window.mostrarDesglose('Tarifa X');
+
+      expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
+        expect.objectContaining({ dias: 30, diasAviso: 365 })
+      );
+    } finally {
+      delete window.LF.getDiasAvisoCompensacion;
+    }
+  });
+
   it('ignora clics en celdas marcadas como no comparables', () => {
     bootstrapIntegration();
 
