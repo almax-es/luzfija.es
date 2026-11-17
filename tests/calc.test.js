@@ -446,6 +446,9 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(await marca({ dias: 365 })).toBe(true);
     expect(await marca({ dias: 365, exTotal: 0 })).toBe(false);
     expect(await marca({ dias: 365, solarOn: false })).toBe(false);
+    // Tarifa que compensa pero sin nada que compensar (0 kWh de consumo): credit1 = 0 y agregar
+    // el tope no cambia nada, asi que no hay aviso.
+    expect(await marca({ dias: 365, cPunta: 0 })).toBe(false);
 
     // Ninguna tarifa compensa: el ranking no puede avisar de una compensacion que no aplica
     // (en el desglose tampoco sale, porque `compensa` es false en todas).

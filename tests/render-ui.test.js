@@ -860,7 +860,7 @@ describe('Renderizado UI (lf-render.js)', () => {
     await window.LF.renderTable();
 
     const tip = document.querySelector('.fv-icon').getAttribute('data-tip');
-    expect(tip).toContain('No aplicado en factura por peajes/cargos: 3,28 €');
+    expect(tip).toContain('No compensado en el periodo por peajes/cargos: 3,28 €');
     expect(tip).toContain('Saldo BV final: 3,28 €');
     expect(tip).toContain('Pagas en el periodo: 22.97 €');
     expect(tip).not.toContain('usando BV acumulada');

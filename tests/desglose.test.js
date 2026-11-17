@@ -449,6 +449,8 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(aviso({ dias: 30, diasAviso: 30, excedentes: 2000 })).toBeNull();
 
     expect(aviso({ dias: 365, excedentes: 0 })).toBeNull();
+    // Compensacion efectiva cero (0 kWh de consumo): no hay nada que el tope agregado altere.
+    expect(aviso({ dias: 365, excedentes: 2000, consumoPunta: 0 })).toBeNull();
     expect(aviso({ dias: 365, excedentes: 2000, tipoCompensacion: 'NO COMPENSA' })).toBeNull();
 
     aviso({ dias: 365, excedentes: 2000 });
@@ -528,7 +530,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     Desglose.renderizar(Desglose.calcularDesglose(datos), datos);
 
     const text = Desglose.modal.querySelector('.desglose-body').textContent;
-    expect(text).toContain('Compensados hoy: 80,00 kWh');
+    expect(text).toContain('Compensados en el periodo: 80,00 kWh');
     expect(text).not.toContain('80,01 kWh');
   });
 

@@ -408,7 +408,11 @@ html.light-mode :where(input, select, textarea)::placeholder{
 
 /* ---- Tooltips: consistencia entre light/dark ---- */
 #globalTooltip{
-  background: var(--card);
+  /* Fondo casi opaco, el mismo que define styles.css. Con var(--card) (blanco al 6 % en
+     oscuro) la lectura dependia del blur: sin el, o sobre un fondo claro (boton Calcular,
+     input enfocado), el texto blanco se mezclaba con lo de debajo (QA WebKit 17/11/2026).
+     En claro manda html.light-mode #globalTooltip de styles.css, mas especifica. */
+  background: rgba(5,8,16,.92);
   border: 1px solid var(--border2);
   color: var(--text);
   box-shadow: var(--shadow2);

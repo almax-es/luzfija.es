@@ -794,26 +794,6 @@
       "potenciaMinExclusivaKw": 10.0
     },
     {
-      "nombre": "Holaluz Clásica",
-      "cPunta": 0.163,
-      "cLlano": 0.163,
-      "cValle": 0.163,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Repsol Sin Horarios",
       "cPunta": 0.1649,
       "cLlano": 0.1649,
@@ -1036,6 +1016,26 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 2.99
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.179,
+      "cLlano": 0.179,
+      "cValle": 0.179,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
       },
       "requiereFV": false
     },
@@ -2032,26 +2032,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz 3P",
-      "cPunta": 0.252,
-      "cLlano": 0.179,
-      "cValle": 0.154,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "TE A Tu Aire Programa Tu Ahorro +4000 3P",
       "cPunta": 0.252672,
       "cLlano": 0.18303,
@@ -2256,6 +2236,26 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Holaluz 3P",
+      "cPunta": 0.265,
+      "cLlano": 0.186,
+      "cValle": 0.166,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Nufri Con Horarios 3P",
@@ -2505,5 +2505,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-17T13:57:17.937Z"
+  "updatedAt": "2026-11-17T14:50:15.882Z"
 }

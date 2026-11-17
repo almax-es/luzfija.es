@@ -420,6 +420,9 @@ html.light-mode .desglose-close:hover{
 @media (min-width: 720px){
   .desglose-resumen-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+/* La tarjeta de compensacion lleva una nota larga: a fila completa no queda apretada en media
+   columna con la otra mitad vacia (320 px y escritorio, QA 17/11/2026). */
+.desglose-resumen-item--wide{ grid-column: 1 / -1; }
 .desglose-resumen-item{
   padding: 10px;
   border-radius: 10px;

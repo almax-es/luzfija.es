@@ -539,7 +539,7 @@
           if (r.fvExcRaw === -1) parts.push(`ℹ️ Referencia orientativa: el precio real varía según las horas exactas de vertido`);
           parts.push(`✅ Compensado en el periodo: ${numComa(credit1)} € (descontado de tu consumo de energía)`);
           if (fvCosteBV > 0) parts.push(`🔋 Cuota BV: ${numComa(fvCosteBV)} € incluida en el total`);
-          if (excNoCompensable > 0) parts.push(`⚠️ No aplicado en factura por peajes/cargos: ${numComa(excNoCompensable)} €`);
+          if (excNoCompensable > 0) parts.push(`⚠️ No compensado en el periodo por peajes/cargos: ${numComa(excNoCompensable)} €`);
           if (credit2 > 0) parts.push(`🔋 BV usada: ${numComa(credit2)} € (saldo BV inicial aplicado)`);
           
           const tip = parts.join('\n');
@@ -579,7 +579,7 @@
           ? `class="tarifa-cell" title="${escapeHtml(nombreBase)}" role="button" tabindex="0" aria-label="Ver desglose de ${escapeHtml(nombreBase)}"`
           : `class="tarifa-cell" title="${escapeHtml(unavailableReason || nombreBase)}" aria-disabled="true"`;
         const totalCellAttrs = canOpenDesglose
-          ? `class="total-cell" role="button" tabindex="0" title="${isBV ? `Clic para ver desglose completo • Pagas: ${escapeHtml(bvPagasFmt)} • Ranking: ${escapeHtml(bvRankingFmt)}` : `Clic para ver desglose completo de la factura`}"`
+          ? `class="total-cell" role="button" tabindex="0" title="${isBV ? `Clic para ver desglose completo • Pagas: ${escapeHtml(bvPagasFmt)} • Ranking: ${escapeHtml(bvRankingFmt)}` : `Clic para ver el desglose completo`}"`
           : `class="total-cell" aria-disabled="true" title="${escapeHtml(unavailableReason || 'No hay desglose disponible para esta fila')}"`;
 
         const nombreDisplay =

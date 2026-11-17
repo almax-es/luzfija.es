@@ -650,11 +650,11 @@
       // Mas de 35 dias con excedentes: el tope de compensacion se aplica UNA vez sobre todo el
       // periodo y no factura a factura (maximo un mes). El aviso del ranking lo explica; el
       // desglose (desglose-render.js) usa el mismo umbral. 35 y no 31: una factura real puede
-      // abarcar 32-34 dias entre lecturas. Solo si alguna tarifa compensa de verdad (fvApplied,
-      // la misma condicion que `compensa` en el desglose) y con los dias de calendario de la
+      // abarcar 32-34 dias entre lecturas. Solo si alguna tarifa compensa de verdad (fvApplied y
+      // fvCredit1 > 0, la misma condicion que `compensa && credit1 > 0` en el desglose) y con los dias de calendario de la
       // curva importada si tiene huecos (getDiasAvisoCompensacion).
       periodoLargoConExcedentes: Boolean(solarOn)
-        && processed.some(r => r.fvApplied)
+        && processed.some(r => r.fvApplied && Number(r.fvCredit1) > 0)
         && (typeof window.LF.getDiasAvisoCompensacion === 'function'
           ? window.LF.getDiasAvisoCompensacion(dias)
           : Number(dias)) > 35,
