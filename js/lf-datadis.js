@@ -630,14 +630,20 @@
       if (senalUsuario.aborted) ctrl.abort();
       else senalUsuario.addEventListener('abort', alAbortar, { once: true });
     }
+    // Si llegan las cabeceras, la peticion llego al servidor aunque luego falle leer el cuerpo:
+    // en el login eso cuenta como intento (ver importar).
+    let respuestaRecibida = false;
     try {
       const r = await fetch(url, { ...init, signal: ctrl.signal, cache: 'no-store', credentials: 'omit' });
+      respuestaRecibida = true;
       const text = await r.text();
       return { ok: r.ok, status: r.status, text };
     } catch {
       if (agotado) throw new DatadisError('timeout');
       if (senalUsuario && senalUsuario.aborted) throw new DatadisError('cancelado');
-      throw new DatadisError('red');
+      const err = new DatadisError('red');
+      if (respuestaRecibida) err.respuestaRecibida = true;
+      throw err;
     } finally {
       clearTimeout(timer);
       if (senalUsuario) senalUsuario.removeEventListener('abort', alAbortar);
@@ -829,8 +835,10 @@
           // Timeout o cancelacion con el login ya enviado: Datadis pudo comprobar la contrasena
           // aunque la respuesta no llegue, y un fallo asi cuenta para su bloqueo de 3. Mismo
           // criterio que el 500 desconocido: perder un intento aqui cuesta menos que la cuenta.
-          // Un error de red ('red') no cuenta: es lo habitual sin conexion y nada llego a salir.
-          if (e && (e.code === 'timeout' || e.code === 'cancelado')) {
+          // Un error de red ('red') solo cuenta si ya habia llegado la respuesta (fallo al leer el
+          // cuerpo); antes de eso es lo habitual sin conexion. Contar una peticion que no llego a
+          // salir (cancelar mientras conecta) es el error barato; dejar sin contar una que si, no.
+          if (e && (e.code === 'timeout' || e.code === 'cancelado' || (e.code === 'red' && e.respuestaRecibida))) {
             e.paso = 'login';
             e.cuentaIntento = true;
           }
@@ -1428,6 +1436,15 @@
     antiguo: 'Datadis solo guarda unos dos años de datos: elige una fecha de inicio más reciente.'
   };
 
+  // Login que salio pero cuya respuesta no llego entera (timeout o conexion cortada): pudo contar
+  // para el bloqueo de Datadis, asi que aqui tambien cuenta y se dice.
+  function textoLoginCortado(primeraFrase, fallos) {
+    return primeraFrase + ' Como no sabemos si llegó a comprobar tu contraseña, lo contamos como un intento por si acaso. ' +
+      (fallos >= MAX_FALLOS_LOGIN
+        ? 'Para no arriesgar tu cuenta no seguimos intentándolo: cuando hayas entrado bien en datadis.es, pulsa «Ya he entrado bien en datadis.es». Mientras tanto puedes descargar el CSV desde Datadis.'
+        : 'Prueba de nuevo en unos minutos o descarga el CSV desde Datadis.');
+  }
+
   function textoError(err) {
     const fallos = leerFallos();
     switch (err && err.code) {
@@ -1444,13 +1461,13 @@
       case 'bloqueado':
         return 'Datadis ha bloqueado tu usuario por demasiados intentos fallidos. Para desbloquearlo, entra en datadis.es y pulsa «¿Has olvidado tu contraseña?»: te enviarán una nueva por correo. Mientras tanto puedes descargar el CSV desde Datadis e importarlo con «Importar CSV».';
       case 'red':
+        if (err.paso === 'login' && err.cuentaIntento) {
+          return textoLoginCortado('Se ha cortado la conexión con Datadis mientras respondía al inicio de sesión.', fallos);
+        }
         return 'No hemos podido conectar con Datadis. Comprueba tu conexión e inténtalo de nuevo.';
       case 'timeout':
         if (err.paso === 'login') {
-          return 'Datadis ha tardado demasiado en responder al iniciar sesión. Como no sabemos si llegó a comprobar tu contraseña, lo contamos como un intento por si acaso. ' +
-            (fallos >= MAX_FALLOS_LOGIN
-              ? 'Para no arriesgar tu cuenta no seguimos intentándolo: cuando hayas entrado bien en datadis.es, pulsa «Ya he entrado bien en datadis.es». Mientras tanto puedes descargar el CSV desde Datadis.'
-              : 'Prueba de nuevo en unos minutos o descarga el CSV desde Datadis.');
+          return textoLoginCortado('Datadis ha tardado demasiado en responder al iniciar sesión.', fallos);
         }
         return 'Datadis ha tardado demasiado en responder. Suele ser un problema temporal de sus servidores: prueba de nuevo en unos minutos o descarga el CSV desde Datadis.';
       case 'repeticion':
@@ -1885,7 +1902,8 @@
     // sin querer); para eso estan Cancelar, la X y Escape.
     overlay.addEventListener('click', (e) => { if (e.target === overlay && !ocupado) cerrar(); });
 
-    vistaFormulario(fallosIniciales >= MAX_FALLOS_LOGIN ? textoError({ code: 'credenciales' }) : '');
+    // Al reabrir no se sabe por que se agotaron (contrasena, timeout, 500 desconocido): texto neutro.
+    vistaFormulario(fallosIniciales >= MAX_FALLOS_LOGIN ? textoError({ code: 'agotado' }) : '');
   }
 
   /**

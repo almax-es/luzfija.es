@@ -7635,7 +7635,7 @@ el repo y las fuentes. **1 hallazgo real, aplicado; el resto ya estaba resuelto,
 ### Importador De Datadis Y Aviso De Importacion Fallida (Ronda 87, 17/11/2026)
 
 Auditoria acotada de ChatGPT sobre `js/lf-datadis.js` y `js/lf-csv-report.js` (lectura estatica, sin ejecutar).
-Verificado por Claude contra el codigo y los tests. **1 hallazgo real, corregido; 1 aviso de texto; el resto es
+Verificado por Claude contra el codigo y los tests. **1 hallazgo real, corregido (con 2 huecos del arreglo que encontro la segunda revision); 1 aviso de texto; el resto es
 diseno documentado o un limite inherente.** Credenciales: sin ruta a almacenamiento, analitica, consola ni informe.
 
 **Corregido:**
@@ -7644,6 +7644,13 @@ diseno documentado o un limite inherente.** Credenciales: sin ruta a almacenamie
   Ahora cuentan como intento (`cuentaIntento`, mismo criterio que el 500 desconocido) y el aviso de timeout lo
   explica; cancelar antes de que el login salga (esperando el Web Lock) no cuenta. Un error de red (`red`) sigue
   sin contar: es lo habitual sin conexion. Tests en `tests/datadis-import.test.js`, validados por mutacion.
+- **Segunda revision del mismo auditor sobre el arreglo (2 huecos reales, corregidos).** (a) Si llegaban las
+  cabeceras y fallaba leer el cuerpo, `peticion()` lo daba como `red` y no contaba, aunque el login ya habia
+  llegado a Datadis: ahora marca `respuestaRecibida` y en el login cuenta, con el mismo texto que el timeout
+  ("lo contamos como un intento"). (b) Al reabrir el modal con los intentos agotados se decia "Usuario o contrasena
+  incorrectos", falso si se agotaron por timeouts o por el 500 desconocido (esto ultimo ya pasaba antes): ahora usa
+  el texto neutro de `agotado`. Asumido: cancelar mientras el navegador aun conecta tambien cuenta, porque no se
+  puede saber si el POST salio y contar de mas es el error barato. Ambos validados por mutacion.
 
 **Aviso de texto:** el informe CSV/XLSX conserva el nombre de las hojas de Excel, que puede ser el de una persona,
 y el anonimizado no detecta nombres sueltos. Se conserva (sirve para identificar el formato y el usuario revisa

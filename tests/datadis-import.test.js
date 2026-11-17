@@ -1223,6 +1223,23 @@ describe('importar (fetch simulado)', () => {
     expect(storage.has('lf_datadis_fallos')).toBe(false);
   });
 
+  // 17/11/2026 (segunda revision): si llegan las cabeceras y falla leer el cuerpo, el login llego
+  // a Datadis; antes salia como 'red' y no contaba.
+  it('conexion cortada leyendo la respuesta del login: cuenta el intento y no habla de "conectar"', async () => {
+    respuestas.login = () => ({ ok: false, status: 500, text: async () => { throw new TypeError('network error'); } });
+    const e = await ejecutar().catch((x) => x);
+    expect(e).toMatchObject({ code: 'red', paso: 'login', cuentaIntento: true, respuestaRecibida: true });
+    expect(fallosGuardados()).toBe(1);
+    expect(D.textoError(e)).toContain('lo contamos como un intento');
+    expect(D.textoError(e)).not.toContain('No hemos podido conectar');
+  });
+
+  it('al reabrir el modal con los intentos agotados no afirma que la contrasena estuviera mal', () => {
+    // Pueden haberse agotado por timeouts o por un 500 desconocido, no solo por credenciales.
+    expect(sourceDatadis).toContain("vistaFormulario(fallosIniciales >= MAX_FALLOS_LOGIN ? textoError({ code: 'agotado' }) : '')");
+    expect(D.textoError({ code: 'agotado' })).not.toContain('incorrectos');
+  });
+
   it('el timeout de una consulta posterior al login no cuenta como intento de login', () => {
     expect(D.textoError(new D.DatadisError('timeout'))).not.toContain('lo contamos como un intento');
   });
