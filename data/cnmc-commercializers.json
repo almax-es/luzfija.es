@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-16",
+    "syncedAt": "2026-11-17",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -1414,7 +1414,7 @@
     "R2-119": {
       "name": "ALPIQ ENERGIA ESPAÑA SAU",
       "phone": "900 80 20 76",
-      "website": "http://www.alpiq.com/alpiqgroup/group-companies/alpiq-energia-espana-sau.jsp"
+      "website": "https://www.alpiq.com/es/about-us/our-activities/alpiq-espana"
     },
     "R2-120": {
       "name": "UNION FENOSA COMERCIAL S.L. -EXTINGUIDA-"
@@ -1932,7 +1932,7 @@
     "R2-374": {
       "name": "ELECTRICA DE GUADASSUAR COOP V",
       "phone": "900 900 298",
-      "website": "http://electricaguadassuar.ecsocial.com/"
+      "website": "http://www.electricaguadassuar.es/"
     },
     "R2-375": {
       "name": "ELECTRICA DE CHERA, SCV",
@@ -1942,7 +1942,7 @@
     "R2-376": {
       "name": "COOPERATIVA ELECTRICA DE CASTELLAR, S.C.V",
       "phone": "900 373 920",
-      "website": "http://coopelectricacastellar.ecsocial.com/"
+      "website": "https://coopcastellar.com/"
     },
     "R2-377": {
       "name": "DISTRIBUIDORA ELECTRICA DE MELIANA, S.L.",
@@ -1962,7 +1962,7 @@
     "R2-380": {
       "name": "ELECTRODISTRIBUIDORA DE FUERZA Y ALUMBRADO CASABLANCA, S.COOP.V",
       "phone": "900 834 465",
-      "website": "http://casablanca.ecsocial.com/"
+      "website": "https://edfacasablanca.com/"
     },
     "R2-381": {
       "name": "ELECTRICA DE SOT DE CHERA SCV",
@@ -2053,7 +2053,7 @@
     "R2-400": {
       "name": "FLUIDO ELECTRICO DE MUSEROS, S.C.V.",
       "phone": "900 103 206",
-      "website": "http://electricamuseros.ecsocial.com/"
+      "website": "https://www.muserosfluidoelectrico.com/"
     },
     "R2-401": {
       "name": "COOP VALENCIANA ELECTRODISTRIBUIDORA DE FUERZA Y ALUMBRADO SERRALLO",
@@ -2311,7 +2311,7 @@
     },
     "R2-456": {
       "name": "XENERA COMPAÑÍA ELECTRICA, S.A",
-      "phone": "900 101 562",
+      "phone": "900 600 116",
       "website": "http://xenera.com/"
     },
     "R2-457": {
@@ -3281,7 +3281,7 @@
     "R2-655": {
       "name": "PETRO NAVARRA SL",
       "phone": "900 302 505",
-      "website": "http://www.petronavarra.com/catalogo/51-electricidad"
+      "website": "https://petroenergia.es/"
     },
     "R2-656": {
       "name": "ELÉCTRICA BENASQUE, S.L.",
