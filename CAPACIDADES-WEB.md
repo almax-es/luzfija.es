@@ -294,7 +294,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   - Algunas distribuidoras devuelven error 500 o una respuesta vacia en cualquier consulta que incluya el primer mes de un contrato: se reintenta MES A MES (del mas reciente al mas antiguo) y el mes roto solo se pierde a si mismo (la cobertura lo trata como mes omitido o como hueco). No se reintenta ante 429, sesion caducada, red caida ni tiempo agotado.
   - Datadis rechaza (400) consultas cuyo mes de inicio empiece hace mas de 2 anos: el primer dia elegible es el primer mes cuyo dia 1 este dentro de ese plazo (`inicioMasAntiguo`).
   - Credenciales incorrectas: HTTP 500 con "Bad credentials" (medido), y tambien 401/403 por si cambia.
-  - Usuario INEXISTENTE: tambien "Bad credentials" (NIF inventado con letra valida, 14/11/2026). Un 500 en el login con otro mensaje (visto "Data not found exception" el 14/11/2026, no documentado por Datadis ni reportado en ninguna integracion publica) CUENTA como intento fallido, porque no se sabe si Datadis lo cuenta para su bloqueo, y el aviso no culpa a la contrasena: pide comprobar el acceso en datadis.es antes de reintentar. Un error de login que no es 500 (pasarela 502/503) no cuenta. Un login cortado con la peticion ya enviada (timeout de 30 s o cancelacion del usuario) SI cuenta, porque Datadis pudo comprobar la contrasena (17/11/2026), igual que una conexion cortada despues de recibir la respuesta; un error de red antes de cualquier respuesta no. Al reabrir el modal con los intentos agotados el aviso es neutro: no afirma que la contrasena estuviera mal.
+  - Usuario INEXISTENTE: tambien "Bad credentials" (NIF inventado con letra valida, 14/11/2026). Un 500 en el login con otro mensaje (visto "Data not found exception" el 14/11/2026, no documentado por Datadis ni reportado en ninguna integracion publica) CUENTA como intento fallido, porque no se sabe si Datadis lo cuenta para su bloqueo, y el aviso no culpa a la contrasena: pide comprobar el acceso en datadis.es antes de reintentar. Un error de login que no es 500 (pasarela 502/503) no cuenta. Un login cortado con la peticion ya enviada (timeout de 30 s o cancelacion del usuario) SI cuenta, porque Datadis pudo comprobar la contrasena (17/11/2026), igual que un error de red (fetch no distingue si el POST llego a salir), salvo con el navegador sin conexion (`navigator.onLine === false`). Al reabrir el modal con los intentos agotados el aviso es neutro: no afirma que la contrasena estuviera mal.
   - Respuestas: el token se acepta en texto plano, entre comillas o dentro de `{ token }`; un cuerpo vacio o el literal `null` es "sin datos" (dispara el reintento mes a mes), no un error; el aviso de consulta repetida se reconoce en JSON (`message`) o en texto plano.
   - `get-contract-detail` puede traer VARIOS contratos (cambio de potencia, titular o autoconsumo): se usa el vigente (sin fecha de fin; si no, el de inicio mas reciente) para la potencia y el autoconsumo.
   - Sin prueba real con una instalacion fotovoltaica a 30/10/2026: validado con datos simulados (incluidos noches en null, meses sin dato, meses ausentes y dias de menos) y E2E.
@@ -596,7 +596,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 38.978.
+- Lineas JS aproximadas: 38.984.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (120 tarifas).
@@ -697,7 +697,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 153 archivos de test (`tests/*.test.js`).
-- 2863 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2864 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

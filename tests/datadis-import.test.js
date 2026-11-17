@@ -1244,10 +1244,27 @@ describe('importar (fetch simulado)', () => {
     expect(D.textoError(new D.DatadisError('timeout'))).not.toContain('lo contamos como un intento');
   });
 
-  it('red caida: error de red sin contar fallo de login', async () => {
+  // 17/11/2026 (tercera revision): fetch no distingue un corte antes de enviar de uno despues de
+  // que Datadis compruebe la contrasena, asi que un error de red en el login cuenta. Solo no cuenta
+  // si el navegador sabe que esta sin conexion.
+  it('error de red en el login con conexion: cuenta el intento y lo explica', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
-    await expect(ejecutar()).rejects.toMatchObject({ code: 'red' });
+    vi.stubGlobal('navigator', { onLine: true });
+    const e = await ejecutar().catch((x) => x);
+    expect(e).toMatchObject({ code: 'red', paso: 'login', cuentaIntento: true });
+    expect(fallosGuardados()).toBe(1);
+    expect(D.textoError(e)).toContain('Se ha cortado la conexión con Datadis al iniciar sesión');
+    expect(D.textoError(e)).toContain('lo contamos como un intento');
+  });
+
+  it('error de red sin conexion (navigator.onLine false): no cuenta el intento', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
+    vi.stubGlobal('navigator', { onLine: false });
+    const e = await ejecutar().catch((x) => x);
+    expect(e).toMatchObject({ code: 'red' });
+    expect(e.cuentaIntento).toBeFalsy();
     expect(storage.has('lf_datadis_fallos')).toBe(false);
+    expect(D.textoError(e)).toContain('No hemos podido conectar');
   });
 
   it('sin suministros y sin consumos devuelven errores propios', async () => {

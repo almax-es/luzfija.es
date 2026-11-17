@@ -835,10 +835,14 @@
           // Timeout o cancelacion con el login ya enviado: Datadis pudo comprobar la contrasena
           // aunque la respuesta no llegue, y un fallo asi cuenta para su bloqueo de 3. Mismo
           // criterio que el 500 desconocido: perder un intento aqui cuesta menos que la cuenta.
-          // Un error de red ('red') solo cuenta si ya habia llegado la respuesta (fallo al leer el
-          // cuerpo); antes de eso es lo habitual sin conexion. Contar una peticion que no llego a
-          // salir (cancelar mientras conecta) es el error barato; dejar sin contar una que si, no.
-          if (e && (e.code === 'timeout' || e.code === 'cancelado' || (e.code === 'red' && e.respuestaRecibida))) {
+          // Un error de red ('red') tambien cuenta: fetch no distingue un corte antes de enviar de
+          // uno despues de que Datadis compruebe la contrasena, y el POST del login es una peticion
+          // simple que Datadis procesa aunque su respuesta no se pueda leer (CORS roto). Solo no
+          // cuenta si el navegador sabe que esta sin conexion: entonces no pudo salir. Contar de mas
+          // es el error barato; dejar sin contar un fallo que Datadis si conto, no.
+          const sinConexion = e && e.code === 'red' && !e.respuestaRecibida &&
+            typeof navigator !== 'undefined' && navigator && navigator.onLine === false;
+          if (e && (e.code === 'timeout' || e.code === 'cancelado' || (e.code === 'red' && !sinConexion))) {
             e.paso = 'login';
             e.cuentaIntento = true;
           }
@@ -1462,7 +1466,9 @@
         return 'Datadis ha bloqueado tu usuario por demasiados intentos fallidos. Para desbloquearlo, entra en datadis.es y pulsa «¿Has olvidado tu contraseña?»: te enviarán una nueva por correo. Mientras tanto puedes descargar el CSV desde Datadis e importarlo con «Importar CSV».';
       case 'red':
         if (err.paso === 'login' && err.cuentaIntento) {
-          return textoLoginCortado('Se ha cortado la conexión con Datadis mientras respondía al inicio de sesión.', fallos);
+          return textoLoginCortado(err.respuestaRecibida
+            ? 'Se ha cortado la conexión con Datadis mientras respondía al inicio de sesión.'
+            : 'Se ha cortado la conexión con Datadis al iniciar sesión.', fallos);
         }
         return 'No hemos podido conectar con Datadis. Comprueba tu conexión e inténtalo de nuevo.';
       case 'timeout':

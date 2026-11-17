@@ -7642,8 +7642,8 @@ diseno documentado o un limite inherente.** Credenciales: sin ruta a almacenamie
 - **Login cortado con la peticion ya enviada.** Un timeout de 30 s o una cancelacion del usuario durante el login
   no sumaban al contador, aunque Datadis pudo comprobar la contrasena y contar el fallo para su bloqueo de 3.
   Ahora cuentan como intento (`cuentaIntento`, mismo criterio que el 500 desconocido) y el aviso de timeout lo
-  explica; cancelar antes de que el login salga (esperando el Web Lock) no cuenta. Un error de red (`red`) sigue
-  sin contar: es lo habitual sin conexion. Tests en `tests/datadis-import.test.js`, validados por mutacion.
+  explica; cancelar antes de que el login salga (esperando el Web Lock) no cuenta. Un error de red (`red`) tambien
+  cuenta desde la tercera revision (abajo), salvo sin conexion. Tests en `tests/datadis-import.test.js`, validados por mutacion.
 - **Segunda revision del mismo auditor sobre el arreglo (2 huecos reales, corregidos).** (a) Si llegaban las
   cabeceras y fallaba leer el cuerpo, `peticion()` lo daba como `red` y no contaba, aunque el login ya habia
   llegado a Datadis: ahora marca `respuestaRecibida` y en el login cuenta, con el mismo texto que el timeout
@@ -7651,6 +7651,11 @@ diseno documentado o un limite inherente.** Credenciales: sin ruta a almacenamie
   incorrectos", falso si se agotaron por timeouts o por el 500 desconocido (esto ultimo ya pasaba antes): ahora usa
   el texto neutro de `agotado`. Asumido: cancelar mientras el navegador aun conecta tambien cuenta, porque no se
   puede saber si el POST salio y contar de mas es el error barato. Ambos validados por mutacion.
+- **Tercera revision: error de red sin respuesta (corregido).** `fetch` no distingue un corte antes de enviar de
+  uno despues de que Datadis compruebe la contrasena, y el POST del login es una peticion simple que Datadis
+  procesa aunque no se pueda leer la respuesta (por ejemplo, con su CORS roto). Ahora un `red` en el login cuenta
+  siempre, salvo con `navigator.onLine === false` (sin conexion no pudo salir). Revierte el test anterior "red
+  caida: sin contar fallo de login", decision previa a esta ronda. Validado por mutacion en los dos sentidos.
 
 **Aviso de texto:** el informe CSV/XLSX conserva el nombre de las hojas de Excel, que puede ser el de una persona,
 y el anonimizado no detecta nombres sueltos. Se conserva (sirve para identificar el formato y el usuario revisa
