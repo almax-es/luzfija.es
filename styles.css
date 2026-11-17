@@ -2129,9 +2129,10 @@ footer.footer-container p[style*="opacity:0.5"]{ opacity: 1 !important; color: v
     }
     /* De 521 a 768 px el boton va al lado del total de kWh y se queda estrecho: a 521 px el
        texto a 23 px solo tenia 6 px de holgura y con la letra del movil algo mayor se partia.
-       Letra y relleno algo menores para que quepa en una linea con margen. */
+       Letra y relleno algo menores para que quepa en una linea con margen. Solo #btnCalc: hay
+       otros .btn.primary (compartir, factura, modales, Datadis) que no deben cambiar. */
     @media (min-width: 521px) and (max-width: 768px) {
-      .btn.primary { padding-left: 12px; padding-right: 12px; }
+      #btnCalc.btn.primary { padding-left: 12px; padding-right: 12px; }
       .btn.primary #btnText { font-size: 20px; letter-spacing: 1px; }
     }
 
