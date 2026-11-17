@@ -447,11 +447,16 @@
         0 2px 4px rgba(0,0,0,0.3);
       filter: drop-shadow(0 0 8px rgba(255,255,255,0.4));
       line-height: 1;
-      /* Nunca "Calcu-lar": pro.css activa hyphens:auto en todos los span. */
-      white-space: nowrap;
-      -webkit-hyphens: manual;
-      hyphens: manual;
+      /* Nunca "Calcu-lar": pro.css activa hyphens:auto y overflow-wrap:break-word en todos los
+         span. hyphens:none, no manual (manual respeta los &shy;). Solo se parte por el espacio:
+         con la letra muy grande el rayo sube encima y "Calcular" queda entera debajo, mejor que
+         nowrap, que la recortaria por el overflow:hidden del boton. */
+      white-space: normal;
+      -webkit-hyphens: none;
+      hyphens: none;
       overflow-wrap: normal;
+      word-break: normal;
+      text-align: center;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
