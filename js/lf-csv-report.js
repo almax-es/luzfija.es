@@ -621,7 +621,7 @@
       textarea.value = 'Preparando la muestra del archivo…';
       const details = el('details', { className: 'lf-csv-report__preview' }, [
         el('summary', { text: '2. Revisa lo que se enviará (puedes editarlo)' }),
-        el('p', { className: 'lf-csv-report__fine', text: 'Hemos ocultado CUPS, DNI, IBAN, emails, teléfonos y direcciones. Borra o cambia lo que quieras antes de enviarlo.' }),
+        el('p', { className: 'lf-csv-report__fine', text: 'Hemos ocultado CUPS, DNI, IBAN, emails, teléfonos y direcciones. Un nombre suelto (por ejemplo, el de una hoja de Excel) no se puede detectar: revísalo, y borra o cambia lo que quieras antes de enviarlo.' }),
         el('label', { className: 'sr-only', for: textareaId, text: 'Texto que se enviará' }),
         textarea
       ]);

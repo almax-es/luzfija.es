@@ -294,6 +294,13 @@ describe('showImportError (UI)', () => {
     expect(report.showImportError({ context: 'inventado', message: 'x', anchor: document.body })).toBeNull();
   });
 
+  // 17/11/2026 (auditoria externa): el nombre de una hoja de Excel puede ser el de una persona y
+  // el anonimizado no detecta nombres sueltos; el aviso lo dice para que el usuario lo revise.
+  it('avisa de que un nombre suelto (el de una hoja de Excel) no se detecta', () => {
+    const panel = mostrar();
+    expect(panel.querySelector('.lf-csv-report__fine').textContent).toContain('el de una hoja de Excel) no se puede detectar');
+  });
+
   it('pinta el mensaje como texto, nunca como HTML', () => {
     document.body.innerHTML = '<div id="a"></div>';
     const panel = report.showImportError({

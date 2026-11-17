@@ -7629,3 +7629,36 @@ el repo y las fuentes. **1 hallazgo real, aplicado; el resto ya estaba resuelto,
 
 **Pendiente de decision del promotor:** el plazo concreto de conservacion de los correos en `privacidad.html`
 (hoy "plazo razonable"); el art. 13.2.a RGPD admite el plazo o los criterios para fijarlo.
+
+
+<a id="datadis-y-aviso-csv-ronda-87-17-11-2026"></a>
+### Importador De Datadis Y Aviso De Importacion Fallida (Ronda 87, 17/11/2026)
+
+Auditoria acotada de ChatGPT sobre `js/lf-datadis.js` y `js/lf-csv-report.js` (lectura estatica, sin ejecutar).
+Verificado por Claude contra el codigo y los tests. **1 hallazgo real, corregido; 1 aviso de texto; el resto es
+diseno documentado o un limite inherente.** Credenciales: sin ruta a almacenamiento, analitica, consola ni informe.
+
+**Corregido:**
+- **Login cortado con la peticion ya enviada.** Un timeout de 30 s o una cancelacion del usuario durante el login
+  no sumaban al contador, aunque Datadis pudo comprobar la contrasena y contar el fallo para su bloqueo de 3.
+  Ahora cuentan como intento (`cuentaIntento`, mismo criterio que el 500 desconocido) y el aviso de timeout lo
+  explica; cancelar antes de que el login salga (esperando el Web Lock) no cuenta. Un error de red (`red`) sigue
+  sin contar: es lo habitual sin conexion. Tests en `tests/datadis-import.test.js`, validados por mutacion.
+
+**Aviso de texto:** el informe CSV/XLSX conserva el nombre de las hojas de Excel, que puede ser el de una persona,
+y el anonimizado no detecta nombres sueltos. Se conserva (sirve para identificar el formato y el usuario revisa
+el texto antes de enviarlo), pero el aviso del panel ya lo dice (`tests/csv-report.test.js`).
+
+**No se cambia (NO REABRIR con este patron):**
+- **"El boton «Ya he entrado bien en datadis.es» concede intentos ilimitados".** Diseno documentado en
+  `CAPACIDADES-WEB.md` 3.4b: cada pulsacion concede UN intento porque el usuario declara haber entrado bien en
+  datadis.es, lo que reinicia el contador de Datadis. Limitarlo a una vez dejaria fuera a quien de verdad lo
+  comprueba dos veces; el caso de riesgo exige pulsarlo sin haber entrado, y eso no lo evita ningun limite.
+- **"Con el almacenamiento bloqueado, otra pestana no ve los fallos".** Limite inherente: sin almacenamiento la
+  copia en memoria tampoco sobrevive a una recarga de la misma pestana, asi que compartirla entre pestanas no
+  cerraria el caso. Anotado como limite residual (3) en `CAPACIDADES-WEB.md` 3.4b.
+- **"Hasta 7 dias ausentes al principio o al final no avisan".** Decision deliberada (comentario en
+  `importar()` y test de retraso de 2 dias): las distribuidoras publican con dias de retraso y un aviso en cada
+  importacion de "ultimos 12 meses" seria ruido. El analisis usa solo los dias recibidos y todas las tarifas se
+  comparan con los mismos datos.
+- **Texto libre de los errores de Datadis en el informe.** Limite ya advertido en la propia interfaz.

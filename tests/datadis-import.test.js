@@ -1171,6 +1171,62 @@ describe('importar (fetch simulado)', () => {
     expect(D.textoError({ code: 'repeticion' })).toContain('24 horas');
   });
 
+  // 17/11/2026 (auditoria externa): un login que se corta con la peticion ya enviada (timeout de
+  // 30 s o el usuario cancela) pudo llegar a Datadis y contar para su bloqueo de 3 intentos.
+  const loginColgado = () => vi.fn(async (url, init = {}) => {
+    llamadas.push({ url: String(url), init });
+    return new Promise((_, rechazar) => {
+      init.signal.addEventListener('abort', () => rechazar(new DOMException('aborted', 'AbortError')), { once: true });
+    });
+  });
+
+  it('timeout del login: cuenta el intento, lo explica y a los 2 se detiene', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      vi.stubGlobal('fetch', loginColgado());
+      const p = ejecutar().catch((x) => x);
+      await vi.advanceTimersByTimeAsync(30000);
+      const e = await p;
+      expect(e).toMatchObject({ code: 'timeout', paso: 'login', cuentaIntento: true });
+      expect(fallosGuardados()).toBe(1);
+      expect(D.textoError(e)).toContain('lo contamos como un intento');
+      expect(D.textoError(e)).not.toContain('no seguimos intentándolo');
+
+      const p2 = ejecutar().catch((x) => x);
+      await vi.advanceTimersByTimeAsync(30000);
+      const e2 = await p2;
+      expect(fallosGuardados()).toBe(2);
+      expect(D.textoError(e2)).toContain('Ya he entrado bien en datadis.es');
+      await expect(ejecutar()).rejects.toMatchObject({ code: 'agotado' });
+      expect(llamadas).toHaveLength(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cancelar con el login ya enviado cuenta el intento', async () => {
+    vi.stubGlobal('fetch', loginColgado());
+    const ctrl = new AbortController();
+    const p = ejecutar({ senal: ctrl.signal }).catch((x) => x);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(llamadas).toHaveLength(1);
+    ctrl.abort();
+    expect(await p).toMatchObject({ code: 'cancelado' });
+    expect(fallosGuardados()).toBe(1);
+  });
+
+  it('cancelar antes de que salga el login no cuenta el intento ni llama a Datadis', async () => {
+    const ctrl = new AbortController();
+    ctrl.abort();
+    await expect(ejecutar({ senal: ctrl.signal })).rejects.toMatchObject({ code: 'cancelado' });
+    expect(llamadas).toHaveLength(0);
+    expect(storage.has('lf_datadis_fallos')).toBe(false);
+  });
+
+  it('el timeout de una consulta posterior al login no cuenta como intento de login', () => {
+    expect(D.textoError(new D.DatadisError('timeout'))).not.toContain('lo contamos como un intento');
+  });
+
   it('red caida: error de red sin contar fallo de login', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
     await expect(ejecutar()).rejects.toMatchObject({ code: 'red' });

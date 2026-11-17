@@ -819,11 +819,21 @@
     try {
       token = await conBloqueoLogin(async () => {
         if (leerFallos() >= MAX_FALLOS_LOGIN) throw new DatadisError('agotado');
+        // Cancelado mientras esperaba el bloqueo: el login no ha salido, asi que no cuenta.
+        if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
         try {
           const t = await hacerLogin(nif, claveLogin, o.senal);
           guardarFallos(0);
           return t;
         } catch (e) {
+          // Timeout o cancelacion con el login ya enviado: Datadis pudo comprobar la contrasena
+          // aunque la respuesta no llegue, y un fallo asi cuenta para su bloqueo de 3. Mismo
+          // criterio que el 500 desconocido: perder un intento aqui cuesta menos que la cuenta.
+          // Un error de red ('red') no cuenta: es lo habitual sin conexion y nada llego a salir.
+          if (e && (e.code === 'timeout' || e.code === 'cancelado')) {
+            e.paso = 'login';
+            e.cuentaIntento = true;
+          }
           if (e && (e.code === 'credenciales' || e.cuentaIntento)) guardarFallos(leerFallos() + 1);
           throw e;
         }
@@ -1436,6 +1446,12 @@
       case 'red':
         return 'No hemos podido conectar con Datadis. Comprueba tu conexión e inténtalo de nuevo.';
       case 'timeout':
+        if (err.paso === 'login') {
+          return 'Datadis ha tardado demasiado en responder al iniciar sesión. Como no sabemos si llegó a comprobar tu contraseña, lo contamos como un intento por si acaso. ' +
+            (fallos >= MAX_FALLOS_LOGIN
+              ? 'Para no arriesgar tu cuenta no seguimos intentándolo: cuando hayas entrado bien en datadis.es, pulsa «Ya he entrado bien en datadis.es». Mientras tanto puedes descargar el CSV desde Datadis.'
+              : 'Prueba de nuevo en unos minutos o descarga el CSV desde Datadis.');
+        }
         return 'Datadis ha tardado demasiado en responder. Suele ser un problema temporal de sus servidores: prueba de nuevo en unos minutos o descarga el CSV desde Datadis.';
       case 'repeticion':
         return 'Datadis no permite repetir la misma consulta durante 24 horas. Si ya la hiciste hoy, espera o usa el CSV descargado desde Datadis.';

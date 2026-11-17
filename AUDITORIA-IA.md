@@ -340,6 +340,7 @@ estes auditando; no hace falta leerlo entero.
 - [Revision Normativa Externa: Bono Social, Lecturas, DA 58 Y Excedentes PVPC (Ronda 84, 02/11/2026)](AUDITORIA-REGISTRO.md#normativa-bono-lecturas-da58-excedentes-ronda-84-02-11-2026)
 - [Carga En Serie Por El Meta CSP Y INP Del Cambio De Tema (Ronda 85, 12/11/2026)](AUDITORIA-REGISTRO.md#preloads-meta-csp-y-tema-inp-ronda-85-12-11-2026)
 - [Revision Normativa Externa: Fiscalidad De Diciembre Y Transparencia Del Comparador (Ronda 86, 16/11/2026)](AUDITORIA-REGISTRO.md#revision-normativa-diciembre-cobertura-ronda-86-16-11-2026)
+- [Importador De Datadis Y Aviso De Importacion Fallida (Ronda 87, 17/11/2026)](AUDITORIA-REGISTRO.md#datadis-y-aviso-csv-ronda-87-17-11-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes
