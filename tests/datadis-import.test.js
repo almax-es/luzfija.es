@@ -1257,14 +1257,33 @@ describe('importar (fetch simulado)', () => {
     expect(D.textoError(e)).toContain('lo contamos como un intento');
   });
 
-  it('error de red sin conexion (navigator.onLine false): no cuenta el intento', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
+  it('sin conexion al enviar (navigator.onLine false): no llama a Datadis ni cuenta el intento', async () => {
+    const f = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
+    vi.stubGlobal('fetch', f);
     vi.stubGlobal('navigator', { onLine: false });
     const e = await ejecutar().catch((x) => x);
     expect(e).toMatchObject({ code: 'red' });
     expect(e.cuentaIntento).toBeFalsy();
+    expect(f).not.toHaveBeenCalled();
     expect(storage.has('lf_datadis_fallos')).toBe(false);
     expect(D.textoError(e)).toContain('No hemos podido conectar');
+  });
+
+  // 17/11/2026 (cuarta revision): onLine se mira al ENVIAR. Si la conexion cae despues de que
+  // salga el login, Datadis pudo contarlo aunque al fallar el navegador ya este sin conexion.
+  it('la conexion se cae con el login ya enviado: cuenta el intento aunque onLine ya sea false', async () => {
+    const nav = { onLine: true };
+    vi.stubGlobal('navigator', nav);
+    vi.stubGlobal('fetch', vi.fn(async () => { nav.onLine = false; throw new TypeError('Failed to fetch'); }));
+    const e = await ejecutar().catch((x) => x);
+    expect(e).toMatchObject({ code: 'red', paso: 'login', cuentaIntento: true });
+    expect(fallosGuardados()).toBe(1);
+  });
+
+  it('el aviso de intentos agotados no afirma que fallaran: pudieron ser cortes o timeouts', () => {
+    const t = D.textoError({ code: 'agotado' });
+    expect(t).toContain('dos intentos de inicio de sesión que no se han completado');
+    expect(t).not.toContain('fallidos');
   });
 
   it('sin suministros y sin consumos devuelven errores propios', async () => {

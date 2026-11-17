@@ -827,6 +827,9 @@
         if (leerFallos() >= MAX_FALLOS_LOGIN) throw new DatadisError('agotado');
         // Cancelado mientras esperaba el bloqueo: el login no ha salido, asi que no cuenta.
         if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
+        // Sin conexion AL ENVIAR, el login no sale: no se llama y no cuenta. Se mira aqui y no al
+        // fallar, porque la conexion puede caerse despues de que Datadis reciba la contrasena.
+        if (typeof navigator !== 'undefined' && navigator && navigator.onLine === false) throw new DatadisError('red');
         try {
           const t = await hacerLogin(nif, claveLogin, o.senal);
           guardarFallos(0);
@@ -837,12 +840,10 @@
           // criterio que el 500 desconocido: perder un intento aqui cuesta menos que la cuenta.
           // Un error de red ('red') tambien cuenta: fetch no distingue un corte antes de enviar de
           // uno despues de que Datadis compruebe la contrasena, y el POST del login es una peticion
-          // simple que Datadis procesa aunque su respuesta no se pueda leer (CORS roto). Solo no
-          // cuenta si el navegador sabe que esta sin conexion: entonces no pudo salir. Contar de mas
-          // es el error barato; dejar sin contar un fallo que Datadis si conto, no.
-          const sinConexion = e && e.code === 'red' && !e.respuestaRecibida &&
-            typeof navigator !== 'undefined' && navigator && navigator.onLine === false;
-          if (e && (e.code === 'timeout' || e.code === 'cancelado' || (e.code === 'red' && !sinConexion))) {
+          // simple que Datadis procesa aunque su respuesta no se pueda leer (CORS roto). El caso
+          // sin conexion ya se ha descartado antes de enviar. Contar de mas es el error barato;
+          // dejar sin contar un fallo que Datadis si conto, no.
+          if (e && (e.code === 'timeout' || e.code === 'cancelado' || e.code === 'red')) {
             e.paso = 'login';
             e.cuentaIntento = true;
           }
@@ -1457,7 +1458,7 @@
           ? 'Usuario o contraseña incorrectos. Para no bloquear tu cuenta de Datadis no seguimos intentándolo. Comprueba tu contraseña entrando en datadis.es y después pulsa «Ya he entrado bien en datadis.es».'
           : 'Usuario o contraseña incorrectos. Te queda un intento: si vuelves a fallar, dejaremos de intentarlo para no bloquear tu cuenta de Datadis.';
       case 'agotado':
-        return 'Ya se han producido dos intentos fallidos (quizá en otra pestaña). Para no bloquear tu cuenta de Datadis no seguimos intentándolo. Comprueba tu contraseña entrando en datadis.es y después pulsa «Ya he entrado bien en datadis.es».';
+        return 'Ya llevamos dos intentos de inicio de sesión que no se han completado (quizá en otra pestaña). Para no bloquear tu cuenta de Datadis no seguimos intentándolo. Comprueba tu contraseña entrando en datadis.es y después pulsa «Ya he entrado bien en datadis.es».';
       case 'documento':
         return err.detalle === 'sinletra'
           ? 'Falta la letra de tu NIF. No lo hemos enviado a Datadis, así que no has gastado ningún intento.'

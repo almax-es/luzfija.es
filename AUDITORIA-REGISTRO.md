@@ -7656,6 +7656,10 @@ diseno documentado o un limite inherente.** Credenciales: sin ruta a almacenamie
   procesa aunque no se pueda leer la respuesta (por ejemplo, con su CORS roto). Ahora un `red` en el login cuenta
   siempre, salvo con `navigator.onLine === false` (sin conexion no pudo salir). Revierte el test anterior "red
   caida: sin contar fallo de login", decision previa a esta ronda. Validado por mutacion en los dos sentidos.
+- **Cuarta revision (corregido).** `navigator.onLine` se miraba al FALLAR, y la conexion puede caerse despues de
+  que Datadis reciba la contrasena. Ahora se mira ANTES de enviar: sin conexion, el login no sale (no gasta nada);
+  si sale, cualquier `red` cuenta. El aviso de intentos agotados dice "dos intentos de inicio de sesion que no se
+  han completado" en vez de "fallidos", porque pueden ser cortes o timeouts. Validado por mutacion.
 
 **Aviso de texto:** el informe CSV/XLSX conserva el nombre de las hojas de Excel, que puede ser el de una persona,
 y el anonimizado no detecta nombres sueltos. Se conserva (sirve para identificar el formato y el usuario revisa
