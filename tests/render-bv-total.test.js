@@ -140,14 +140,14 @@ describe('Total BV: cero pagado frente a coste de ranking (lf-render.js)', () =>
     renderFn(global.window);
   });
 
-  it('Con la factura cubierta por la BV, "Pagas este mes" es 0,00 € y el ranking conserva su coste', async () => {
+  it('Con la factura cubierta por la BV, "Pagas en el periodo" es 0,00 € y el ranking conserva su coste', async () => {
     window.LF.state.rows = [filaBvCubierta()];
 
     await window.LF.renderTable();
 
     const tip = document.querySelector('.fv-icon').getAttribute('data-tip');
-    expect(tip).toContain('Pagas este mes: 0,00 € (usando BV acumulada)');
-    expect(tip).toContain('Ranking (coste real): 19,69 € (sin BV del pasado)');
+    expect(tip).toContain('Pagas en el periodo: 0,00 € (usando BV acumulada)');
+    expect(tip).toContain('Coste para ranking: 19,69 € (sin saldo BV inicial)');
 
     const totalCellTitle = document.querySelector('.total-cell').getAttribute('title');
     expect(totalCellTitle).toContain('Pagas: 0,00 €');
@@ -173,7 +173,7 @@ describe('Total BV: cero pagado frente a coste de ranking (lf-render.js)', () =>
     await window.LF.renderTable();
 
     const tip = document.querySelector('.fv-icon').getAttribute('data-tip');
-    expect(tip).toContain('Pagas este mes: 19,69 € (usando BV acumulada)');
+    expect(tip).toContain('Pagas en el periodo: 19,69 € (usando BV acumulada)');
 
     const totalCellTitle = document.querySelector('.total-cell').getAttribute('title');
     expect(totalCellTitle).toContain('Pagas: 19,69 €');

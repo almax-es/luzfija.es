@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
@@ -104,8 +104,10 @@ describe('Versionado del vendor SheetJS', () => {
 
     const file = new File([new Uint8Array([1, 2, 3, 4])], 'consumos.xlsx');
     window.BVSim.importFile(file).catch(() => {});
-    // importFile lee el fichero con FileReader antes de pedir el vendor.
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    // importFile lee el fichero con FileReader antes de pedir el vendor. Se espera a que
+    // aparezca el <script>, no un plazo fijo: con 30 ms fallaba de forma intermitente bajo
+    // la carga de la suite completa (17/11/2026, en el .bat de despliegue).
+    await vi.waitFor(() => expect(injectedXlsxSrc()).toBeTruthy(), { timeout: 3000, interval: 10 });
 
     const src = injectedXlsxSrc();
     expect(src).toBeTruthy();

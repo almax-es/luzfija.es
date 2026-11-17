@@ -389,7 +389,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     const body = Desglose.modal.querySelector('.desglose-body');
     
     expect(tarifaDiv.innerHTML).toContain('Test Tarifa');
-    expect(body.innerHTML).toContain('TOTAL FACTURA');
+    expect(body.innerHTML).toContain('TOTAL DEL PERIODO');
   });
 
   it('recomienda el Simulador Solar en el desglose solo con autoconsumo', () => {
@@ -415,6 +415,42 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(avisoSolar.textContent).toContain('arrastra la batería virtual');
 
     expect(render(false)).toBeNull();
+  });
+
+  // La home aplica el tope de compensacion UNA vez sobre todo el periodo; la ley lo aplica en
+  // cada factura (maximo un mes). Con mas de 35 dias y excedentes compensables se avisa de forma
+  // especifica, con BV y sin ella. 35 y no 31: una factura real puede abarcar 32-34 dias.
+  it('avisa de forma especifica del tope agregado con periodos de mas de 35 dias y excedentes', () => {
+    Desglose.init();
+    const base = {
+      nombreTarifa: 'Tarifa solar', potenciaP1: 4, potenciaP2: 4,
+      precioP1: 0.1, precioP2: 0.1, consumoPunta: 3000, precioPunta: 0.15,
+      precioCompensacion: 0.06, tipoCompensacion: 'SIMPLE', topeCompensacion: 'ENERGIA',
+      solarOn: true, zonaFiscal: 'Península'
+    };
+    const aviso = (extra) => {
+      const datos = { ...base, ...extra };
+      Desglose.renderizar(Desglose.calcularDesglose(datos), datos);
+      return Desglose.modal.querySelector('.desglose-solar-periodo-largo');
+    };
+
+    expect(aviso({ dias: 30, excedentes: 2000 })).toBeNull();
+    expect(aviso({ dias: 35, excedentes: 2000 })).toBeNull();
+    const a36 = aviso({ dias: 36, excedentes: 2000 });
+    expect(a36).not.toBeNull();
+    expect(a36.textContent).toContain('una sola vez a los 36 días');
+    expect(aviso({ dias: 365, excedentes: 2000 })).not.toBeNull();
+    expect(aviso({ dias: 365, excedentes: 2000, tipoCompensacion: 'SIMPLE + BV', tieneBV: true })).not.toBeNull();
+
+    expect(aviso({ dias: 365, excedentes: 0 })).toBeNull();
+    expect(aviso({ dias: 365, excedentes: 2000, tipoCompensacion: 'NO COMPENSA' })).toBeNull();
+
+    aviso({ dias: 365, excedentes: 2000 });
+    expect(Desglose.modal.querySelector('.desglose-solar-simulator strong').textContent)
+      .toContain('Periodo de más de un mes');
+    aviso({ dias: 30, excedentes: 2000 });
+    expect(Desglose.modal.querySelector('.desglose-solar-simulator strong').textContent)
+      .toContain('este ranking es orientativo');
   });
 
   it('Muestra índice base en lugar de estimado para excedentes indexados con trazabilidad horaria', () => {

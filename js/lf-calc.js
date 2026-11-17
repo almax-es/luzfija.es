@@ -647,6 +647,11 @@
       // Modo del cálculo: el render lo usa para avisos que describen ESTOS
       // resultados (no el estado actual del formulario, que puede cambiar después)
       solarOn: Boolean(solarOn),
+      // Mas de 35 dias con excedentes: el tope de compensacion se aplica UNA vez sobre todo el
+      // periodo y no factura a factura (maximo un mes). El aviso del ranking lo explica; el
+      // desglose (desglose-render.js) usa el mismo umbral. 35 y no 31: una factura real puede
+      // abarcar 32-34 dias entre lecturas.
+      periodoLargoConExcedentes: Boolean(solarOn) && Number(exTotal) > 0 && Number(dias) > 35,
       limitesConsumo,
       resumen: {
         mejor: firstValida ? firstValida.nombre : '—',

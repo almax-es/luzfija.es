@@ -216,6 +216,11 @@
       const precioComp = Number(datos.precioCompensacion || 0);
       const compensa = (solarOn && exKwh > 0 && precioComp > 0 && tipoComp !== 'NO COMPENSA');
       const creditoPotencial = compensa ? roundMoneyProducts([[exKwh, precioComp]]) : 0;
+      // Mas de un mes: este calculo aplica el tope de compensacion UNA vez sobre todo el periodo,
+      // pero la ley lo aplica en cada factura (maximo un mes; RD 244/2019 art. 14.3). 35 dias y no
+      // 31 porque una factura real puede abarcar 32-34 dias entre lecturas y sigue siendo un solo
+      // periodo de facturacion.
+      const periodoLargoConExcedentes = compensa && diasCalc > 35;
       // kWh de excedentes realmente usados vs sobrantes (más intuitivo que solo €).
       // Se reconstruyen desde euros ya redondeados al céntimo, así que se acotan a los kWh
       // vertidos: sin tope, 3,00 € / 0,037494 €/kWh daba "80,01 kWh compensados" de 80 generados.
@@ -230,8 +235,10 @@
       const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       // Detectar compensación parcial (solo término de energía, sin peajes ni cargos)
       const esCompParcial = String(datos.topeCompensacion || '') === 'ENERGIA_PARCIAL';
-      // Etiquetas de texto para la explicación de compensación
-      const topeLabel = esCompParcial ? 'energía pura (sin peajes ni cargos)' : 'consumo de luz';
+      // Limite de la compensacion: el general del mecanismo frente a la condicion parcial de la tarifa.
+      const topeNota = esCompParcial
+        ? 'límite de la tarifa: coste de la energía, sin peajes ni cargos'
+        : 'límite: coste de la energía comprada a la red';
       const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
       const bvActiva = Boolean(datos.tieneBV) && String(datos.tipoCompensacion || '').includes('BV');
 
@@ -250,11 +257,11 @@
       html += `<div class="desglose-resumen">
         <div class="desglose-resumen-grid">
           <div class="desglose-resumen-item">
-            <div class="desglose-resumen-label">Total factura</div>
+            <div class="desglose-resumen-label">Total del periodo</div>
             <div class="desglose-resumen-value">${this.fmt(d.totalBase)}</div>
           </div>
           <div class="desglose-resumen-item">
-            <div class="desglose-resumen-label">Pagas este mes</div>
+            <div class="desglose-resumen-label">Pagas en el periodo</div>
             <div class="desglose-resumen-value">${this.fmt(pagoMes)}</div>
           </div>
           ${d.credit2 > 0 ? `<div class="desglose-resumen-item">
@@ -266,18 +273,18 @@
             <div class="desglose-resumen-value">${this.fmt(d.costeBV)}</div>
           </div>` : ''}
           ${bvActiva && typeof d.bvSaldoFin === 'number' ? `<div class="desglose-resumen-item">
-            <div class="desglose-resumen-label">Saldo BV próximo mes</div>
+            <div class="desglose-resumen-label">Saldo BV final</div>
             <div class="desglose-resumen-value">${this.fmt(d.bvSaldoFin)}</div>
           </div>` : ''}
           ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Compensación aplicada</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
-            <div class="desglose-resumen-sub">${esCompParcial && d.baseCompensable > 0 ? `💡 <strong>Tope:</strong> Solo se puede compensar hasta ${this.fmt(d.baseCompensable)} (energía pura). De los ${this.fmt(d.cons)} de consumo, ${this.fmt(d.peajesTotal)} son peajes y cargos que no se pueden compensar.` : `💡 <strong>Tope legal:</strong> Solo se puede compensar hasta el coste del ${topeLabel} del mes.`}</div>
+            <div class="desglose-resumen-sub">${esCompParcial && d.baseCompensable > 0 ? `💡 <strong>Tope:</strong> Solo se puede compensar hasta ${this.fmt(d.baseCompensable)} (energía pura). De los ${this.fmt(d.cons)} de consumo, ${this.fmt(d.peajesTotal)} son peajes y cargos que no se pueden compensar.` : `💡 <strong>Límite de compensación:</strong> lo compensado no puede superar el coste de la energía que consumes de la red en cada factura (como máximo, un mes).`}</div>
             ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">✅ Compensados: <strong>${this.fmtNum(kwhExUsados)}</strong> kWh${bvActiva && kwhExBv > 0 ? ` · 🔋 A batería virtual: <strong>${this.fmtNum(kwhExBv)}</strong> kWh` : (!bvActiva && kwhExSobrantes > 0 ? ` · ❌ Se pierden: <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh` : '')}</div>` : ''}
           </div>` : ''}
         </div>
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
-          ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope: ${topeLabel}). ${bvActiva && d.excedenteSobranteEur > 0 ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : (!bvActiva ? 'El resto no se puede compensar este mes.' : '')}
+          ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> en el periodo (${topeNota}). ${bvActiva && d.excedenteSobranteEur > 0 ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : (!bvActiva ? 'El resto no se puede compensar en el periodo.' : '')}
         </div>` : ''}
         ${esIndexada && solarOn ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
           ${esIndiceBase
@@ -299,7 +306,7 @@
           if (creditoPotencial > cpBase) {
             const cpPerdido = round2(creditoPotencial - cpBase);
             if (bvActiva) {
-              cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite. Los ${this.fmt(d.excedenteSobranteEur || cpPerdido)} no usados este mes pasan a tu Batería Virtual.`;
+              cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite. Los ${this.fmt(d.excedenteSobranteEur || cpPerdido)} no usados en el periodo pasan a tu Batería Virtual.`;
             } else {
               cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite, perdiéndose ${this.fmt(cpPerdido)}.`;
             }
@@ -311,7 +318,8 @@
         ${solarOn ? `<aside class="desglose-solar-simulator" aria-label="Recomendación para autoconsumo">
           <div class="desglose-solar-simulator-icon" aria-hidden="true">☀️</div>
           <div>
-            <strong>Para autoconsumo, este ranking es orientativo.</strong>
+            <strong>${periodoLargoConExcedentes ? 'Periodo de más de un mes: cálculo orientativo.' : 'Para autoconsumo, este ranking es orientativo.'}</strong>
+            ${periodoLargoConExcedentes ? `<p class="desglose-solar-periodo-largo">Aquí el tope de compensación se aplica una sola vez a los ${this.fmtNum(diasCalc, 0)} días. En la realidad se aplica en cada factura (como máximo, un mes): los excedentes de una factura no compensan el consumo de otra, salvo que la tarifa permita acumularlos en una batería virtual. Por eso este resultado puede sobrestimar el ahorro por excedentes, sobre todo en tarifas sin batería virtual.</p>` : ''}
             <p>Para decidir qué tarifa solar te conviene, usa el <a href="/comparador-tarifas-solares.html">Simulador Solar</a>: calcula mes a mes, arrastra la batería virtual entre facturas, permite elegir el mes de inicio y puede usar tu CSV de consumo.</p>
           </div>
         </aside>` : ''}
@@ -602,24 +610,24 @@
         html += `<div class="desglose-seccion ${bvActiva ? 'desglose-seccion--bv' : 'desglose-seccion--exc-lost'}">
           <div class="desglose-seccion-header ${bvActiva ? 'desglose-seccion-header--bv' : 'desglose-seccion-header--exc-lost'}"><h3>${(bvActiva ? "🔋 BATERÍA VIRTUAL" : "☀️ EXCEDENTES NO COMPENSADOS")}</h3><span class="desglose-importe-header">${this.fmt(bvActiva ? (d.bvSaldoFin || 0) : (d.excedenteSobranteEur || 0))}</span></div>
           ${bvActiva && datos.bateriaVirtual > 0 ? `<div class="desglose-linea">
-            <span class="desglose-concepto">Saldo mes anterior</span>
+            <span class="desglose-concepto">Saldo BV inicial</span>
             <span class="desglose-detalle"></span>
             <span class="desglose-importe">${this.fmt(datos.bateriaVirtual)}</span>
           </div>` : ''}
           ${d.credit2 > 0 ? `<div class="desglose-linea">
-            <span class="desglose-concepto">BV utilizada este mes</span>
+            <span class="desglose-concepto">BV utilizada</span>
             <span class="desglose-detalle">Aplicado a factura</span>
             <span class="desglose-importe desglose-importe--neg">-${this.fmt(d.credit2)}</span>
           </div>` : ''}
           ${d.credit2 > 0 ? `<div class="desglose-ayuda desglose-ayuda--bv">✅ <strong>Ventaja Batería Virtual:</strong> Descuenta de TODA la factura (potencia, impuestos y alquiler incluidos), no solo del consumo.</div>` : ''}
           ${d.excedenteSobranteEur > 0 ? `<div class="desglose-linea">
             <span class="desglose-concepto">${bvActiva ? "Excedentes acumulados" : "Sobrante de excedentes"}</span>
-            <span class="desglose-detalle">${bvActiva ? "No compensados este mes" : "No se compensa este mes"}</span>
+            <span class="desglose-detalle">${bvActiva ? "No compensados en el periodo" : "No se compensa en el periodo"}</span>
             <span class="desglose-importe desglose-importe--pos">+${this.fmt(d.excedenteSobranteEur)}</span>
           </div>` : ''}
-          ${!bvActiva && d.excedenteSobranteEur > 0 ? `<div class="desglose-ayuda desglose-ayuda--exc-lost">⚠️ Esta tarifa <strong>no tiene batería virtual</strong>. Los excedentes que superan el tope legal de compensación se pierden cada mes.</div>` : ''}
+          ${!bvActiva && d.excedenteSobranteEur > 0 ? `<div class="desglose-ayuda desglose-ayuda--exc-lost">⚠️ Esta tarifa <strong>no tiene batería virtual</strong>. Los excedentes que superan el límite de compensación de cada factura se pierden: no se guardan para facturas posteriores.</div>` : ''}
           ${bvActiva ? `<div class="desglose-linea">
-            <span class="desglose-concepto"><strong>Saldo BV próximo mes</strong></span>
+            <span class="desglose-concepto"><strong>Saldo BV final</strong></span>
             <span class="desglose-detalle"></span>
             <span class="desglose-importe"><strong>${this.fmt(d.bvSaldoFin || 0)}</strong></span>
           </div>` : ''}
@@ -629,7 +637,7 @@
                   html += `<div class="desglose-seccion">
         <div class="desglose-seccion-header"><h3>💳 TOTALES</h3></div>
         <div class="desglose-linea">
-          <span class="desglose-concepto"><strong>TOTAL FACTURA</strong></span>
+          <span class="desglose-concepto"><strong>TOTAL DEL PERIODO</strong></span>
           <span class="desglose-detalle"></span>
           <span class="desglose-importe desglose-importe-final">${this.fmt(d.totalBase)}</span>
         </div>
@@ -639,13 +647,13 @@
           <span class="desglose-importe desglose-importe--blue">-${this.fmt(d.credit2)}</span>
         </div>` : ''}
         <div class="desglose-linea">
-          <span class="desglose-concepto"><strong>PAGAS ESTE MES</strong></span>
+          <span class="desglose-concepto"><strong>PAGAS EN EL PERIODO</strong></span>
           <span class="desglose-detalle"></span>
           <span class="desglose-importe desglose-importe-final ${d.totalFinal === 0 ? 'desglose-importe--pos' : ''}">${this.fmt(d.totalFinal)}</span>
         </div>
         ${bvActiva && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>🏆 Coste neto (para comparar tarifas)</strong></span>
-          <span class="desglose-detalle">Este es el coste real de <strong>${escapeHtml(datos.nombreTarifa || 'esta tarifa')}</strong> este mes, sin contar tu saldo BV del pasado. Úsalo para comparar con otras tarifas de forma justa.<br><span class="desglose-detalle-sub">Cálculo: ${this.fmt(d.totalBase)} (factura) − ${this.fmt(d.excedenteSobranteEur)} (excedentes hoy) = ${this.fmt(d.totalRanking)}</span></span>
+          <span class="desglose-detalle">Este es el coste de <strong>${escapeHtml(datos.nombreTarifa || 'esta tarifa')}</strong> en el periodo sin contar tu saldo BV inicial. Úsalo para comparar con otras tarifas de forma justa.<br><span class="desglose-detalle-sub">Cálculo: ${this.fmt(d.totalBase)} (total) − ${this.fmt(d.excedenteSobranteEur)} (excedentes del periodo) = ${this.fmt(d.totalRanking)}</span></span>
           <span class="desglose-importe desglose-importe-final desglose-importe--accent">${this.fmt(d.totalRanking)}</span>
         </div>` : ''}
       </div>`;

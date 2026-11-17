@@ -87,7 +87,7 @@ describe('Renderizado UI (lf-render.js)', () => {
       <div id="toolbar"></div>
       <div id="pvpcInfo"></div>
       <div id="resultsLiveStatus" role="status" aria-live="polite" aria-atomic="true"></div>
-      <div id="solarHomeEstimatorNotice" hidden></div>
+      <div id="solarHomeEstimatorNotice" hidden><span id="solarHomePeriodoLargo" hidden></span></div>
       <div id="consumoLimitsNotice" hidden></div>
       <div id="chartTopBody"></div>
       <table id="table">
@@ -402,6 +402,39 @@ describe('Renderizado UI (lf-render.js)', () => {
       resultados: [...mockRows]
     });
     expect(notice.hidden).toBe(true);
+  });
+
+  // Mas de 35 dias con excedentes: el ranking aplica el tope de compensacion una vez sobre todo
+  // el periodo. El aviso solar lo dice expresamente, y solo para ESE calculo renderizado.
+  it('El aviso solar explica la compensacion agregada solo con periodo largo y excedentes', () => {
+    const notice = document.getElementById('solarHomeEstimatorNotice');
+    const largo = document.getElementById('solarHomePeriodoLargo');
+    const render = (extra) => window.LF.renderAll({
+      success: true,
+      resumen: { mejor: 'Tarifa Solar', precio: '50,00 €' },
+      stats: null,
+      resultados: [...mockRows],
+      ...extra
+    });
+
+    render({ solarOn: true, periodoLargoConExcedentes: true });
+    expect(notice.hidden).toBe(false);
+    expect(largo.hidden).toBe(false);
+
+    render({ solarOn: true, periodoLargoConExcedentes: false });
+    expect(notice.hidden).toBe(false);
+    expect(largo.hidden).toBe(true);
+
+    render({ solarOn: false, periodoLargoConExcedentes: true });
+    expect(notice.hidden).toBe(true);
+    expect(largo.hidden).toBe(true);
+  });
+
+  it('index.html trae el tramo de periodo largo dentro del aviso solar, oculto de inicio', () => {
+    const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
+    const noticeMatch = html.match(/<div id="solarHomeEstimatorNotice"[\s\S]*?<\/div>/);
+    expect(noticeMatch[0]).toMatch(/<span id="solarHomePeriodoLargo" hidden>/);
+    expect(noticeMatch[0]).toContain('no factura a factura');
   });
 
   it('Explica las tarifas excluidas por los kWh ya registrados', () => {
@@ -818,7 +851,7 @@ describe('Renderizado UI (lf-render.js)', () => {
     const tip = document.querySelector('.fv-icon').getAttribute('data-tip');
     expect(tip).toContain('No aplicado en factura por peajes/cargos: 3,28 €');
     expect(tip).toContain('Saldo BV final: 3,28 €');
-    expect(tip).toContain('Pagas este mes: 22.97 €');
+    expect(tip).toContain('Pagas en el periodo: 22.97 €');
     expect(tip).not.toContain('usando BV acumulada');
   });
 

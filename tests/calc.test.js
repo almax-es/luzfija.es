@@ -422,6 +422,32 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(resultado.fvPriceUsed).toBeNull();
   });
 
+  // El ranking aplica el tope de compensacion una vez sobre todo el periodo: con mas de 35 dias
+  // y excedentes, el render recibe la marca para avisar (mismo umbral que el desglose).
+  it('marca periodoLargoConExcedentes solo con solar, excedentes y mas de 35 dias', async () => {
+    window.LF.cachedTarifas = [{
+      nombre: 'Solar', tipo: '1P', p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      fv: { exc: 0.05, tipo: 'SIMPLE', bv: false }, esPVPC: false
+    }];
+    const marca = async (extra) => {
+      await window.LF.calculateLocal({
+        p1: 4, p2: 4, dias: 30, cPunta: 100, cLlano: 0, cValle: 0,
+        zonaFiscal: 'Península', viviendaCanarias: false,
+        solarOn: true, exTotal: 50, bvSaldo: 0,
+        bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+        fechaYmd: '2026-03-20', ...extra
+      });
+      return window.LF.renderAll.mock.calls.at(-1)?.[0].periodoLargoConExcedentes;
+    };
+
+    expect(await marca({ dias: 35 })).toBe(false);
+    expect(await marca({ dias: 36 })).toBe(true);
+    expect(await marca({ dias: 365 })).toBe(true);
+    expect(await marca({ dias: 365, exTotal: 0 })).toBe(false);
+    expect(await marca({ dias: 365, solarOn: false })).toBe(false);
+  });
+
   it('Debe ordenar correctamente (Barato primero)', async () => {
     const tarifaCara = { nombre: "Cara", p1:1, p2:1, cPunta:1, cLlano:1, cValle:1, tipo:"1P" }; // Muy cara
     const tarifaBarata = { nombre: "Barata", p1:0.01, p2:0.01, cPunta:0.01, cLlano:0.01, cValle:0.01, tipo:"1P" }; // Muy barata

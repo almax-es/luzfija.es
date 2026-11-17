@@ -495,7 +495,7 @@
         // factura entera el usuario paga 0 €, mientras que totalNum sigue siendo positivo
         // porque el ranking no atribuye a la tarifa el saldo heredado de meses anteriores
         // (ARQUITECTURA-CALCULOS.md: totalPagar vs totalReal). Con `||` ese cero caia a
-        // totalNum y "Pagas este mes" mostraba el coste de ranking. El fallback a totalNum
+        // totalNum y "Pagas en el periodo" mostraba el coste de ranking. El fallback a totalNum
         // se reserva a fvTotalFinal ausente/no finito, con el mismo criterio explicito de
         // null/undefined que usa bvSaldoFin justo debajo.
         const fvTotalFinalRaw = r.fvTotalFinal;
@@ -523,12 +523,12 @@
           
           if (isBV && (credit2 > 0 || bvSaldoFin !== null)) {
             parts.push(credit2 > 0
-              ? `💰 Pagas este mes: ${bvPagasFmt} (usando BV acumulada)`
-              : `💰 Pagas este mes: ${bvPagasFmt}`);
-            parts.push(`🏆 Ranking (coste real): ${bvRankingFmt} (sin BV del pasado)`);
+              ? `💰 Pagas en el periodo: ${bvPagasFmt} (usando BV acumulada)`
+              : `💰 Pagas en el periodo: ${bvPagasFmt}`);
+            parts.push(`🏆 Coste para ranking: ${bvRankingFmt} (sin saldo BV inicial)`);
             
             if (bvSaldoFin !== null && bvSaldoFin !== undefined) {
-              parts.push(`🔋 Saldo BV final: ${numComa(bvSaldoFin)} € (disponible para el próximo mes)`);
+              parts.push(`🔋 Saldo BV final: ${numComa(bvSaldoFin)} € (disponible para próximas facturas)`);
             }
             
             parts.push(`---`);
@@ -537,19 +537,19 @@
           parts.push(`☀️ Excedentes vertidos: ${numComa(exKwh)} kWh`);
           parts.push(`💰 Precio compensación: ${precioComa(precioExc)} €/kWh`);
           if (r.fvExcRaw === -1) parts.push(`ℹ️ Referencia orientativa: el precio real varía según las horas exactas de vertido`);
-          parts.push(`✅ Compensado este mes: ${numComa(credit1)} € (descontado de tu consumo de energía)`);
+          parts.push(`✅ Compensado en el periodo: ${numComa(credit1)} € (descontado de tu consumo de energía)`);
           if (fvCosteBV > 0) parts.push(`🔋 Cuota BV: ${numComa(fvCosteBV)} € incluida en el total`);
           if (excNoCompensable > 0) parts.push(`⚠️ No aplicado en factura por peajes/cargos: ${numComa(excNoCompensable)} €`);
-          if (credit2 > 0) parts.push(`🔋 BV usada: ${numComa(credit2)} € (ahorros de meses anteriores aplicados ahora)`);
+          if (credit2 > 0) parts.push(`🔋 BV usada: ${numComa(credit2)} € (saldo BV inicial aplicado)`);
           
           const tip = parts.join('\n');
           fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
           solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
         } else if (bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')) {
           const parts = [];
-          if (credit2 > 0) parts.push(`🔋 BV usada: ${numComa(credit2)} € (ahorros de meses anteriores aplicados ahora)`);
+          if (credit2 > 0) parts.push(`🔋 BV usada: ${numComa(credit2)} € (saldo BV inicial aplicado)`);
           if (fvCosteBV > 0) parts.push(`🔋 Cuota BV: ${numComa(fvCosteBV)} € incluida en el total`);
-          parts.push(`🔋 Saldo BV final: ${numComa(bvSaldoFin)} € (disponible para el próximo mes)`);
+          parts.push(`🔋 Saldo BV final: ${numComa(bvSaldoFin)} € (disponible para próximas facturas)`);
           const tip = parts.join('\n');
           fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
           solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
@@ -791,6 +791,8 @@
     const notice = document.getElementById('solarHomeEstimatorNotice');
     if (!notice) return;
     notice.hidden = !state.lastRenderSolarOn;
+    const periodoLargo = document.getElementById('solarHomePeriodoLargo');
+    if (periodoLargo) periodoLargo.hidden = !(state.lastRenderSolarOn && state.lastRenderPeriodoLargo);
   }
 
   function formatKwh(n) {
@@ -1090,6 +1092,7 @@
     document.getElementById('seccionResultados')?.classList.remove('is-reserving');
     state.pending = false;
     state.lastRenderSolarOn = Boolean(d.solarOn);
+    state.lastRenderPeriodoLargo = Boolean(d.periodoLargoConExcedentes);
     setStatus('Resultados actualizados', 'ok');
 
     const r = d.resumen || {};

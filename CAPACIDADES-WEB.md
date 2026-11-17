@@ -109,8 +109,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Compensacion de excedentes.
 - Impuestos y alquiler.
 - Diferenciacion de metricas cuando hay BV:
-- `Pagas este mes`.
-- `Coste de ranking` (comparacion justa).
+- `Total del periodo` y `Pagas en el periodo` (las etiquetas no dicen "mes" ni "factura": el periodo puede durar hasta 365 dias). `Saldo BV inicial` / `Saldo BV final`.
+- `Coste para ranking` (comparacion justa, sin el saldo BV inicial).
+- Limite conocido con autoconsumo: la home aplica el tope de compensacion simplificada una sola vez sobre todo el periodo, mientras que la ley lo aplica en cada factura (maximo un mes, RD 244/2019 art. 14.3). Con mas de 35 dias y excedentes, lo avisan el ranking (tramo `#solarHomePeriodoLargo` del aviso solar, marca `periodoLargoConExcedentes` de `lf-calc.js`) y el desglose (puede sobrestimar el ahorro, sobre todo sin BV), y ambos remiten al simulador solar, que calcula mes a mes. 35 y no 31 porque una factura real puede abarcar 32-34 dias entre lecturas. Lo vigilan `tests/calc.test.js`, `tests/render-ui.test.js` y `tests/desglose.test.js`.
 - Filtros de tabla: todas / 1P / 3P.
 - Ordenacion por columnas (nombre, potencia, consumo, impuestos, total, vs mejor).
 - KPI resumen + grafico Top 5.
@@ -595,7 +596,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 38.894.
+- Lineas JS aproximadas: 38.910.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (120 tarifas).
@@ -696,7 +697,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 153 archivos de test (`tests/*.test.js`).
-- 2848 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2852 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.
