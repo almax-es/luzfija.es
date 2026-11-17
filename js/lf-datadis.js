@@ -679,7 +679,10 @@
     // documenta el resto. Un 500 con otro mensaje ("Data not found exception", 14/11/2026, sin
     // significado conocido) podria contar para su bloqueo de 3 intentos: se cuenta tambien aqui.
     // Perder un intento de LuzFija durante 24 h cuesta menos que una cuenta bloqueada.
-    if (r.status === 500) err.cuentaIntento = true;
+    // 502 y 504 son la pasarela de Datadis sin respuesta valida del servicio: la contrasena pudo
+    // comprobarse, igual que en un timeout del navegador (que ya cuenta). 503 y 429 se rechazan
+    // antes de procesar la peticion: no cuentan.
+    if (r.status === 500 || r.status === 502 || r.status === 504) err.cuentaIntento = true;
     err.servidor = `login: ${textoTecnicoLimpio(m || String(r.text || '').slice(0, 120))}`;
     throw err;
   }

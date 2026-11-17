@@ -7660,6 +7660,11 @@ diseno documentado o un limite inherente.** Credenciales: sin ruta a almacenamie
   que Datadis reciba la contrasena. Ahora se mira ANTES de enviar: sin conexion, el login no sale (no gasta nada);
   si sale, cualquier `red` cuenta. El aviso de intentos agotados dice "dos intentos de inicio de sesion que no se
   han completado" en vez de "fallidos", porque pueden ser cortes o timeouts. Validado por mutacion.
+- **Quinta revision (corregido).** Un 502 o 504 en el login (la pasarela de Datadis sin respuesta valida del
+  servicio) cuenta ahora como intento, igual que el timeout del navegador: la contrasena pudo comprobarse. 503 y
+  429 siguen sin contar (se rechazan antes de procesar). Asumido y NO REABRIR: un error de red o una cancelacion
+  pueden contar un intento que no llego a salir (fetch no lo distingue); y "intentos que no se han completado"
+  vale tambien para rechazos de credenciales (el acceso no se completo).
 
 **Aviso de texto:** el informe CSV/XLSX conserva el nombre de las hojas de Excel, que puede ser el de una persona,
 y el anonimizado no detecta nombres sueltos. Se conserva (sirve para identificar el formato y el usuario revisa

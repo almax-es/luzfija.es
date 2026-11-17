@@ -1075,7 +1075,18 @@ describe('importar (fetch simulado)', () => {
     expect(llamadas.length).toBe(2);
   });
 
-  it.each([502, 503, 504, 429])('un error de login que no es 500 (%i: pasarela o limite de frecuencia) no cuenta el intento', async (status) => {
+  // 17/11/2026 (quinta revision): 502 y 504 son la pasarela de Datadis sin respuesta del servicio,
+  // como un timeout (que ya cuenta): la contrasena pudo comprobarse.
+  it.each([502, 504])('un %i en el login (pasarela sin respuesta del servicio) cuenta el intento y no culpa a la contrasena', async (status) => {
+    respuestas.login = () => json(status, 'Error');
+    const e = await ejecutar().catch((x) => x);
+    expect(e).toMatchObject({ code: 'http', status, paso: 'login', cuentaIntento: true });
+    expect(fallosGuardados()).toBe(1);
+    expect(D.textoError(e)).toContain('No significa necesariamente que tu NIF o tu contraseña estén mal');
+    expect(D.textoError(e)).toContain('lo contamos como uno');
+  });
+
+  it.each([503, 429])('un error de login que no es 500 (%i: servicio no disponible o limite de frecuencia) no cuenta el intento', async (status) => {
     respuestas.login = () => json(status, 'Error');
     const e = await ejecutar().catch((x) => x);
     expect(e).toMatchObject({ code: 'http', status, paso: 'login' });
