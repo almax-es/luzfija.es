@@ -2140,6 +2140,13 @@ footer.footer-container p[style*="opacity:0.5"]{ opacity: 1 !important; color: v
       #btnCalc.btn.primary { padding-left: 12px; padding-right: 12px; }
       .btn.primary #btnText { font-size: 20px; letter-spacing: 1px; }
     }
+    /* Escritorio con resultados: la columna del formulario queda fija en 440 px y el boton mide
+       176 px (132 de hueco); "⚡ Calcular" a 26 px mide 160 y bajaba a dos lineas. A 22 px cabe
+       en una con 15 px de holgura. Sin resultados el boton mide 316 px y conserva los 26 px. */
+    @media (min-width: 1101px) {
+      .grid.has-results #btnCalc.btn.primary { padding-left: 12px; padding-right: 12px; }
+      .grid.has-results #btnCalc #btnText { font-size: 22px; letter-spacing: 1px; }
+    }
 
     /* Light mode fixes - componentes que faltaban */
     html.light-mode .kwhLabel {
