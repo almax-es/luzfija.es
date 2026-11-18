@@ -1101,6 +1101,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Estabanell 24 horas",
+      "cPunta": 0.182,
+      "cLlano": 0.182,
+      "cValle": 0.182,
+      "p1": 0.088,
+      "p2": 0.029,
+      "web": "https://estabanell.com/es/energia/sin-horarios/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "TE A tu Aire Luz Siempre +4000",
       "cPunta": 0.189,
       "cLlano": 0.189,
@@ -2012,6 +2032,26 @@
       "requiereFV": true
     },
     {
+      "nombre": "Estabanell Discriminación Horaria 3P",
+      "cPunta": 0.243,
+      "cLlano": 0.174,
+      "cValle": 0.148,
+      "p1": 0.088,
+      "p2": 0.029,
+      "web": "https://estabanell.com/es/energia/horarios-ahorro/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.248745,
       "cLlano": 0.248745,
@@ -2505,5 +2545,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-18T11:01:30.247Z"
+  "updatedAt": "2026-11-18T18:12:42.631Z"
 }
