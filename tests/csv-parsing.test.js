@@ -272,6 +272,23 @@ describe('CSV Utils - Parsing Robusto', () => {
     });
   });
 
+  describe('e-distribucion en catalan: CUPS;Data;Hora;AE_kWh;LECTURA REAL/ESTIMADA', () => {
+    it('Reconoce "Data" como fecha y "LECTURA REAL/ESTIMADA" como real/estimado', () => {
+      const lineas = ['CUPS;Data;Hora;AE_kWh;LECTURA REAL/ESTIMADA'];
+      for (let h = 1; h <= 24; h++) lineas.push(`ES0000000000000000XX;02/03/2026;${h};0,138;${h === 5 ? 'E' : 'R'}`);
+      const { rows, separator, headerRowIndex } = csvUtils.parseCSVToRows(lineas.join('\r\n'));
+      expect(separator).toBe(';');
+      expect(headerRowIndex).toBe(0);
+
+      const result = csvUtils.parseEnergyTableRows(rows, { headerRowIndex, separator });
+      expect(result.records).toHaveLength(24);
+      expect(result.records[0]).toMatchObject({ hora: 1, kwh: 0.138, excedente: 0, esReal: true });
+      expect(result.records[0].fecha.getMonth()).toBe(2);
+      expect(result.records[4].esReal).toBe(false);
+      expect(JSON.stringify(result)).not.toContain('ES0000000000000000XX');
+    });
+  });
+
   describe('Fecha que no avanza (UFD, 27/10/2026)', () => {
     const cabecera = ['Fecha', 'Hora', 'Consumo kWh'];
     const jornada = (fecha, repetirHora2) => {

@@ -185,7 +185,7 @@
 
       const headerRow = Array.isArray(data[headerRowIndex]) ? data[headerRowIndex] : [];
       const headersNorm = headerRow.map(normalizeHeader);
-      const idxFecha = headersNorm.findIndex(h => h === 'fecha' || h === 'date');
+      const idxFecha = headersNorm.findIndex(h => h === 'fecha' || h === 'date' || h === 'data');
       const idxHora = headersNorm.findIndex(h => h === 'hora' || h === 'hour');
       const idxFechaHora = headersNorm.findIndex(h => h === 'fecha_hora' || h === 'fecha_hora_consumo' || h === 'datetime');
       // La seleccion semantica la hace el parser comun. Aqui solo se usa el indice ya

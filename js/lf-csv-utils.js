@@ -329,6 +329,10 @@
   //     CUPS;Fecha;Hora;Minuto;ActivaEntrante;ActivaSaliente;R1;R2;R3;R4. Fecha dd/mm/aaaa,
   //     hora 1-24 con Minuto 0, decimal con coma, kWh sin unidad en la cabecera; R1-R4 son
   //     reactiva por cuadrantes y no se usan. tests/csv-parsing.test.js.
+  //   e-distribucion (Endesa) en CATALAN (18/11/2026, "..._dades horàries_CCH_CONS.csv"):
+  //     CUPS;Data;Hora;AE_kWh;LECTURA REAL/ESTIMADA. Igual que el castellano salvo "Data" (fecha)
+  //     y "LECTURA REAL/ESTIMADA" (R/E); fecha dd/mm/aaaa, hora 1-24, decimal con coma.
+  //     tests/csv-parsing.test.js.
   //   Datadis horario con la hora etiquetada por su FINAL en reloj local (06/11/2026): el dia
   //     que se retrasa el reloj repite 02:00 (no 03:00) y el de marzo salta 02:00 (no 03:00).
   //     Convive con la convencion de 2025 (inicio + 1). detectCnmcEndMarkDates().
@@ -346,7 +350,9 @@
   //     fila, sin excedentes. isMonthlyPeriodColumnsFormat(); tests/csv-hardening.test.js.
   const HEADER_ALIASES = {
     fecha: [
-      'fecha', 'date', 'dia', 'fecha_lectura', 'fecha_consumo', 'dia_lectura'
+      'fecha', 'date', 'dia', 'fecha_lectura', 'fecha_consumo', 'dia_lectura',
+      // e-distribucion en catalan (18/11/2026): CUPS;Data;Hora;AE_kWh;LECTURA REAL/ESTIMADA.
+      'data'
     ],
     // Solo alias INEQUIVOCOS de hora. Los nombres que pueden significar tanto la hora
     // del dia como el periodo tarifario viven en HORA_PERIODO_AMBIGUOUS y se clasifican
@@ -388,7 +394,9 @@
       'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'autoconsumo_kwh', 'autoconsumo_wh'
     ],
     realEstimado: [
-      'real_estimado', 'metodo_obtencion', 'metodoobtencion', 'real_estimada'
+      'real_estimado', 'metodo_obtencion', 'metodoobtencion', 'real_estimada',
+      // e-distribucion en catalan (18/11/2026): "LECTURA REAL/ESTIMADA" con valores R/E.
+      'lectura_real_estimada'
     ],
     // Solo alias INEQUIVOCOS de periodo tarifario.
     periodo: [
