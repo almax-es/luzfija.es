@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-17",
+    "syncedAt": "2026-11-18",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -1475,7 +1475,7 @@
     },
     "R2-174": {
       "name": "AGRI-ENERGIA, S.A.",
-      "phone": "900 727 272",
+      "phone": "900 740 000",
       "website": "http://www.agrienergia.com/"
     },
     "R2-182": {
@@ -1967,7 +1967,7 @@
     "R2-381": {
       "name": "ELECTRICA DE SOT DE CHERA SCV",
       "phone": "900 373 167",
-      "website": "http://electricasot.ecsocial.com/"
+      "website": "https://electricasot.es/"
     },
     "R2-382": {
       "name": "EVERGREEN ELECTRICA",
@@ -2460,7 +2460,7 @@
     "R2-488": {
       "name": "ELECTRICA SERRANIA DE RONDA ENERGIA SL",
       "phone": "900 103 065",
-      "website": "http://electricaserraniaderonda.es/"
+      "website": "http://www.electricaenergia.com.es/"
     },
     "R2-489": {
       "name": "NORTEDISON ELECTRIC S.L"
@@ -2901,7 +2901,7 @@
     },
     "R2-579": {
       "name": "ADEINNOVA ENERGIA S.L",
-      "phone": "900 80 22 54",
+      "phone": "900 676 048",
       "website": "http://www.energia.adeinnova.com/"
     },
     "R2-580": {
