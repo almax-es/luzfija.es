@@ -114,27 +114,6 @@
       "maxConsumoAnual": 4000.0
     },
     {
-      "nombre": "El Corte Inglés Despreocúpate",
-      "cPunta": 0.124572,
-      "cLlano": 0.124572,
-      "cValle": 0.124572,
-      "p1": 0.113397,
-      "p2": 0.113397,
-      "web": "https://tarifas.energiaelcorteingles.es/",
-      "tipo": "1P",
-      "promo": "60 € de descuento en la factura (máximo 10 € por factura) para nuevos contratos online. No válido en Canarias, Ceuta y Melilla.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "OCU Tarifa 24 horas",
       "cPunta": 0.126,
       "cLlano": 0.126,
@@ -338,6 +317,27 @@
       "p2": 0.113699,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
       "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "El Corte Inglés Despreocúpate",
+      "cPunta": 0.145,
+      "cLlano": 0.145,
+      "cValle": 0.145,
+      "p1": 0.113397,
+      "p2": 0.113397,
+      "web": "https://tarifas.energiaelcorteingles.es/",
+      "tipo": "1P",
+      "promo": "60 € de descuento en la factura (máximo 10 € por factura) para nuevos contratos online. No válido en Canarias, Ceuta y Melilla.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1510,27 +1510,6 @@
       "maxConsumoAnual": 4000.0
     },
     {
-      "nombre": "El Corte Inglés Benefíciate 3P",
-      "cPunta": 0.183578,
-      "cLlano": 0.127963,
-      "cValle": 0.089616,
-      "p1": 0.137369,
-      "p2": 0.089425,
-      "web": "https://tarifas.energiaelcorteingles.es/",
-      "tipo": "3P",
-      "promo": "60 € de descuento en la factura (máximo 10 € por factura) para nuevos contratos online. No válido en Canarias, Ceuta y Melilla.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Noche y Findes 3P",
       "cPunta": 0.184808,
       "cLlano": 0.124127,
@@ -1782,6 +1761,27 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 4000.0
+    },
+    {
+      "nombre": "El Corte Inglés Benefíciate 3P",
+      "cPunta": 0.208289,
+      "cLlano": 0.152992,
+      "cValle": 0.10524,
+      "p1": 0.137369,
+      "p2": 0.089425,
+      "web": "https://tarifas.energiaelcorteingles.es/",
+      "tipo": "3P",
+      "promo": "60 € de descuento en la factura (máximo 10 € por factura) para nuevos contratos online. No válido en Canarias, Ceuta y Melilla.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Iberdrola Online 3P",
@@ -2505,5 +2505,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-17T20:39:55.796Z"
+  "updatedAt": "2026-11-18T09:03:59.522Z"
 }
