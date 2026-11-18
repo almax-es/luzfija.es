@@ -335,6 +335,11 @@
   //   RECHAZADO a proposito: UFD (Naturgy) "consumptions.xlsx" (27/10/2026), Fecha;Hora;Consumo
   //   kWh con solo 4 fechas repetidas en ~34.000 filas y 4 perfiles diarios: no es curva real.
   //   El error lo dice (contarReinicioHorasMismaFecha); no se importa ni se "arregla".
+  //   RECHAZADO a proposito: Naturgy (comercializadora) listado de FACTURAS en XLSX (18/11/2026,
+  //   simulador solar): hoja "sheet", una fila por factura, 76 columnas (Numero_factura;
+  //   Fecha_emision;Fecha_cargo;Periodo_consumo;...;consumo_p1_kWh;...;valoracion_excedentes_kWh).
+  //   Mezcla anulaciones y refacturas del mismo periodo y filas sin periodo: no es un fichero de
+  //   consumo. Cae en cabecera-no-detectada; al usuario se le remite a la tabla manual o a Datadis.
   //   UFD (Naturgy) "consumptions.xlsx" MENSUAL (14/11/2026, implementado sin el fichero, desde
   //     la cabecera y la muestra del aviso): hoja consumptions, CUPS;Fecha (MM/AAAA);Consumo (kWh);
   //     P1 (kWh);P2 (kWh);P3 (kWh);Metodo de obtencion ("Estimado" en la muestra). Un mes por

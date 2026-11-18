@@ -242,6 +242,38 @@ describe('buildMailtoHref', () => {
     expect(body).toContain('linea 0;');
     expect(body).toContain('Copiar texto');
   });
+
+  // 18/11/2026: un XLSX de 76 columnas (listado de facturas de Naturgy) llego por correo sin la
+  // linea de cabeceras, que se borraba entera aunque el resto ocupaba menos de la mitad.
+  it('con un XLSX ancho acorta la lista de cabeceras en vez de borrarla y sacrifica antes la muestra', () => {
+    const headers = ['numero_factura', 'fecha_emision', 'fecha_cargo', 'periodo_consumo',
+      ...Array.from({ length: 72 }, (_, i) => `columna_larga_de_importe_${i}_euro`)];
+    const reportText = report.buildReportText({
+      context: 'solar',
+      ext: 'xlsx',
+      size: 12 * 1024,
+      errorCode: 'cabecera-no-detectada',
+      userMessage: 'No se encontró la fila de cabecera en el Excel.',
+      signature: ['zip', 'na', 'na', 'na', 'sin-tokens'],
+      technical: `Separador detectado: N/A\nCabeceras normalizadas detectadas: ${headers.join(', ')}`,
+      sample: {
+        sheetNames: ['sheet'],
+        sample: Array.from({ length: 12 }, (_, i) => `[fila ${i}] ${headers.map(() => '0,00').join(';')}`).join('\n')
+      }
+    });
+    const { href, truncated } = report.buildMailtoHref({
+      context: 'solar', originSlug: 'comercializadora', originDetail: 'Naturgy', reportText
+    });
+    expect(truncated).toBe(true);
+    expect(href.length).toBeLessThanOrEqual(1900);
+    const { body } = decodeMailto(href);
+    expect(body).toContain('Código: cabecera-no-detectada');
+    expect(body).toContain('Cabeceras normalizadas detectadas: numero_factura, fecha_emision, fecha_cargo, periodo_consumo');
+    expect(body).toMatch(/… \(\+\d+ más\)/);
+    expect(body).toContain('Hojas: sheet');
+    expect(body).not.toContain('[fila 0]');
+    expect(body).toContain('Copiar texto');
+  });
 });
 
 describe('originTrackingSegments: solo listas cerradas', () => {

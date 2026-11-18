@@ -486,12 +486,52 @@
     if (href.length <= maxChars) return { href, truncated: false };
     const reportLines = full.split('\n');
     const note = '[…texto recortado para que quepa en el correo; pulsa «Copiar texto» en la web para pegarlo entero]';
+    const fits = () => {
+      href = build(`${reportLines.join('\n')}\n${note}`);
+      return href.length <= maxChars;
+    };
+
+    // 1. Primero se sacrifica la muestra: lo que va tras la primera linea en blanco
+    //    (buildReportText la coloca justo antes de "Primeras lineas").
+    const blankIdx = reportLines.indexOf('');
+    const essentialLen = blankIdx === -1 ? reportLines.length : blankIdx;
+    while (reportLines.length > essentialLen) {
+      reportLines.pop();
+      if (fits()) return { href, truncated: true };
+    }
+
+    // 2. Las listas (columnas vistas, hojas) se acortan en vez de borrarse: son lo que dice
+    //    que formato es. Con un XLSX ancho (76 columnas, 18/11/2026) la linea de cabeceras
+    //    desaparecia entera aunque sobraba la mitad del presupuesto. Se recorta la mas larga.
+    const lists = [];
+    reportLines.forEach((line, index) => {
+      const parts = listLineParts(line);
+      if (parts && parts.items.length > 1) lists.push({ index, ...parts, keep: parts.items.length });
+    });
+    const renderList = (l) => `${l.prefix}${l.items.slice(0, l.keep).join(l.sep)}${l.sep}… (+${l.items.length - l.keep} más)`;
+    while (lists.some(l => l.keep > 1)) {
+      const target = lists
+        .filter(l => l.keep > 1)
+        .reduce((a, b) => (reportLines[b.index].length > reportLines[a.index].length ? b : a));
+      target.keep--;
+      reportLines[target.index] = renderList(target);
+      if (fits()) return { href, truncated: true };
+    }
+
+    // 3. Ultimo recurso: lineas enteras desde el final.
     while (reportLines.length > 1) {
       reportLines.pop();
-      href = build(`${reportLines.join('\n')}\n${note}`);
-      if (href.length <= maxChars) return { href, truncated: true };
+      if (fits()) return { href, truncated: true };
     }
     return { href: build(note), truncated: true };
+  }
+
+  // Lineas de lista del informe que se pueden acortar elemento a elemento.
+  function listLineParts(line) {
+    const match = /^(Cabeceras normalizadas detectadas|Hojas):\s*/.exec(String(line));
+    if (!match) return null;
+    const sep = match[1] === 'Hojas' ? ' | ' : ', ';
+    return { prefix: match[0], sep, items: line.slice(match[0].length).split(sep) };
   }
 
   // ===== UI =====
