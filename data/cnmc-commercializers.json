@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-18",
+    "syncedAt": "2026-11-19",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -444,7 +444,7 @@
     },
     "R2-005": {
       "name": "BASSOLS ENERGIA COMERCIAL, S.L",
-      "phone": "900 701 169",
+      "phone": "900 649 167",
       "website": "http://www.bassolsenergia.com/"
     },
     "R2-006": {
