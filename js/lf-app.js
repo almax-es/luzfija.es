@@ -450,17 +450,25 @@
         // ademas decidir si una peticion de calculo encolada sigue correspondiendo al
         // estado que el usuario tenia cuando la hizo.
         state.pending = true;
-        setStatus(
-          tarifasUnchanged
-            ? 'Cambios pendientes. Pulsa Calcular para actualizar.'
-            : 'Tarifas actualizadas. Pulsa Calcular para aplicar la nueva versión.',
-          'idle'
-        );
+        // Factura en revision aplicada mientras este calculo seguia en vuelo: renderAll() no pinto
+        // (ver alli) y el estado conserva la instruccion concreta de factura.js.
+        if (!document.getElementById('seccionResultados')?.classList.contains('is-pending')) {
+          setStatus(
+            tarifasUnchanged
+              ? 'Cambios pendientes. Pulsa Calcular para actualizar.'
+              : 'Tarifas actualizadas. Pulsa Calcular para aplicar la nueva versión.',
+            'idle'
+          );
+        }
       }
       
     } catch (err) {
       lfDbg('[ERROR]', err);
-      setStatus('No se ha podido calcular. Inténtalo de nuevo.', 'err');
+      // Corto a proposito: puede llegar pasados los 500 ms del clic y el estado solo reserva el
+      // ancho de "Resultados actualizados" (styles.css, #statusPill); uno mas largo cambiaba de fila
+      // la barra de la cabecera. El detalle va en el toast (revision de ChatGPT, 19/11/2026).
+      setStatus('No se pudo calcular', 'err');
+      toast('No se ha podido calcular. Inténtalo de nuevo.', 'err');
     } finally {
       window.__LF_CALC_INFLIGHT = false;
       if (reservaIntentada) window.LF.releaseResultsSpace?.(resultadosAbiertos);

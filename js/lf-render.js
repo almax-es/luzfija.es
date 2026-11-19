@@ -1086,7 +1086,9 @@
     if (!seccion) return;
     seccion.classList.remove('is-reserving');
     if (abiertaPorEsteCalculo && !__lfResultadosPintados) {
-      seccion.classList.add('is-error');
+      // Con una factura en revision aplicada durante el calculo no hubo fallo: se conserva su
+      // aviso (y la altura, como en el error, para no devolver el footer a la vista).
+      if (!seccion.classList.contains('is-pending')) seccion.classList.add('is-error');
       colocarAviso(seccion); // el usuario puede haber scrolleado durante la espera
       return;
     }
@@ -1100,6 +1102,14 @@
       setStatus('Error de cálculo', 'err');
       window.LF.toast('Error al calcular', 'err');
       return;
+    }
+
+    // Un calculo que ya estaba en vuelo cuando se aplico una factura que pide revision
+    // (factura.js marca .is-pending tras vaciar; cualquier calculo posterior la retira al reservar)
+    // trae resultados de los datos ANTERIORES: no se pintan sobre la tarjeta vaciada. Sin esto
+    // reaparecia el ranking viejo y desaparecia el aviso (revision de ChatGPT, 19/11/2026).
+    if (document.getElementById('seccionResultados')?.classList.contains('is-pending')) {
+      return Promise.resolve();
     }
 
     __lfResultadosPintados = true;

@@ -7790,3 +7790,19 @@ minimo, fila "Mi tarifa", aviso de error, foco, sin scroll horizontal, sin error
 alcanzable: los tres botones de importar viven en la cabecera, que no es fija, y el modal restaura el scroll.
 Bajar la pagina mas de ~160 px durante la espera sigue siendo el limite de diseno ya anotado (la reserva deja el
 footer 160 px por debajo): un banco que hace capturas desplazando la pagina durante la espera lo provoca.
+
+**Revision de ChatGPT de esa QA (lectura estatica de `1bd79d6`, 19/11/2026).** A, B y E sin hallazgo. Dos bugs
+confirmados en codigo y en Chrome, y un hueco de tests, corregidos:
+- **C. Error tardio mas ancho que la reserva del estado.** El `catch` de `calculate()` ponia "No se ha podido
+  calcular. Inténtalo de nuevo." (`err`, puede llegar pasados los 500 ms). Ahora "No se pudo calcular" y el
+  detalle en un toast; 0 anchos con cambio de fila en la barra (360-2560 px). Test que exige que ningun mensaje
+  `loading/ok/err` que pueda llegar tarde supere "Resultados actualizados" ("Corrige los datos..." solo sale al
+  pulsar o 200 ms despues de teclear).
+- **D. Calculo en vuelo + factura que pide revision.** Al terminar, `renderAll()` pintaba el ranking de los datos
+  ANTERIORES y retiraba `.is-pending`; el estado pasaba a "Cambios pendientes". Reproducido en Chrome con
+  tarifas a 8 s (con resultados previos y en el primer calculo; control negativo con `1bd79d6`: 101 filas viejas
+  a la vista). Ahora `renderAll()` no pinta si la tarjeta esta `.is-pending`, `releaseResultsSpace()` no la marca
+  como error (conserva aviso y altura) y `calculate()` no pisa la instruccion de la factura.
+- **F. Un selector mas especifico podia desemparejar spinner y texto sin que fallara nada.** Test que exige que
+  el `font-size` de `#btnText` y `#btnSpinner` lo fijen solo las cuatro reglas emparejadas. Las 5 mutaciones de
+  esta tanda (incluida la propuesta por ChatGPT) fallan en `tests/cls-reserva-resultados.test.js`.

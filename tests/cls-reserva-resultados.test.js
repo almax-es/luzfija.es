@@ -241,9 +241,39 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     const abierta = window.LF.reserveResultsSpace();
     expect(seccion.classList.contains('is-pending')).toBe(false);
     expect(seccion.classList.contains('is-reserving')).toBe(true);
-    seccion.classList.add('is-pending');
     await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
     window.LF.releaseResultsSpace(abierta);
+    expect(seccion.className.trim()).toBe('card visible');
+  });
+
+  // Revision de ChatGPT, 19/11/2026: un calculo ya en vuelo cuando se aplico la factura en revision
+  // traia el ranking de los datos ANTERIORES; renderAll() lo pintaba y retiraba el aviso.
+  it('un calculo en vuelo que termina con la factura en revision no pinta resultados viejos ni marca error', async () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    const abierta = window.LF.reserveResultsSpace(); // primer calculo, en vuelo
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState();
+    seccion.classList.add('is-pending'); // factura.js, durante la espera
+    window.LF.state.rows = [];
+
+    await window.LF.renderAll({ success: true, resumen: { mejor: 'Vieja', precio: '9 €' }, stats: { precioMin: '1', precioMedio: '2', precioMax: '3' }, resultados: [{ nombre: 'Vieja', totalNum: 1 }] });
+    expect(window.LF.el.tbody.children.length).toBe(0);
+    expect(window.LF.el.kpiBest.textContent).toBe('');
+    expect(window.LF.state.rows).toEqual([]);
+    expect(seccion.classList.contains('is-pending')).toBe(true);
+    expect(seccion.classList.contains('is-cleared')).toBe(true);
+
+    window.LF.releaseResultsSpace(abierta);
+    expect(seccion.classList.contains('is-error')).toBe(false);
+    expect(seccion.classList.contains('is-reserving')).toBe(false);
+    expect(seccion.style.minHeight).not.toBe(''); // la altura se conserva, como en el error
+
+    // El siguiente Calcular del usuario (con los datos de la factura) pinta con normalidad.
+    const nueva = window.LF.reserveResultsSpace();
+    expect(seccion.classList.contains('is-pending')).toBe(false);
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(nueva);
     expect(seccion.className.trim()).toBe('card visible');
   });
 
@@ -515,6 +545,27 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     bootApp({ calculateLocal: vi.fn(async () => { throw new Error('boom'); }) });
     await window.calculate(true, false);
     expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true);
+    // Estado corto (cabe en el ancho reservado; puede llegar tarde) y el detalle en el toast.
+    expect(window.LF.setStatus).toHaveBeenLastCalledWith('No se pudo calcular', 'err');
+    expect(window.LF.toast).toHaveBeenCalledWith('No se ha podido calcular. Inténtalo de nuevo.', 'err');
+  });
+
+  // Revision de ChatGPT, 19/11/2026: calculo en vuelo + factura que pide revision aplicada durante
+  // la espera. Al terminar, el estado conserva la instruccion de la factura.
+  it('si durante el calculo se aplico una factura en revision, no pisa su instruccion con "Cambios pendientes"', async () => {
+    let soltar;
+    const state = bootApp({ fetchTarifas: vi.fn(() => new Promise((r) => { soltar = r; })) });
+    document.body.insertAdjacentHTML('beforeend', '<section id="seccionResultados" class="card visible"></section>');
+    const calc = window.calculate(true, false);
+    await vi.waitFor(() => expect(window.LF.fetchTarifas).toHaveBeenCalled());
+    // factura.js: markPending() + vaciar + .is-pending, mientras se espera a tarifas.json
+    state.generation += 1;
+    document.getElementById('seccionResultados').classList.add('is-cleared', 'is-pending');
+    window.LF.setStatus.mockClear();
+    soltar(true);
+    await calc;
+    expect(window.LF.setStatus).not.toHaveBeenCalledWith('Cambios pendientes. Pulsa Calcular para actualizar.', 'idle');
+    expect(state.pending).toBe(true);
   });
 
   it('si setStatus falla ANTES de reservar, tampoco libera', async () => {
@@ -650,6 +701,35 @@ describe('CSS de la reserva (styles.css)', () => {
     expect(regla[1]).toMatch(/visibility:\s*hidden;/);
     // El texto real al terminar debe ser el mismo que se reserva.
     expect(read('js/lf-render.js')).toContain(`setStatus('${contenido[1]}', 'ok')`);
+  });
+
+  // Revision de ChatGPT, 19/11/2026: "No se ha podido calcular. Inténtalo de nuevo." (catch de
+  // calculate) superaba el ancho reservado y puede llegar pasados los 500 ms del clic.
+  it('ningun mensaje de estado loading/ok/err que pueda llegar tarde es mas largo que el reservado', () => {
+    const reservado = 'Resultados actualizados';
+    // Solo al pulsar Calcular o 200 ms despues de teclear: siempre dentro de los 500 ms de una entrada.
+    const alClic = new Set(['Corrige los datos para calcular']);
+    const mensajes = new Set();
+    for (const f of ['js/lf-app.js', 'js/lf-render.js', 'js/lf-cache.js', 'js/lf-csv-import.js', 'js/factura.js', 'js/pvpc.js', 'js/lf-calc.js', 'js/lf-datadis.js']) {
+      const src = read(f);
+      for (const m of src.matchAll(/setStatus\(\s*'([^']+)'\s*,\s*'(ok|err|loading)'\s*\)/g)) mensajes.add(m[1]);
+      if (f === 'js/lf-cache.js') for (const m of src.matchAll(/\bstatus:\s*'([^']+)'/g)) mensajes.add(m[1]);
+    }
+    expect(mensajes.size).toBeGreaterThan(5);
+    const largos = [...mensajes].filter((t) => !alClic.has(t) && t.length > reservado.length);
+    expect(largos).toEqual([]);
+  });
+
+  // Revision de ChatGPT, 19/11/2026: una regla nueva y mas especifica (p. ej. `#btnCalc.btn.primary
+  // #btnSpinner` en un media) dejaria spinner y texto con tamanos distintos sin que el resto lo note.
+  it('el tamano de letra de #btnText y #btnSpinner solo lo fijan las cuatro reglas emparejadas', () => {
+    const limpio = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    const reglas = (id) => [...limpio.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter((m) => m[1].includes(id) && /font-size/.test(m[2]))
+      .map((m) => m[1].trim().replace(/\s+/g, ' ').replace(id, '#X') + ' ' + m[2].match(/font-size:\s*(\d+)px/)[1]);
+    const esperado = ['.btn.primary #X 26', '.btn.primary #X 23', '.btn.primary #X 20', '.grid.has-results #btnCalc #X 22'];
+    expect(reglas('#btnText')).toEqual(esperado);
+    expect(reglas('#btnSpinner')).toEqual(esperado);
   });
 
   it('index.html: el contenido de #seccionResultados vive en un .body hijo directo, y su cabecera fuera', () => {
