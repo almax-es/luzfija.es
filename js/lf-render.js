@@ -1012,6 +1012,10 @@
   const RESERVA_MARGEN_PX = 160;
   const AVISO_TOP_PX = 96;
   let __lfResultadosPintados = false;
+  // Cuantas veces se ha vaciado la tarjeta (hideResultsToInitialState -> markResultsCleared). Un
+  // renderAll() cuya tabla se cancelo a mitad por un vaciado no debe anunciar su resumen ni
+  // desplazar la pagina al terminar (revision de ChatGPT, 19/11/2026).
+  let __lfVaciados = 0;
 
   // Coloca el aviso ("Calculando…" o el de error) 96 px por debajo de lo que se ve de la
   // tarjeta: su cabecera si esta a la vista, o el borde superior de la ventana si la pagina
@@ -1166,7 +1170,11 @@
 
     // Esperar a que la tabla termine de renderizarse antes de hacer scroll,
     // para evitar que el scroll salte al final mientras el DOM crece.
+    const vaciadosAlPintar = __lfVaciados;
     const renderDone = renderTable().then(() => {
+      // Vaciada mientras se pintaba por bloques (factura o CSV aplicados en ese hueco): la tabla
+      // ya se cancelo; el anuncio y el scroll serian de unos resultados que ya no estan.
+      if (vaciadosAlPintar !== __lfVaciados) return;
       announceResultsSummary(d);
       dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0);
       if (seccionResultados) {
@@ -1219,6 +1227,7 @@
     // vacia sin explicacion.
     markResultsCleared: () => {
       __lfResultadosPintados = false;
+      __lfVaciados++;
     }
   });
 

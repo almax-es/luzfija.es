@@ -277,6 +277,55 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.className.trim()).toBe('card visible');
   });
 
+  // Segunda revision de ChatGPT, 19/11/2026: la factura llega DESPUES del guard, mientras la tabla
+  // se pinta por bloques. La tabla se cancela, pero la continuacion de renderAll() anunciaba el
+  // resumen viejo y desplazaba la pagina hasta la tarjeta.
+  it('vaciada a mitad del pintado por bloques: no anuncia el resumen viejo ni desplaza la pagina', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      let reanudar;
+      window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
+      const filas = Array.from({ length: 25 }, (_, i) => ({ nombre: 'Vieja ' + i, tipo: '1P', totalNum: i, total: i + ' €', potencia: '1 €', consumo: '1 €', impuestos: '1 €', vsMejor: '', vsMejorNum: 0 }));
+      const abierta = window.LF.reserveResultsSpace();
+      const pintado = window.LF.renderAll({ success: true, resumen: { mejor: 'Vieja 0', precio: '0 €' }, stats: null, resultados: filas });
+      await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+
+      new Function('window', read('js/lf-ui.js'))(window);
+      window.LF.hideResultsToInitialState();
+      seccion.classList.add('is-pending'); // factura.js
+      reanudar();
+      await pintado;
+      await vi.advanceTimersByTimeAsync(10);
+
+      expect(window.LF.el.tbody.children.length).toBe(0);
+      expect(window.LF.el.resultsLiveStatus.textContent).not.toMatch(/Vieja/);
+      expect(seccion.scrollIntoView).not.toHaveBeenCalled();
+      window.LF.releaseResultsSpace(abierta);
+      expect(seccion.classList.contains('is-error')).toBe(false);
+      expect(seccion.classList.contains('is-pending')).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('sin vaciado, el pintado por bloques sigue anunciando y desplazando como siempre', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      const filas = Array.from({ length: 25 }, (_, i) => ({ nombre: 'Nueva ' + i, tipo: '1P', totalNum: i, total: i + ' €', potencia: '1 €', consumo: '1 €', impuestos: '1 €', vsMejor: '', vsMejorNum: 0 }));
+      window.LF.reserveResultsSpace();
+      await window.LF.renderAll({ success: true, resumen: { mejor: 'Nueva 0', precio: '0 €' }, stats: null, resultados: filas });
+      await vi.advanceTimersByTimeAsync(10);
+      expect(window.LF.el.resultsLiveStatus.textContent).toMatch(/Nueva 0/);
+      expect(seccion.scrollIntoView).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('factura.js marca .is-pending solo cuando no calcula sola, despues de vaciar', () => {
     const fac = read('js/factura.js');
     const i = fac.indexOf('hideResultsToInitialState();\n\n        if (shouldAutoCalc)');
@@ -566,6 +615,8 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     await calc;
     expect(window.LF.setStatus).not.toHaveBeenCalledWith('Cambios pendientes. Pulsa Calcular para actualizar.', 'idle');
     expect(state.pending).toBe(true);
+    // El resultado se descarto: la firma sigue como la dejo el vaciado.
+    expect(state.lastSignature).toBeNull();
   });
 
   it('si setStatus falla ANTES de reservar, tampoco libera', async () => {

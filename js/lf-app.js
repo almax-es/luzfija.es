@@ -432,7 +432,11 @@
       await new Promise(resolve => setTimeout(resolve, 0));
       
       await calculateLocal(values);
-      state.lastSignature = signature;
+      // Con una factura en revision aplicada durante el calculo, renderAll() descarta el resultado:
+      // la firma sigue a null, como la dejo el vaciado (revision de ChatGPT, 19/11/2026).
+      if (!document.getElementById('seccionResultados')?.classList.contains('is-pending')) {
+        state.lastSignature = signature;
+      }
       // Entre capturar `values`/catalogo y llegar aqui ha habido varios `await` (red,
       // PVPC, SSAA, render por chunks). El resultado solo puede declararse vigente si
       // siguen iguales AMBOS productores del snapshot: los datos editables y la version

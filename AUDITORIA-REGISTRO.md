@@ -7806,3 +7806,21 @@ confirmados en codigo y en Chrome, y un hueco de tests, corregidos:
 - **F. Un selector mas especifico podia desemparejar spinner y texto sin que fallara nada.** Test que exige que
   el `font-size` de `#btnText` y `#btnSpinner` lo fijen solo las cuatro reglas emparejadas. Las 5 mutaciones de
   esta tanda (incluida la propuesta por ChatGPT) fallan en `tests/cls-reserva-resultados.test.js`.
+
+**Segunda revision de ChatGPT (lectura estatica de `6f6aee8`, 19/11/2026).** C y el guard de D, sin hallazgo
+(sin camino legitimo que deba pintar con `.is-pending`; cola, `__lfResultadosPintados` y anuncio coherentes en
+el retorno anticipado). Corregido:
+- **Vaciado a mitad del pintado por bloques.** Si la factura (o un CSV) vaciaba la tarjeta mientras
+  `renderTable()` cedia entre bloques, la tabla se cancelaba pero la continuacion de `renderAll()` anunciaba el
+  resumen viejo en `#resultsLiveStatus` y hacia `scrollIntoView()`. Anterior a `.is-pending` (tambien con CSV).
+  Reproducido en Chrome (CPU 6x, vaciado al aparecer la primera fila): con `6f6aee8` anunciaba "no hay tarifas
+  ... Tarifa mas barata: <vieja>" y bajaba la pagina de 851 a 1437 px, 3/3; ahora nada, 3/3. Contador
+  `__lfVaciados` (lo sube `markResultsCleared()`); `renderAll()` lo compara antes de anunciar y desplazar.
+  `lf:results-ready` no se veia afectado (no se emite con 0 filas).
+- **Hardening:** `calculate()` ya no guarda `state.lastSignature` de un resultado descartado por `.is-pending`.
+Tests del pintado cancelado (con su contraprueba sin vaciado) y de la firma; 3/3 mutaciones detectadas.
+**Residual conocido, decidido no tratar (NO REABRIR sin esa decision):** con un calculo en vuelo (red muy
+lenta), aplicar un CSV/XLSX o Datadis hace que el calculo viejo pinte su ranking en la tarjeta vaciada; el
+calculo del CSV va en la cola (`__lf_queuedCalculation`, misma `generation`) y lo sustituye en cuanto termina.
+Se autocorrige y el estado final es siempre el correcto. Taparlo exige llevar el contador de vaciados del inicio
+de `calculate()` hasta `renderAll()` y `releaseResultsSpace()`; se descarto por riesgo frente a beneficio.
