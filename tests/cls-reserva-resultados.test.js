@@ -367,6 +367,21 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(otra.seccion.style.minHeight).toBe('');
   });
 
+  it('renderAll() de un ciclo descartado tampoco escribe su "Error de calculo"; fuera de ciclo si', async () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    const setStatus = window.LF.setStatus; // el que usa lf-render (lf-ui real lo sustituye en window.LF)
+    window.LF.beginResultsCycle();
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState();
+    await window.LF.renderAll({ success: false });
+    expect(setStatus).not.toHaveBeenCalledWith('Error de cálculo', 'err');
+    // Cerrado el ciclo, un renderAll() suelto ya no hereda el contador viejo.
+    window.LF.endResultsCycle();
+    await window.LF.renderAll({ success: false });
+    expect(setStatus).toHaveBeenCalledWith('Error de cálculo', 'err');
+  });
+
   it('descartado y sin calculo encolado: aviso de "pulsa Calcular", sin error y con su altura', () => {
     const { seccion } = bootRender();
     setGeometry(seccion, { top: 188, innerHeight: 900 });
@@ -767,6 +782,76 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     // Y termina aqui: si siguiera en vuelo, su finally soltaria __LF_CALC_INFLIGHT en el test siguiente.
     await vi.waitFor(() => expect(window.LF.releaseResultsSpace).toHaveBeenCalledTimes(2));
     expect(window.__LF_CALC_INFLIGHT).toBe(false);
+  });
+
+  // Cuarta revision de ChatGPT, 19/11/2026: los caminos de ERROR de un ciclo descartado pisaban el
+  // estado del flujo que vacio (p. ej. la instruccion de la factura en revision).
+  const cicloSimulado = () => {
+    const c = { vaciados: 0 };
+    c.mocks = { beginResultsCycle: vi.fn(() => c.vaciados), resultsCycleDiscarded: vi.fn((x) => x !== c.vaciados), endResultsCycle: vi.fn(), settleOrphanReservation: vi.fn() };
+    return c;
+  };
+
+  it('ciclo descartado + fallo de descarga sin catalogo: no escribe el error de los datos viejos', async () => {
+    const c = cicloSimulado();
+    let soltar;
+    bootApp({ ...c.mocks, fetchTarifas: vi.fn(() => new Promise((r) => { soltar = r; })), baseTarifasCache: [] });
+    const calc = window.calculate(true, false);
+    await vi.waitFor(() => expect(window.LF.fetchTarifas).toHaveBeenCalled());
+    c.vaciados += 1; // factura en revision aplicada durante la descarga
+    window.LF.setStatus.mockClear();
+    soltar(false);
+    await calc;
+    expect(window.LF.setStatus).not.toHaveBeenCalled();
+    expect(window.LF.toast).not.toHaveBeenCalled();
+    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true, { descartado: true, sigue: false });
+    expect(window.LF.endResultsCycle).toHaveBeenCalled();
+  });
+
+  it('ciclo descartado + fallo con catalogo de sesion: tampoco avisa de "calculando con la ultima descarga"', async () => {
+    const c = cicloSimulado();
+    let soltar;
+    bootApp({ ...c.mocks, fetchTarifas: vi.fn(() => new Promise((r) => { soltar = r; })), baseTarifasCache: [{ nombre: 'x' }] });
+    const calc = window.calculate(true, false);
+    await vi.waitFor(() => expect(window.LF.fetchTarifas).toHaveBeenCalled());
+    c.vaciados += 1;
+    soltar(false);
+    await calc;
+    expect(window.LF.toast).not.toHaveBeenCalled();
+  });
+
+  it('ciclo descartado + excepcion del calculo: no escribe "No se pudo calcular"', async () => {
+    const c = cicloSimulado();
+    bootApp({ ...c.mocks, calculateLocal: vi.fn(async () => { c.vaciados += 1; throw new Error('boom'); }) });
+    await window.calculate(true, false);
+    expect(window.LF.setStatus).not.toHaveBeenCalledWith('No se pudo calcular', 'err');
+    expect(window.LF.toast).not.toHaveBeenCalled();
+  });
+
+  it('el ciclo se abre antes del primer pintado: un vaciado en ese primer frame tambien lo descarta', async () => {
+    vi.useFakeTimers();
+    const realRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = (cb) => setTimeout(() => cb(0), 16);
+    try {
+      const c = cicloSimulado();
+      bootApp({ ...c.mocks });
+      const calc = window.calculate(true, false);
+      c.vaciados += 1; // antes de que llegue afterNextPaint()
+      await vi.advanceTimersByTimeAsync(1000);
+      await calc;
+      expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true, { descartado: true, sigue: false });
+    } finally {
+      window.requestAnimationFrame = realRaf;
+      vi.useRealTimers();
+    }
+  });
+
+  it('si el calculo que heredo "Calculando…" falla antes de reservar, no lo deja colgado', async () => {
+    const c = cicloSimulado();
+    bootApp({ ...c.mocks, setStatus: vi.fn((t) => { if (t === 'Calculando...') throw new Error('DOM incompleto'); }) });
+    await window.calculate(true, false);
+    expect(window.LF.releaseResultsSpace).not.toHaveBeenCalled();
+    expect(window.LF.settleOrphanReservation).toHaveBeenCalled();
   });
 
   it('al encolar se cancela el debounce de las ediciones: no pisa "Calculando..." con "Cambios pendientes"', async () => {

@@ -311,6 +311,10 @@ describe('calculate(): editar durante un calculo en curso no borra el aviso de p
 
     expect(calculateLocal).toHaveBeenCalledTimes(1);
     expect(state.pending).toBe(true);
+    // El debounce del cambio B (posterior a la peticion) sigue vivo: su validacion/aviso se muestra.
+    // Encolar cancela solo el de los cambios ya incluidos en la peticion (19/11/2026).
+    const pendientes = () => window.LF.setStatus.mock.calls.filter((c) => c[0] === 'Cambios pendientes. Pulsa Calcular para actualizar.').length;
+    await vi.waitFor(() => expect(pendientes()).toBeGreaterThanOrEqual(2));
   });
 
 

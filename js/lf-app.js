@@ -415,12 +415,16 @@
           toast: 'Error cargando tarifas desde el servidor.',
           toastConCache: 'Sin conexión con el servidor. Calculando con la última descarga de esta sesión.'
         };
+        // Descartado (la tarjeta se vacio durante la descarga): el fallo es de un calculo de datos
+        // viejos y no pisa la instruccion del flujo que vacio; el encolado, si lo hay, informa del suyo.
         if (!hasSessionTarifas) {
-          setStatus(fallo.status, 'err');
-          toast(fallo.toast, 'err');
+          if (!cicloDescartado()) {
+            setStatus(fallo.status, 'err');
+            toast(fallo.toast, 'err');
+          }
           return;
         }
-        toast(fallo.toastConCache, 'err');
+        if (!cicloDescartado()) toast(fallo.toastConCache, 'err');
       }
 
       // PVPC (viene de pvpc.js)
@@ -484,8 +488,11 @@
       // Corto a proposito: puede llegar pasados los 500 ms del clic y el estado solo reserva el
       // ancho de "Resultados actualizados" (styles.css, #statusPill); uno mas largo cambiaba de fila
       // la barra de la cabecera. El detalle va en el toast (revision de ChatGPT, 19/11/2026).
-      setStatus('No se pudo calcular', 'err');
-      toast('No se ha podido calcular. Inténtalo de nuevo.', 'err');
+      // Igual que arriba: el error de un ciclo descartado no pisa el estado del flujo que vacio.
+      if (!cicloDescartado()) {
+        setStatus('No se pudo calcular', 'err');
+        toast('No se ha podido calcular. Inténtalo de nuevo.', 'err');
+      }
     } finally {
       window.__LF_CALC_INFLIGHT = false;
       const queued = __lf_queuedCalculation;
@@ -496,7 +503,13 @@
       const descartadoFinal = cicloDescartado();
       if (reservaIntentada || descartadoFinal) {
         window.LF.releaseResultsSpace?.(resultadosAbiertos, { descartado: descartadoFinal, sigue });
+      } else if (!sigue) {
+        // Fallo ANTES de reservar en un calculo que heredo el "Calculando…" de uno descartado
+        // (markResultsCleared o releaseResultsSpace con `sigue`): sin esto quedaba colgado.
+        // Solo toca .is-reserving sin calculo en vuelo; un .is-error anterior se conserva.
+        window.LF.settleOrphanReservation?.();
       }
+      window.LF.endResultsCycle?.();
       if (sigue) {
         runCalculation(queued.forceRefresh, queued.announceRequest);
       }

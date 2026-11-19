@@ -7844,3 +7844,20 @@ solo ranking pintado (antes, el viejo y luego el nuevo). Factura en revision dur
 del pintado: correctos, 3/3. Banco de 16 facturas: 16/16 identicas a produccion. 12 mutaciones nuevas, todas
 detectadas por `tests/cls-reserva-resultados.test.js` (incluido el vaciado a mitad del pintado SIN `.is-pending`).
 El "residual conocido" anotado en la revision anterior queda resuelto y se retira.
+
+**Cuarta revision de ChatGPT (lectura estatica de `4bdd16a`, 19/11/2026).** Camino de exito del ciclo, descarte
+legitimo y debounce al encolar, sin hallazgo. Corregido (inventario completo de lo que un calculo escribe en su
+vida, no solo lo senalado):
+- **Bug: los caminos de ERROR de un ciclo descartado pisaban el estado del flujo que vacio.** Fallo de descarga
+  sin catalogo (estado + toast), fallo con catalogo (toast "calculando con la ultima descarga"), `catch` de
+  `calculate()` y, no senalado por ChatGPT, el `!d.success` de `renderAll()`, que escribia "Error de calculo"
+  ANTES de mirar el descarte. Reproducido en Chrome (tarifas 503 a 4 s, factura en revision durante la espera):
+  con `4bdd16a` el estado pasaba a "Error del servidor" con toast; ahora conserva la instruccion de la factura.
+  `lf-cache.js` solo escribe estado si no es silencioso; `calculate()` siempre lo pide silencioso.
+- **Hardening:** un calculo que heredo el "Calculando…" de uno descartado y falla ANTES de reservar llama a
+  `settleOrphanReservation()` en su `finally` (si no hay encolado). `endResultsCycle()` cierra el ciclo al terminar:
+  un `renderAll()` suelto ya no hereda el contador.
+- **Tests de los cuatro huecos senalados** (error en ciclo descartado, ciclo abierto antes del primer pintado,
+  sucesor que falla antes de reservar, validacion de una edicion posterior a la cola) y del de `renderAll()`.
+  9 mutaciones, todas detectadas. Repetidas en Chrome las pruebas de las revisiones anteriores (CSV con calculo en
+  vuelo en 4 pantallas, factura en revision durante la espera, vaciado a mitad del pintado): sin cambios.

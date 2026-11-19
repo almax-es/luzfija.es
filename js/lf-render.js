@@ -1034,6 +1034,11 @@
   function resultsCycleDiscarded(ciclo) {
     return typeof ciclo === 'number' && ciclo !== __lfVaciados;
   }
+  // Al terminar calculate(): un renderAll() llamado fuera de un ciclo (integracion externa) no debe
+  // heredar el contador de un ciclo ya cerrado.
+  function endResultsCycle() {
+    __lfCicloVaciados = null;
+  }
   // Un ciclo descartado deja su reserva ("Calculando…") al calculo encolado. Si este no arranca
   // (los datos no validan), la reserva pasa al aviso de "pulsa Calcular". Sin calculo en vuelo,
   // .is-reserving solo puede venir de ahi: una reserva normal siempre vive dentro de calculate().
@@ -1139,6 +1144,12 @@
   }
 
   function renderAll(d) {
+    // Ciclo descartado por un vaciado (ver beginResultsCycle): ni resultados ni su error. Va ANTES
+    // del aviso de fallo: un "Error de calculo" de los datos viejos pisaria la instruccion del flujo
+    // que vacio (cuarta revision, 19/11/2026).
+    if (__lfCicloVaciados !== null && __lfCicloVaciados !== __lfVaciados) {
+      return Promise.resolve();
+    }
     if (!d || !d.success) {
       setStatus('Error de cálculo', 'err');
       window.LF.toast('Error al calcular', 'err');
@@ -1287,6 +1298,7 @@
     },
     beginResultsCycle,
     resultsCycleDiscarded,
+    endResultsCycle,
     settleOrphanReservation
   });
 
