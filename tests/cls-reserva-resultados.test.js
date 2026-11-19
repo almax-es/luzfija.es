@@ -441,6 +441,79 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     }
   });
 
+  // Revision de ChatGPT, 20/11/2026: con datos cambiados durante el calculo, renderAll() quitaba
+  // `pending` y ponia "Resultados actualizados"; durante el pintado por bloques el desglose (cuyo guard
+  // mira `pending`) se podia abrir sobre una fila vieja con los inputs nuevos.
+  const filasDePrueba = (pref) => Array.from({ length: 25 }, (_, i) => ({ nombre: pref + ' ' + i, tipo: '1P', totalNum: i, total: i + ' €', potencia: '1 €', consumo: '1 €', impuestos: '1 €', vsMejor: '', vsMejorNum: 0 }));
+
+  it('datos cambiados ANTES de pintar: pinta, pero sigue "pendiente", sin "Resultados actualizados" ni anuncio', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      const st = window.LF.state;
+      st.generation = 1; st.pending = true; // el usuario edito durante la descarga
+      let reanudar;
+      window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
+      window.LF.reserveResultsSpace();
+      const pintado = window.LF.renderAll({ success: true, generation: 0, resumen: { mejor: 'Vieja 0', precio: '0 €' }, stats: null, resultados: filasDePrueba('Vieja') });
+      await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+      // En mitad del pintado (filas ya clicables) el desglose sigue bloqueado.
+      expect(st.pending).toBe(true);
+      expect(window.LF.setStatus).not.toHaveBeenCalledWith('Resultados actualizados', 'ok');
+      reanudar();
+      await pintado;
+      await vi.advanceTimersByTimeAsync(10);
+      expect(window.LF.el.tbody.children.length).toBe(25); // el ranking si se pinta (como pendiente)
+      expect(st.pending).toBe(true);
+      expect(window.LF.el.resultsLiveStatus.textContent).not.toMatch(/Resultados actualizados/);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('datos cambiados DURANTE el pintado: la edicion marca pendiente y no se anuncia el ranking viejo', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      const st = window.LF.state;
+      st.generation = 0;
+      let reanudar;
+      window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
+      window.LF.reserveResultsSpace();
+      const pintado = window.LF.renderAll({ success: true, generation: 0, resumen: { mejor: 'Vieja 0', precio: '0 €' }, stats: null, resultados: filasDePrueba('Vieja') });
+      await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+      expect(st.pending).toBe(false); // vigente al empezar: "actualizados", como siempre
+      st.generation = 1; st.pending = true; // scheduleCalculateDebounced() de una edicion
+      reanudar();
+      await pintado;
+      await vi.advanceTimersByTimeAsync(10);
+      expect(st.pending).toBe(true);
+      expect(window.LF.el.resultsLiveStatus.textContent).not.toMatch(/Vieja/);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('generacion vigente: "Resultados actualizados", pending limpio y anuncio, como siempre', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      const st = window.LF.state;
+      st.generation = 3; st.pending = true;
+      window.LF.reserveResultsSpace();
+      await window.LF.renderAll({ success: true, generation: 3, resumen: { mejor: 'Nueva 0', precio: '0 €' }, stats: null, resultados: filasDePrueba('Nueva') });
+      await vi.advanceTimersByTimeAsync(10);
+      expect(st.pending).toBe(false);
+      expect(window.LF.setStatus).toHaveBeenCalledWith('Resultados actualizados', 'ok');
+      expect(window.LF.el.resultsLiveStatus.textContent).toMatch(/Nueva 0/);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('sin vaciado, el pintado por bloques sigue anunciando y desplazando como siempre', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {

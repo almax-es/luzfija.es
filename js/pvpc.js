@@ -61,6 +61,14 @@
       return false;
     }
 
+    // Unico punto de los avisos de error de PVPC: uno por racha de fallos (pvpcErrorShown se limpia al
+    // calcular bien) y solo se da por mostrado si de verdad se mostro (ver pvpcToast).
+    function avisarErrorPVPC(message) {
+      if (pvpcErrorShown) return;
+      if (pvpcToast(message, 'err')) pvpcErrorShown = true;
+    }
+
+
     const round2 = (window.LF_CONFIG && typeof window.LF_CONFIG.round2 === 'function')
       ? window.LF_CONFIG.round2
       : (n) => Math.round(Number(n) * 100) / 100;
@@ -1195,9 +1203,7 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
         };
       } catch (err) {
         pvpcDbg('[ERROR] PVPC lectura de datos locales falló:', err?.message || err);
-        if (!pvpcErrorShown) {
-          if (pvpcToast('PVPC: No se pudieron cargar los datos de precios. Compara con tarifas comerciales.', 'err')) pvpcErrorShown = true;
-        }
+        avisarErrorPVPC('PVPC: No se pudieron cargar los datos de precios. Compara con tarifas comerciales.');
         return null;
       }
     }
@@ -1345,9 +1351,9 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
       const p=(async()=>{
         try{
 	          const data=await obtenerPVPC_LOCAL(values);
-	          if(!data){ if(!pvpcErrorShown){ if (pvpcToast('PVPC: Datos de precios no disponibles para tu zona/período.','err')) pvpcErrorShown=true; } return null; }
+	          if(!data){ avisarErrorPVPC('PVPC: Datos de precios no disponibles para tu zona/período.'); return null; }
           const parsed=parsearRespuestaPVPC(data);
-          if(!parsed){ if(!pvpcErrorShown){ if (pvpcToast('PVPC: Error al procesar datos de precios.','err')) pvpcErrorShown=true; } return null; }
+          if(!parsed){ avisarErrorPVPC('PVPC: Error al procesar datos de precios.'); return null; }
 
           const fiscalFechaFinal = (window.LF_CONFIG && typeof window.LF_CONFIG.getTodayYmd === 'function')
             ? window.LF_CONFIG.getTodayYmd()
@@ -1433,7 +1439,7 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
           return tarifa;
         }catch(err){
           pvpcDbg('[ERROR] Error procesando PVPC', err);
-          if(!pvpcErrorShown){ if (pvpcToast('PVPC: Error inesperado. Compara con tarifas comerciales.','err')) pvpcErrorShown=true; }
+          avisarErrorPVPC('PVPC: Error inesperado. Compara con tarifas comerciales.');
           return null;
         }
       })();

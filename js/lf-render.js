@@ -1179,10 +1179,16 @@
     // Tambien `.is-cleared` (hideResultsToInitialState en lf-ui.js): el cuerpo reaparece en el
     // mismo tick en que se pinta el contenido nuevo.
     document.getElementById('seccionResultados')?.classList.remove('is-reserving', 'is-cleared', 'is-pending');
-    state.pending = false;
+    // Si el usuario cambio datos mientras se calculaba (generation), el ranking se pinta pero NO es el
+    // de sus datos: se conserva `pending` y el estado "Cambios pendientes". Antes se limpiaban aqui y,
+    // durante el pintado por bloques, se podia abrir el desglose de una fila vieja con los inputs
+    // nuevos (su guard mira `pending`); calculate() solo lo restauraba al terminar. Ademas el estado
+    // cambiaba dos veces de texto, y con el la barra de la cabecera (revision de ChatGPT, 20/11/2026).
+    const generacionVigente = typeof d.generation !== 'number' || d.generation === (state.generation || 0);
+    if (generacionVigente) state.pending = false;
     state.lastRenderSolarOn = Boolean(d.solarOn);
     state.lastRenderPeriodoLargo = Boolean(d.periodoLargoConExcedentes);
-    setStatus('Resultados actualizados', 'ok');
+    if (generacionVigente) setStatus('Resultados actualizados', 'ok');
 
     const r = d.resumen || {};
     // El nombre de la tarifa NO es un contador: asignarlo directo es lo semanticamente
@@ -1232,7 +1238,11 @@
       // Vaciada mientras se pintaba por bloques (factura o CSV aplicados en ese hueco): la tabla
       // ya se cancelo; el anuncio y el scroll serian de unos resultados que ya no estan.
       if (vaciadosAlPintar !== __lfVaciados) return;
-      announceResultsSummary(d);
+      // No se anuncia como "Resultados actualizados" un ranking cuyos datos ya cambiaron (antes de
+      // pintar o durante el pintado): el estado de arriba, region viva, ya dice "Cambios pendientes".
+      if (typeof d.generation !== 'number' || d.generation === (state.generation || 0)) {
+        announceResultsSummary(d);
+      }
       dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0);
       if (seccionResultados) {
         seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });

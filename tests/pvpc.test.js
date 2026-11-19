@@ -957,6 +957,33 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     }
   });
 
+  it('crearTarifaPVPC (camino completo del calculo) tampoco avisa en un ciclo descartado ni se bloquea', async () => {
+    const valores = {
+      zonaFiscal: 'Península', p1: 3.45, p2: 3.45, dias: 1,
+      cPunta: 0, cLlano: 0, cValle: 1,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable'
+    };
+    global.window.LF.consumosHorarios = [{ fecha: new Date(2025, 0, 7), hora: 1, kwh: 1 }];
+    global.window.LF.pvpcPeriodoCSV = true;
+    try {
+      // Exito previo: deja limpio el aviso de la racha anterior.
+      global.fetch.mockResolvedValue({ ok: true, json: async () => ({ ...pvpcIdentity(8741, 'Europe/Madrid'), days: { '2025-01-07': generateMockDayPrices(0.20, 0.10, 0.05) } }) });
+      expect(await global.window.LF.pvpc.crearTarifaPVPC(valores)).not.toBeNull();
+      global.window.toast.mockClear();
+
+      global.fetch.mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
+      global.window.LF.currentResultsCycleDiscarded = () => true;
+      expect(await global.window.LF.pvpc.crearTarifaPVPC({ ...valores, cValle: 2 })).toBeNull();
+      expect(global.window.toast).not.toHaveBeenCalled();
+
+      global.window.LF.currentResultsCycleDiscarded = () => false;
+      expect(await global.window.LF.pvpc.crearTarifaPVPC({ ...valores, cValle: 3 })).toBeNull();
+      expect(global.window.toast).toHaveBeenCalledTimes(1); // uno por racha, no uno por cada sitio
+    } finally {
+      delete global.window.LF.currentResultsCycleDiscarded;
+    }
+  });
+
   it('obtenerPVPC_LOCAL combina precios exactos y medias con un 10% residual de horas y kWh', async () => {
     const prices = generateMockDayPrices(0.20, 0.10, 0.05);
     prices[0][1] = 0.50;

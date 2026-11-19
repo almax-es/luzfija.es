@@ -7886,3 +7886,21 @@ hallazgo. Dos bugs confirmados al ampliar el inventario a los MODULOS que el cic
 - **Tests de los huecos senalados:** `endResultsCycle()` antes de que el sucesor abra su ciclo; sin
   `settleOrphanReservation()` cuando hay sucesor valido; generacion pasada al motor. 9 mutaciones, todas detectadas.
   Repetidas en Chrome todas las pruebas anteriores y el banco de 16 facturas: sin cambios.
+
+**Sexta revision de ChatGPT (lectura estatica de `255557e`, 20/11/2026).** PVPC, estimacion anual, SSAA y caches
+sin hallazgo. Corregido:
+- **Bug anterior a esta ronda: `renderAll()` daba por "actualizados" resultados de datos ya cambiados.** Si el
+  usuario editaba durante el calculo, `renderAll()` ponia `pending = false` y "Resultados actualizados"; durante
+  el pintado por bloques las filas ya son clicables y el guard del desglose (`desglose-integration.js`, mira
+  `pending`) dejaba abrir una fila vieja con los inputs nuevos; `calculate()` solo lo restauraba al terminar.
+  Reproducido en Chrome (CPU 6x, tarifas a 3 s, edicion durante la espera, desglose al aparecer la primera fila):
+  con `255557e`, `pending=false` y "Resultados actualizados"; ahora `pending=true` y "Cambios pendientes" todo el
+  tiempo. `lf-calc.js` pasa `generation` a `renderAll()`: si no coincide, pinta (como pendiente) pero no limpia
+  `pending`, no pone "Resultados actualizados" y no anuncia; tampoco anuncia si los datos cambian durante el
+  pintado. Efecto secundario bueno: el estado ya no cambia de texto dos veces (ni la barra de la cabecera).
+- **Hardening: los 4 avisos de PVPC pasan por `avisarErrorPVPC()`** (un aviso por racha; solo cuenta si se
+  mostro), asi la regla vive en un sitio y el test con `crearTarifaPVPC()` real la cubre entera.
+- **No elevado (decidido):** el aviso de PVPC de un calculo superado por una EDICION (sin vaciado) sigue saliendo:
+  informa del fallo de esa operacion y el calculo no se descarta. Solo se suprime el de ciclos descartados.
+- Tests: generacion obsoleta antes de pintar y durante el pintado (con `renderTable()` real), vigente, ciclo
+  descartado sin limites (lf-calc real) y `crearTarifaPVPC()` real. 9 mutaciones, todas detectadas.

@@ -667,10 +667,19 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       expect(st.annualConsumptionEstimateBasis).toBeNull();
       window.LF.currentResultsCycleDiscarded = descartadoReal;
 
-      // Sin nada que decidir (sin limites), un calculo obsoleto no apaga el interruptor.
+      // Sin nada que decidir (sin limites), un calculo obsoleto no apaga el interruptor...
       window.LF.cachedTarifas = [{ nombre: 'Sin límite', p1: 0.02, p2: 0.02, cPunta: 0.02, cLlano: 0.02, cValle: 0.02, tipo: '1P' }];
       await window.LF.calculateLocal(valores, { generation: 6 });
       expect(st.useAnnualConsumptionEstimate).toBe(true);
+      // ...ni uno descartado con la generacion correcta (segunda revision de ChatGPT).
+      window.LF.currentResultsCycleDiscarded = () => true;
+      await window.LF.calculateLocal(valores, { generation: 7 });
+      expect(st.useAnnualConsumptionEstimate).toBe(true);
+      expect(st.annualConsumptionEstimateBasis).toBeNull();
+      window.LF.currentResultsCycleDiscarded = descartadoReal;
+      // El motor le pasa al render la generacion con la que arranco (renderAll no da por actualizado
+      // un resultado de datos ya cambiados).
+      expect(window.LF.renderAll.mock.calls.at(-1)[0].generation).toBe(7);
 
       // Vigente: fija la base como siempre (y sin contexto, llamada suelta, tambien).
       window.LF.cachedTarifas = [
