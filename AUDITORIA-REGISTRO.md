@@ -7745,3 +7745,17 @@ Auditoria acotada de ChatGPT sobre la reserva de espacio de la home contra el CL
 - Bajar la pagina mas de ~250 px DURANTE la espera del primer calculo (1280x900): 0,13 a 500 px. La reserva deja
   el footer 160 px por debajo de la posicion del clic.
 - Primer calculo en 1200x1920 (vertical): 0,072, con `main` y la seccion como fuentes.
+
+**Revision del arreglo por ChatGPT (lectura estatica de `bd83f05`, 19/11/2026).** Cinco preguntas; una mejora
+defensiva aplicada y cuatro sin hallazgo.
+- **Aplicado (hardening):** un `renderTable()` de filtro/orden suspendido en `yieldControl()` podia reanudar
+  tras el vaciado de CSV/XLSX/Datadis y reescribir filas antiguas bajo `.is-cleared` (invisibles, en el DOM).
+  La factura ya llamaba a `cancelRender()` antes de vaciar; ahora lo hace `hideResultsToInitialState()` para
+  todos. No alcanzable a mano: el render dura decenas de ms y el vaciado llega al menos 150 ms despues de
+  pulsar "Aplicar" en un modal que bloquea la pagina. Regresion con `renderTable()` real suspendido tras el
+  primer bloque (sin el arreglo reescribe 15 filas).
+- **Sin hallazgo (NO REABRIR):** factura en revision sin calculo automatico (estado y Calcular fuera de la
+  tarjeta, foco restaurado al cerrar el modal); otros caminos de invalidacion (el `tbody` vacio de un filtro
+  sin filas no invalida `state.rows`); `#resultsLiveStatus` dentro de `.body` (el anuncio se escribe tras
+  `renderDone`, con la clase ya retirada; el error sale en `#statusPill`); especificidad de la regla
+  `!important` (id + dos clases frente a una clase; no hay otro `visibility` `!important` dentro de `.body`).

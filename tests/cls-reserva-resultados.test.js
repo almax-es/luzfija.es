@@ -221,6 +221,33 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.style.minHeight).toBe('');
   });
 
+  // Revision de ChatGPT del arreglo, 19/11/2026: un renderTable() de filtro/orden suspendido entre
+  // bloques podia reanudar tras el vaciado del CSV/Datadis y reescribir filas antiguas bajo
+  // .is-cleared (invisibles, pero en el DOM). La factura ya cancelaba; ahora cancela el vaciado.
+  it('vaciar cancela un renderTable() suspendido entre bloques: no vuelve a escribir filas antiguas', async () => {
+    bootRender();
+    let reanudar;
+    // Solo la primera cesion queda suspendida; las siguientes siguen en el acto.
+    window.LF.yieldControl = vi.fn(() => (reanudar
+      ? Promise.resolve()
+      : new Promise((resolve) => { reanudar = resolve; })));
+    window.LF.state.rows = Array.from({ length: 25 }, (_, i) => ({
+      nombre: 'Tarifa ' + i, tipo: '1P', totalNum: i, total: i + ' €', potencia: '1 €',
+      consumo: '1 €', impuestos: '1 €', vsMejor: '', vsMejorNum: 0
+    }));
+
+    const render = window.LF.renderTable();
+    await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState();
+    expect(window.LF.el.tbody.children.length).toBe(0);
+
+    reanudar();
+    await render;
+    expect(window.LF.el.tbody.children.length).toBe(0);
+  });
+
   // 23/10/2026: cerrar la seccion al fallar devolvia el footer a la vista ~4 s despues del clic
   // y Chrome lo contaba (0,0646 con la pagina a 500 px). Se queda abierta con su altura.
   it('si el calculo termina sin pintar resultados, NO cierra la seccion: aviso de error y misma altura', () => {

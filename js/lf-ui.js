@@ -193,6 +193,12 @@
     
     document.querySelectorAll('.chartTop-barFill, .chartTop-barTrack, .chartTop-row').forEach(node => node.remove());
 
+    // Un renderTable() de filtro/orden puede seguir suspendido entre bloques: sin cancelarlo,
+    // reanudaria tras el vaciado y reescribiria filas antiguas (ocultas bajo .is-cleared, pero en
+    // el DOM). La factura ya cancelaba antes de llamar aqui; CSV/XLSX y Datadis no (revision de
+    // ChatGPT, 19/11/2026).
+    if (typeof window.LF.cancelRender === 'function') window.LF.cancelRender();
+
     // lf-render.js se evalua despues de este modulo, pero cuando esta funcion se
     // ejecuta ya puede aportar el cleanup del chip. Hay que llamarlo ANTES de
     // vaciar tbody para no desprender una fila que siga bajo IntersectionObserver.
