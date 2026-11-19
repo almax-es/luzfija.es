@@ -37,15 +37,28 @@
       }
     };
 
+    // Devuelve si el aviso llego a mostrarse: quien lo llama solo marca pvpcErrorShown en ese caso,
+    // para que un aviso suprimido no silencie el siguiente error legitimo.
     function pvpcToast(message, type = 'err') {
+      // Calculo de la home descartado (la tarjeta se vacio al aplicar factura, CSV o Datadis): su
+      // fallo es de unos datos que ya no estan y no debe pisar lo que muestra el flujo nuevo
+      // (revision de ChatGPT, 19/11/2026). Fuera de un ciclo (otros consumidores) avisa como siempre.
+      if (window.LF && typeof window.LF.currentResultsCycleDiscarded === 'function' &&
+          window.LF.currentResultsCycleDiscarded()) {
+        return false;
+      }
       try {
         const toastFn = (window.LF && typeof window.LF.toast === 'function')
           ? window.LF.toast
           : (typeof window.toast === 'function' ? window.toast : null);
-        if (toastFn) toastFn(message, type);
+        if (toastFn) {
+          toastFn(message, type);
+          return true;
+        }
       } catch (error) {
         pvpcDbg('[WARN] No se pudo mostrar el aviso PVPC:', error?.message || error);
       }
+      return false;
     }
 
     const round2 = (window.LF_CONFIG && typeof window.LF_CONFIG.round2 === 'function')
@@ -1183,8 +1196,7 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
       } catch (err) {
         pvpcDbg('[ERROR] PVPC lectura de datos locales falló:', err?.message || err);
         if (!pvpcErrorShown) {
-          pvpcToast('PVPC: No se pudieron cargar los datos de precios. Compara con tarifas comerciales.', 'err');
-          pvpcErrorShown = true;
+          if (pvpcToast('PVPC: No se pudieron cargar los datos de precios. Compara con tarifas comerciales.', 'err')) pvpcErrorShown = true;
         }
         return null;
       }
@@ -1333,9 +1345,9 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
       const p=(async()=>{
         try{
 	          const data=await obtenerPVPC_LOCAL(values);
-	          if(!data){ if(!pvpcErrorShown){pvpcToast('PVPC: Datos de precios no disponibles para tu zona/período.','err'); pvpcErrorShown=true;} return null; }
+	          if(!data){ if(!pvpcErrorShown){ if (pvpcToast('PVPC: Datos de precios no disponibles para tu zona/período.','err')) pvpcErrorShown=true; } return null; }
           const parsed=parsearRespuestaPVPC(data);
-          if(!parsed){ if(!pvpcErrorShown){pvpcToast('PVPC: Error al procesar datos de precios.','err'); pvpcErrorShown=true;} return null; }
+          if(!parsed){ if(!pvpcErrorShown){ if (pvpcToast('PVPC: Error al procesar datos de precios.','err')) pvpcErrorShown=true; } return null; }
 
           const fiscalFechaFinal = (window.LF_CONFIG && typeof window.LF_CONFIG.getTodayYmd === 'function')
             ? window.LF_CONFIG.getTodayYmd()
@@ -1421,7 +1433,7 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
           return tarifa;
         }catch(err){
           pvpcDbg('[ERROR] Error procesando PVPC', err);
-          if(!pvpcErrorShown){pvpcToast('PVPC: Error inesperado. Compara con tarifas comerciales.','err'); pvpcErrorShown=true;}
+          if(!pvpcErrorShown){ if (pvpcToast('PVPC: Error inesperado. Compara con tarifas comerciales.','err')) pvpcErrorShown=true; }
           return null;
         }
       })();

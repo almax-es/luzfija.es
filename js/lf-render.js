@@ -1039,6 +1039,11 @@
   function endResultsCycle() {
     __lfCicloVaciados = null;
   }
+  // Para los modulos que el ciclo atraviesa y escriben por su cuenta (avisos de pvpc.js, estado de la
+  // estimacion anual en lf-calc.js): true solo si HAY un ciclo abierto y la tarjeta se vacio en el.
+  function currentResultsCycleDiscarded() {
+    return __lfCicloVaciados !== null && __lfCicloVaciados !== __lfVaciados;
+  }
   // Un ciclo descartado deja su reserva ("Calculando…") al calculo encolado. Si este no arranca
   // (los datos no validan), la reserva pasa al aviso de "pulsa Calcular". Sin calculo en vuelo,
   // .is-reserving solo puede venir de ahi: una reserva normal siempre vive dentro de calculate().
@@ -1299,6 +1304,7 @@
     beginResultsCycle,
     resultsCycleDiscarded,
     endResultsCycle,
+    currentResultsCycleDiscarded,
     settleOrphanReservation
   });
 

@@ -449,7 +449,9 @@
       await new Promise(resolve => requestAnimationFrame(resolve));
       await new Promise(resolve => setTimeout(resolve, 0));
       
-      await calculateLocal(values);
+      // La generacion de arranque deja a lf-calc.js saber si su resultado sigue vigente antes de
+      // tocar estado compartido (estimacion anual).
+      await calculateLocal(values, { generation: startGeneration });
       // Vaciada durante el calculo: renderAll() descarto el resultado. La firma sigue a null, como
       // la dejo el vaciado, y el estado de arriba es el del flujo que vacio (revision de ChatGPT).
       const descartado = cicloDescartado();

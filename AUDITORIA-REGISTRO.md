@@ -7861,3 +7861,28 @@ vida, no solo lo senalado):
   sucesor que falla antes de reservar, validacion de una edicion posterior a la cola) y del de `renderAll()`.
   9 mutaciones, todas detectadas. Repetidas en Chrome las pruebas de las revisiones anteriores (CSV con calculo en
   vuelo en 4 pantallas, factura en revision durante la espera, vaciado a mitad del pintado): sin cambios.
+
+**Quinta revision de ChatGPT (lectura estatica de `b801a8d`, 19/11/2026).** `settleOrphanReservation()` sin
+hallazgo. Dos bugs confirmados al ampliar el inventario a los MODULOS que el ciclo atraviesa (no solo `lf-app` y
+`lf-render`):
+- **`pvpc.js` avisaba por su cuenta.** Sus 4 `pvpcToast()` estan dentro de `crearTarifaPVPC()`/`obtenerPVPC_LOCAL()`,
+  que atrapan el error: ni el `catch` de `calculate()` ni el guard de `renderAll()` los alcanzan. Ademas
+  `pvpcErrorShown` quedaba a `true` y silenciaba el siguiente aviso legitimo. `pvpcToast()` no avisa si
+  `currentResultsCycleDiscarded()` (lf-render) y devuelve si llego a mostrarse; `pvpcErrorShown` solo se marca
+  entonces. Ojo al probarlo: faltar solo una media (P3) falla DESPUES de que `pvpc.js` reinicie `pvpcErrorShown`
+  (linea ~890); el bloqueo se ve con un fallo anterior, p. ej. un mes 404. Chrome, datos PVPC 404 a 4 s y factura
+  en revision durante la espera: con `b801a8d` salia el aviso viejo y el del siguiente Calcular quedaba bloqueado;
+  ahora no sale el viejo y si el legitimo.
+- **`lf-calc.js` escribia la estimacion anual desde un calculo no vigente** (base con datos viejos -> el siguiente
+  calculo apagaba el interruptor recien encendido). Mas amplio de lo senalado: tambien SIN vaciado, si el usuario
+  cambia datos y activa la estimacion con un calculo en vuelo (carrera de `generation` anterior a esta ronda).
+  `calculate()` pasa `{ generation }` a `calculateLocal()`, que solo toca `useAnnualConsumptionEstimate` y su base
+  si la generacion no cambio y el ciclo no se descarto.
+- **Resto del inventario, inocuo y por que:** `window.pvpcLastMeta`, `pvpcPotenciaExcedida` y
+  `window.LF.cachedTarifas` solo los leen el calculo en curso y el desglose (abierto desde una fila; tras un vaciado
+  no hay filas) y el siguiente calculo los reescribe antes de pintar; no hay dos calculos a la vez
+  (`__LF_CALC_INFLIGHT`). La cache PVPC de localStorage va por la firma de los propios valores. `lf-ssaa.js` y
+  `lf-surplus-prices.js` no escriben estado ni avisan; `lf-cache.js` solo en modo no silencioso.
+- **Tests de los huecos senalados:** `endResultsCycle()` antes de que el sucesor abra su ciclo; sin
+  `settleOrphanReservation()` cuando hay sucesor valido; generacion pasada al motor. 9 mutaciones, todas detectadas.
+  Repetidas en Chrome todas las pruebas anteriores y el banco de 16 facturas: sin cambios.

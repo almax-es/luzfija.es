@@ -225,6 +225,9 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   `beginResultsCycle()` antes de cualquier `await` y `renderAll()`/`releaseResultsSpace()` descartan el
   ciclo si la tarjeta se vacio entretanto (factura, CSV o Datadis); al encolar se cancela el debounce de
   los inputs. Sin esto, con red lenta, el ranking viejo reaparecia y el encolado perdia su reserva (0,09-0,91).
+  Todo modulo que el calculo atraviese y escriba por su cuenta debe respetar el ciclo: los avisos de `pvpc.js`
+  miran `currentResultsCycleDiscarded()` y `lf-calc.js` solo toca la estimacion anual si su `generation` sigue
+  vigente. Si anades un aviso o una escritura de estado compartido dentro del calculo, haz lo mismo.
   Lo vigila `tests/cls-reserva-resultados.test.js`.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,

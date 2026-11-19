@@ -62,7 +62,9 @@
   }
 
   // ===== CÁLCULO LOCAL =====
-  async function calculateLocal(values) {
+  // `contexto` (opcional): { generation } con la que arranco calculate(). Sin el (llamadas sueltas)
+  // se comporta como siempre.
+  async function calculateLocal(values, contexto) {
     const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, bonoSocialOn, bonoSocialTipo, bonoSocialLimite } = values || getInputValues();
     const fiscalBase = {
       p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias,
@@ -587,7 +589,15 @@
     // La potencia entra en la base desde que existe el tope por kW: cambiarla cambia que tarifas
     // superan su limite, y una exclusion decidida para otro escenario no debe arrastrarse.
     const estimateBasis = `${dias}|${consumoTotalKwh}|${p1}|${p2}`;
-    if (window.LF.state?.useAnnualConsumptionEstimate) {
+    // Solo un calculo VIGENTE puede fijar o anular la estimacion anual: si mientras se calculaba el
+    // usuario cambio datos (generation) o la tarjeta se vacio (ciclo descartado), escribir aqui la base
+    // de los datos viejos hacia que el calculo siguiente viera otra base y apagara el interruptor que
+    // el usuario acababa de encender (revision de ChatGPT, 19/11/2026). Este resultado ya no se pinta
+    // (descartado) o se pinta marcado como pendiente; la estimacion la fija el calculo siguiente.
+    const calculoVigente = !contexto ||
+      ((window.LF.state?.generation || 0) === contexto.generation &&
+       !(typeof window.LF.currentResultsCycleDiscarded === 'function' && window.LF.currentResultsCycleDiscarded()));
+    if (calculoVigente && window.LF.state?.useAnnualConsumptionEstimate) {
       if (window.LF.state.annualConsumptionEstimateBasis === null) {
         window.LF.state.annualConsumptionEstimateBasis = estimateBasis;
       } else if (window.LF.state.annualConsumptionEstimateBasis !== estimateBasis) {
@@ -610,7 +620,7 @@
     });
     // Se apaga cuando NO hay nada que decidir, no cuando falta la estimacion: con un año
     // completo no hay proyeccion posible y aun asi el usuario puede aplicar o no los limites.
-    if (!limitesConsumo.limitsChoiceAvailable) {
+    if (calculoVigente && !limitesConsumo.limitsChoiceAvailable) {
       window.LF.state.useAnnualConsumptionEstimate = false;
       window.LF.state.annualConsumptionEstimateBasis = null;
     }

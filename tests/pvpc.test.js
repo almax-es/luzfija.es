@@ -920,6 +920,43 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     );
   });
 
+  // Revision de ChatGPT, 19/11/2026: pvpc.js atrapa sus errores y avisaba por su cuenta, tambien desde
+  // un calculo de la home ya descartado (tarjeta vaciada por factura, CSV o Datadis). Ademas dejaba
+  // pvpcErrorShown a true y silenciaba el siguiente aviso legitimo.
+  it('un calculo descartado no avisa del error de PVPC ni bloquea el aviso del siguiente', async () => {
+    const valores = {
+      zonaFiscal: 'Península', p1: 3.45, p2: 3.45, dias: 1,
+      cPunta: 0, cLlano: 0, cValle: 1,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable'
+    };
+    global.window.LF.consumosHorarios = [{ fecha: new Date(2025, 0, 7), hora: 1, kwh: 1 }];
+    global.window.LF.pvpcPeriodoCSV = true;
+    const responder = (precios) => global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...pvpcIdentity(8741, 'Europe/Madrid'), days: { '2025-01-07': precios } })
+    });
+    const aviso = 'PVPC: No se pudieron cargar los datos de precios. Compara con tarifas comerciales.';
+    try {
+      // Un exito previo deja pvpcErrorShown limpio.
+      responder(generateMockDayPrices(0.20, 0.10, 0.05));
+      expect(await global.window.LF.pvpc.obtenerPVPC_LOCAL(valores)).not.toBeNull();
+
+      // Mes sin datos (404): falla ANTES de que pvpc.js reinicie pvpcErrorShown, que es donde un
+      // aviso suprimido podia dejarlo bloqueado. (Faltar solo P3 falla despues del reinicio.)
+      global.fetch.mockResolvedValue({ ok: false, status: 404, json: async () => ({}) });
+      global.window.LF.currentResultsCycleDiscarded = () => true;
+      expect(await global.window.LF.pvpc.obtenerPVPC_LOCAL(valores)).toBeNull();
+      expect(global.window.toast).not.toHaveBeenCalled();
+
+      // El siguiente calculo (vigente) si avisa: el suprimido no lo dejo bloqueado.
+      global.window.LF.currentResultsCycleDiscarded = () => false;
+      expect(await global.window.LF.pvpc.obtenerPVPC_LOCAL(valores)).toBeNull();
+      expect(global.window.toast).toHaveBeenCalledWith(aviso, 'err');
+    } finally {
+      delete global.window.LF.currentResultsCycleDiscarded;
+    }
+  });
+
   it('obtenerPVPC_LOCAL combina precios exactos y medias con un 10% residual de horas y kWh', async () => {
     const prices = generateMockDayPrices(0.20, 0.10, 0.05);
     prices[0][1] = 0.50;

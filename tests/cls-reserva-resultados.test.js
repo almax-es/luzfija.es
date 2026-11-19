@@ -766,7 +766,9 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     const state = bootApp({
       fetchTarifas,
       beginResultsCycle: vi.fn(() => vaciados),
-      resultsCycleDiscarded: vi.fn((c) => c !== vaciados)
+      resultsCycleDiscarded: vi.fn((c) => c !== vaciados),
+      endResultsCycle: vi.fn(),
+      settleOrphanReservation: vi.fn()
     });
     const primero = window.calculate(true, false);
     await vi.waitFor(() => expect(fetchTarifas).toHaveBeenCalledTimes(1));
@@ -782,6 +784,17 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     // Y termina aqui: si siguiera en vuelo, su finally soltaria __LF_CALC_INFLIGHT en el test siguiente.
     await vi.waitFor(() => expect(window.LF.releaseResultsSpace).toHaveBeenCalledTimes(2));
     expect(window.__LF_CALC_INFLIGHT).toBe(false);
+
+    // Revision de ChatGPT: con sucesor valido la reserva heredada es suya; el finally del descartado
+    // no la convierte en aviso.
+    expect(window.LF.settleOrphanReservation).not.toHaveBeenCalled();
+    // El ciclo del descartado se cierra ANTES de que el sucesor abra el suyo (si no, lo cerraria).
+    const { beginResultsCycle, endResultsCycle } = window.LF;
+    expect(beginResultsCycle).toHaveBeenCalledTimes(2);
+    expect(endResultsCycle.mock.invocationCallOrder[0]).toBeLessThan(beginResultsCycle.mock.invocationCallOrder[1]);
+    // El motor recibe la generacion con la que arranco cada calculo (estimacion anual en lf-calc.js).
+    expect(window.LF.calculateLocal.mock.calls[0][1]).toEqual({ generation: 0 });
+    expect(window.LF.calculateLocal.mock.calls[1][1]).toEqual({ generation: 1 });
   });
 
   // Cuarta revision de ChatGPT, 19/11/2026: los caminos de ERROR de un ciclo descartado pisaban el

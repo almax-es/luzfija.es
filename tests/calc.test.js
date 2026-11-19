@@ -626,6 +626,70 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     window.LF.state.useAnnualConsumptionEstimate = false;
   });
 
+  // Revision de ChatGPT, 19/11/2026: un calculo que ya no es vigente (el usuario cambio datos, o la
+  // tarjeta se vacio) escribia la base de la estimacion con sus datos viejos y el calculo siguiente
+  // apagaba el interruptor que el usuario acababa de encender.
+  it('Un calculo que ya no es vigente no fija ni anula la estimacion anual', async () => {
+    const valores = {
+      p1: 5, p2: 2, dias: 365,
+      cPunta: 3000, cLlano: 0, cValle: 0,
+      zonaFiscal: 'Península', viviendaCanarias: false,
+      solarOn: false, exTotal: 0, bvSaldo: 0,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+      fechaYmd: '2026-08-10'
+    };
+    const st = window.LF.state;
+    const generacionPrevia = st.generation;
+    const descartadoReal = window.LF.currentResultsCycleDiscarded;
+    try {
+      window.LF.cachedTarifas = [
+        { nombre: 'Por kW 1200', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', maxConsumoAnualPorKw: 1200 },
+        { nombre: 'Sin límite', p1: 0.02, p2: 0.02, cPunta: 0.02, cLlano: 0.02, cValle: 0.02, tipo: '1P' }
+      ];
+      st.generation = 7;
+      st.useAnnualConsumptionEstimate = true;
+      st.annualConsumptionEstimateBasis = null;
+
+      // Generacion cambiada durante el calculo: ni fija la base...
+      await window.LF.calculateLocal(valores, { generation: 6 });
+      expect(st.annualConsumptionEstimateBasis).toBeNull();
+      expect(st.useAnnualConsumptionEstimate).toBe(true);
+      // ...ni anula la estimacion por ver otra base.
+      st.annualConsumptionEstimateBasis = 'otra';
+      await window.LF.calculateLocal(valores, { generation: 6 });
+      expect(st.useAnnualConsumptionEstimate).toBe(true);
+      expect(st.annualConsumptionEstimateBasis).toBe('otra');
+
+      // Ciclo descartado con la misma generacion: tampoco.
+      st.annualConsumptionEstimateBasis = null;
+      window.LF.currentResultsCycleDiscarded = () => true;
+      await window.LF.calculateLocal(valores, { generation: 7 });
+      expect(st.annualConsumptionEstimateBasis).toBeNull();
+      window.LF.currentResultsCycleDiscarded = descartadoReal;
+
+      // Sin nada que decidir (sin limites), un calculo obsoleto no apaga el interruptor.
+      window.LF.cachedTarifas = [{ nombre: 'Sin límite', p1: 0.02, p2: 0.02, cPunta: 0.02, cLlano: 0.02, cValle: 0.02, tipo: '1P' }];
+      await window.LF.calculateLocal(valores, { generation: 6 });
+      expect(st.useAnnualConsumptionEstimate).toBe(true);
+
+      // Vigente: fija la base como siempre (y sin contexto, llamada suelta, tambien).
+      window.LF.cachedTarifas = [
+        { nombre: 'Por kW 1200', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', maxConsumoAnualPorKw: 1200 },
+        { nombre: 'Sin límite', p1: 0.02, p2: 0.02, cPunta: 0.02, cLlano: 0.02, cValle: 0.02, tipo: '1P' }
+      ];
+      await window.LF.calculateLocal(valores, { generation: 7 });
+      expect(st.annualConsumptionEstimateBasis).toBe('365|3000|5|2');
+      st.annualConsumptionEstimateBasis = null;
+      await window.LF.calculateLocal(valores);
+      expect(st.annualConsumptionEstimateBasis).toBe('365|3000|5|2');
+    } finally {
+      window.LF.currentResultsCycleDiscarded = descartadoReal;
+      st.generation = generacionPrevia;
+      st.useAnnualConsumptionEstimate = false;
+      st.annualConsumptionEstimateBasis = null;
+    }
+  });
+
   it('Mantiene las tarifas con mínimo aunque el año completo no lo alcance', async () => {
     window.LF.cachedTarifas = [
       { nombre: 'Tramo 4000', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', maxConsumoAnual: 4000 },
