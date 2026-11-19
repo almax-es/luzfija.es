@@ -211,7 +211,11 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   conviertas el aviso en un elemento en flujo: cualquiera de ellas reintroduce el salto. Sustituye al hueco permanente
   `.grid:not(.has-results){min-height:100vh}` del 22/10, que no cubria a quien scrollea antes
   de calcular (0,22 con scroll 500); no lo reintroduzcas. Tampoco ocultes el footer hasta
-  calcular (esconde privacidad y aviso legal). Lo vigila `tests/cls-reserva-resultados.test.js`.
+  calcular (esconde privacidad y aviso legal). Al aplicar factura, CSV/XLSX o Datadis con resultados
+  ya pintados, `hideResultsToInitialState()` vacia la tarjeta sin cerrarla: marca `.is-cleared`
+  (cuerpo invisible desde ese mismo instante) y `markResultsCleared()`, para que el siguiente calculo
+  reserve como la primera vez. Sin ello, 0,27-0,90 con la pagina arriba en monitores altos (ronda 89).
+  Lo vigila `tests/cls-reserva-resultados.test.js`.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,
   la barra de la home se recolocaba o se partia en dos filas y el CLS de carga era 0,13-0,29

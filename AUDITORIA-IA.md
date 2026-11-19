@@ -341,6 +341,8 @@ estes auditando; no hace falta leerlo entero.
 - [Carga En Serie Por El Meta CSP Y INP Del Cambio De Tema (Ronda 85, 12/11/2026)](AUDITORIA-REGISTRO.md#preloads-meta-csp-y-tema-inp-ronda-85-12-11-2026)
 - [Revision Normativa Externa: Fiscalidad De Diciembre Y Transparencia Del Comparador (Ronda 86, 16/11/2026)](AUDITORIA-REGISTRO.md#revision-normativa-diciembre-cobertura-ronda-86-16-11-2026)
 - [Importador De Datadis Y Aviso De Importacion Fallida (Ronda 87, 17/11/2026)](AUDITORIA-REGISTRO.md#datadis-y-aviso-csv-ronda-87-17-11-2026)
+- [Antiincrustacion: `frame-guard.js` Y Pagina De Aviso (Ronda 88, 19/11/2026)](AUDITORIA-REGISTRO.md#antiincrustacion-ronda-88-19-11-2026)
+- [Reserva De Resultados Tras Aplicar Factura, CSV/XLSX O Datadis (Ronda 89, 19/11/2026)](AUDITORIA-REGISTRO.md#cls-tras-importar-ronda-89-19-11-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

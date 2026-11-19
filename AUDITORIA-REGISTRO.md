@@ -7683,3 +7683,65 @@ el texto antes de enviarlo), pero el aviso del panel ya lo dice (`tests/csv-repo
   importacion de "ultimos 12 meses" seria ruido. El analisis usa solo los dias recibidos y todas las tarifas se
   comparan con los mismos datos.
 - **Texto libre de los errores de Datadis en el informe.** Limite ya advertido en la propia interfaz.
+
+<a id="antiincrustacion-ronda-88-19-11-2026"></a>
+### Antiincrustacion: `frame-guard.js` Y Pagina De Aviso (Ronda 88, 19/11/2026)
+
+Auditoria acotada de ChatGPT sobre `js/frame-guard.js`, `pagina-incrustada.html`, `tests/frame-guard.test.js`,
+`ARRANQUE-CARGA.md` 4.7 y el `<head>` de las tres aplicaciones (lectura estatica, commit `b608f62`). Primera
+auditoria del area. **Cero defectos.** Falsos positivos, falsos negativos, parametro `desde`, boton de salida por
+variante de sandbox y estado residual, sin hallazgos aceptados.
+
+**No reabrir:**
+- **"Un iframe propio con `referrerpolicy=\"no-referrer\"` acaba en el aviso porque `ancestorOrigins` da
+  `\"null\"`".** Falso: medido en Chrome 157 con padre e iframes del mismo origen, `ancestorOrigins` conserva el
+  origen real con y sin `no-referrer` (solo se vacia `document.referrer`, que el guard no usa). Ademas, ninguna
+  pagina del sitio crea un iframe (ni en HTML ni por JS).
+- **`preconnect` a GoatCounter antes del guard (home y solar).** Abre conexion, no envia nada ni cuenta visita.
+  Moverlo detras del guard retrasaria su descubrimiento (meta CSP, sin preload scanner) sin ganancia.
+- **`/PAGINA-INCRUSTADA.HTML` y `/pagina-incrustada.html/` en `desde`.** Acaban en la 404, que lleva el guard:
+  sin bucle ni salida de origen.
+- **Boton sin salida con `sandbox="allow-scripts"` (sin `allow-popups` ni navegacion superior).** Inherente al
+  sandbox; la pagina ya dice que se escriba luzfija.es en la barra. El setter lanza `SecurityError` (Chromium y
+  Firefox), asi que no hay bloqueo silencioso tras `preventDefault()`.
+
+<a id="cls-tras-importar-ronda-89-19-11-2026"></a>
+### Reserva De Resultados Tras Aplicar Factura, CSV/XLSX O Datadis (Ronda 89, 19/11/2026)
+
+Auditoria acotada de ChatGPT sobre la reserva de espacio de la home contra el CLS (lectura estatica, commit
+`b608f62`). Verificado por Claude en Chrome 157 real con clic real, `tarifas.json` retrasado 1,5 s y
+`PerformanceObserver` de `layout-shift` sin `hadRecentInput`, con el flujo REAL de importar un CSV
+(`tests/fixtures/1.csv`) y comparando contra `HEAD` servido en paralelo. **1 bug real, corregido.**
+
+**Corregido:**
+- **Aplicar factura, CSV/XLSX o Datadis con resultados ya pintados no reservaba espacio.**
+  `hideResultsToInitialState()` (`js/lf-ui.js`) vacia la tarjeta pero la deja `.visible`, y
+  `reserveResultsSpace()` salia por "ya visible". El ranking nuevo crecia 1,5 s despues del clic. CLS con la
+  pagina ARRIBA y sin tocar el scroll: 0,27 (1280x1440), 0,49 (1440x2560), 0,90 (1200x1920), 0,04
+  (1920x1200 y 2560x1440). Arreglo en tres piezas, todas necesarias (medido quitando cada una):
+  1. `markResultsCleared()` (`js/lf-render.js`), llamado al vaciar: el siguiente calculo reserva como la primera
+     vez y, si falla, deja el aviso `.is-error` en vez de una tarjeta vacia sin explicacion.
+  2. `.is-cleared` en `#seccionResultados` desde el MISMO instante del vaciado, y `> .body` con
+     `visibility:hidden` en `.is-cleared`/`.is-reserving`/`.is-error`. Causa medida: Chrome compara cada bloque
+     con el ultimo fotograma en que estuvo VISIBLE; los ~150 ms que la tarjeta vaciada se veia antes de reservar
+     (la espera del recalculo de CSV) dejaban `tableWrap`, el aviso de limites y el boton de compartir en una
+     posicion intermedia desde la que "saltaban" al volver el ranking. Ocultarlo solo al reservar no bastaba
+     (0,18-0,26). `renderAll()` quita `.is-cleared` en el mismo tick en que pinta.
+  3. En movil, `.statsbar`/`.statCard` fuerzan `visibility:visible !important` (`styles.css`, max-width 760px):
+     regla con `!important` para que no se vean las cifras viejas bajo "Calculando...".
+  Despues: 0,0003-0,0018 en todos los tamanos medidos, igual que el primer calculo; movil y escritorio, tema
+  claro y oscuro; duracion del clic en "Aplicar" sin cambios (16-40 ms). Regresiones en
+  `tests/cls-reserva-resultados.test.js`, 6 de 6 mutaciones detectadas.
+
+**No se cambia (NO REABRIR con este patron):**
+- **"`calculate()` libera la reserva antes de que `renderTable()` termine".** Falso: `renderAll()` devuelve
+  `renderDone` y `calculateLocal()` lo propaga; el `finally` espera al ultimo chunk.
+- **Recalculo automatico, cola `__lf_queuedCalculation`, Enter y toggle anual con resultados visibles.**
+  Medido: 0-0,012 con el footer a la vista. La tabla anterior ocupa su sitio hasta que llega la nueva.
+- **Render cancelado durante un chunk al aplicar una factura.** Queda cubierto por el arreglo: el vaciado
+  marca la tarjeta y el calculo encolado vuelve a reservar.
+
+**Limites medidos y no tratados en esta ronda (anteriores al cambio, mismas cifras en `HEAD`):**
+- Bajar la pagina mas de ~250 px DURANTE la espera del primer calculo (1280x900): 0,13 a 500 px. La reserva deja
+  el footer 160 px por debajo de la posicion del clic.
+- Primer calculo en 1200x1920 (vertical): 0,072, con `main` y la seccion como fuentes.

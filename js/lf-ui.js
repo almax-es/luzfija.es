@@ -201,12 +201,21 @@
     if (el.tbody) el.tbody.replaceChildren();
     if (el.emptyBox) el.emptyBox.classList.remove('show');
     if (el.pvpcInfo) el.pvpcInfo.innerHTML = '';
-    
+    // CLS: el cuerpo de la tarjeta se oculta en el MISMO instante en que se vacia. Chrome mide
+    // cada bloque contra el ultimo fotograma en que estuvo visible: si la tarjeta vaciada se veia
+    // aunque fuera 150 ms (lo que tarda el recalculo de CSV en arrancar), al volver el ranking sus
+    // bloques "saltaban" desde esa posicion intermedia (0,18-0,22 en monitores altos con la
+    // pagina arriba, Chrome 157, 19/11/2026). renderAll() quita la clase al pintar.
+    document.getElementById('seccionResultados')?.classList.add('is-cleared');
+
     const seoFold = document.getElementById('info');
     if (seoFold) seoFold.classList.remove('show');
     
     state.rows = [];
     state.lastSignature = null;
+    // La seccion sigue abierta (.visible) pero sin resultados: el siguiente calculo tiene que
+    // reservar su espacio (CLS). Opcional, como resetMiTarifaChip: lf-render.js va despues.
+    if (typeof window.LF.markResultsCleared === 'function') window.LF.markResultsCleared();
   }
 
   // ===== EXPORTAR =====

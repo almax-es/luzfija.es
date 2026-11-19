@@ -1050,7 +1050,19 @@
       colocarAviso(seccion);
       return true;
     }
-    if (seccion.classList.contains('visible')) return false;
+    // Abierta y con resultados pintados: recalculo normal, la tabla anterior sigue ocupando su
+    // sitio hasta que llega la nueva. Abierta pero VACIADA por hideResultsToInitialState()
+    // (aplicar factura, CSV/XLSX o Datadis): hay que reservar igual que la primera vez. Sin esto,
+    // el ranking nuevo crecia 1,5 s despues del clic y Chrome lo contaba: CLS 0,27 en 1280x1440
+    // y 0,37 en 2560x1440 con la pagina arriba, 0,76 al fondo (Chrome 157, clic real y tarifas a
+    // 1,5 s; senalado por una revision de ChatGPT el 19/11/2026).
+    if (seccion.classList.contains('visible')) {
+      if (__lfResultadosPintados) return false;
+      seccion.classList.add('is-reserving');
+      reservarAltura(seccion);
+      colocarAviso(seccion);
+      return true;
+    }
     seccion.classList.add('visible', 'is-reserving');
     const grid = document.querySelector('.grid');
     if (grid) grid.classList.add('has-results');
@@ -1091,7 +1103,9 @@
     __lfResultadosPintados = true;
     // Retira el aviso "Calculando…" de la reserva; la altura minima la libera calculate()
     // cuando la tabla termina de pintarse (releaseResultsSpace).
-    document.getElementById('seccionResultados')?.classList.remove('is-reserving');
+    // Tambien `.is-cleared` (hideResultsToInitialState en lf-ui.js): el cuerpo reaparece en el
+    // mismo tick en que se pinta el contenido nuevo.
+    document.getElementById('seccionResultados')?.classList.remove('is-reserving', 'is-cleared');
     state.pending = false;
     state.lastRenderSolarOn = Boolean(d.solarOn);
     state.lastRenderPeriodoLargo = Boolean(d.periodoLargoConExcedentes);
@@ -1187,6 +1201,12 @@
     resetMiTarifaChip,
     cancelRender: () => {
       __lf_renderInProgress = false;
+    },
+    // La llama hideResultsToInitialState() (lf-ui.js) al vaciar los resultados: el siguiente
+    // calculo debe reservar espacio y, si falla, dejar el aviso de error en vez de una tarjeta
+    // vacia sin explicacion.
+    markResultsCleared: () => {
+      __lfResultadosPintados = false;
     }
   });
 

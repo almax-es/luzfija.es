@@ -2496,6 +2496,30 @@ html.light-mode .custom-tariff-highlight {
 #seccionResultados.is-error .tableWrap > p {
   visibility: hidden;
 }
+/* Al aplicar una factura, un CSV/XLSX o Datadis con resultados ya pintados,
+   hideResultsToInitialState() vacia la tarjeta pero conserva bloques del resultado anterior
+   (aviso de limites, boton de compartir, contenedor de la tabla). Chrome mide cada bloque contra
+   el ultimo fotograma en que estuvo VISIBLE: si la tarjeta vaciada se ve, al volver el ranking
+   sus bloques saltan desde esa posicion intermedia (0,18-0,37 en monitores altos con la pagina
+   arriba, Chrome 157, 19/11/2026). Por eso .is-cleared la oculta desde el mismo instante del
+   vaciado, y .is-reserving/.is-error mientras se espera o falla. renderAll() quita
+   .is-reserving y .is-cleared en el mismo tick en que pinta el contenido nuevo. visibility y no
+   display: reaparecer no mueve nada. La cabecera ("Ranking de tarifas") sigue a la vista. */
+#seccionResultados.is-cleared > .body,
+#seccionResultados.is-reserving > .body,
+#seccionResultados.is-error > .body {
+  visibility: hidden;
+}
+/* En movil (max-width: 760px) .statsbar y .statCard fuerzan visibility:visible !important, asi
+   que sin esto las cifras del calculo anterior se verian bajo "Calculando…". */
+#seccionResultados.is-cleared .statsbar,
+#seccionResultados.is-cleared .statCard,
+#seccionResultados.is-reserving .statsbar,
+#seccionResultados.is-reserving .statCard,
+#seccionResultados.is-error .statsbar,
+#seccionResultados.is-error .statCard {
+  visibility: hidden !important;
+}
 
 
 

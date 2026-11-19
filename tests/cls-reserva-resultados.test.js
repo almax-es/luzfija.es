@@ -167,12 +167,57 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.style.minHeight).toBe('');
   });
 
-  it('no hace nada si los resultados ya estaban visibles (recalculos posteriores)', () => {
+  it('no hace nada si los resultados ya estaban pintados (recalculos posteriores)', async () => {
     const { seccion } = bootRender();
-    seccion.classList.add('visible');
     setGeometry(seccion, { top: 188, innerHeight: 900 });
+    const abierta = window.LF.reserveResultsSpace();
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(abierta);
+
     expect(window.LF.reserveResultsSpace()).toBe(false);
     expect(seccion.classList.contains('is-reserving')).toBe(false);
+    expect(seccion.style.minHeight).toBe('');
+  });
+
+  // 19/11/2026 (revision de ChatGPT, medido en Chrome 157 con clic real y tarifas a 1,5 s):
+  // aplicar una factura, un CSV/XLSX o Datadis con resultados ya pintados vacia la seccion con
+  // hideResultsToInitialState() pero la deja `.visible`. La reserva salia por "ya visible" y el
+  // ranking nuevo crecia fuera de los 500 ms: CLS 0,27 en 1280x1440 y 0,37 en 2560x1440 con la
+  // pagina arriba, 0,76 al fondo.
+  it('tras vaciar los resultados (factura, CSV, Datadis) vuelve a reservar como la primera vez', async () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    const primera = window.LF.reserveResultsSpace();
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(primera);
+    expect(seccion.style.minHeight).toBe('');
+
+    // El camino real: lf-ui.js vacia la seccion y avisa a lf-render.js.
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState();
+    // El cuerpo se oculta en el mismo instante del vaciado, no 150 ms despues al reservar.
+    expect(seccion.classList.contains('is-cleared')).toBe(true);
+
+    setGeometry(seccion, { top: -300, innerHeight: 900 });
+    const abierta = window.LF.reserveResultsSpace();
+    expect(abierta).toBe(true);
+    expect(seccion.classList.contains('visible')).toBe(true);
+    expect(seccion.classList.contains('is-reserving')).toBe(true);
+    expect(seccion.style.minHeight).toBe('1360px'); // 900 + 300 + 160
+    expect(avisoTop(seccion)).not.toBe('');
+
+    // Si este calculo falla, la tarjeta vaciada explica el fallo en vez de quedarse en blanco.
+    window.LF.releaseResultsSpace(abierta);
+    expect(seccion.classList.contains('is-error')).toBe(true);
+    expect(seccion.style.minHeight).toBe('1360px');
+
+    // Y el reintento correcto lo libera todo.
+    const reintento = window.LF.reserveResultsSpace();
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(reintento);
+    expect(seccion.classList.contains('is-error')).toBe(false);
+    expect(seccion.classList.contains('is-reserving')).toBe(false);
+    expect(seccion.classList.contains('is-cleared')).toBe(false);
     expect(seccion.style.minHeight).toBe('');
   });
 
@@ -469,5 +514,28 @@ describe('CSS de la reserva (styles.css)', () => {
     expect(regla).not.toBeNull();
     expect(regla[1]).toMatch(/visibility:\s*hidden/);
     expect(regla[1]).not.toMatch(/display:/);
+  });
+
+  // 19/11/2026: tras aplicar factura/CSV, la tarjeta vaciada conserva bloques visibles del
+  // resultado anterior que bajaban al volver el ranking (0,27 en 1280x1440, pagina arriba).
+  it('al vaciar, mientras reserva o con el error, el cuerpo de la tarjeta queda invisible (visibility, no display)', () => {
+    const regla = css.match(/#seccionResultados\.is-cleared > \.body,\s*#seccionResultados\.is-reserving > \.body,\s*#seccionResultados\.is-error > \.body\s*\{([^}]*)\}/);
+    expect(regla).not.toBeNull();
+    expect(regla[1]).toMatch(/visibility:\s*hidden/);
+    expect(regla[1]).not.toMatch(/display:/);
+  });
+
+  it('tambien oculta las tarjetas de precios, que en movil fuerzan visibility:visible !important', () => {
+    for (const estado of ['is-cleared', 'is-reserving', 'is-error']) {
+      for (const sel of ['statsbar', 'statCard']) {
+        expect(css).toMatch(new RegExp(`#seccionResultados\\.${estado} \\.${sel}[,\\s][^{]*\\{[^}]*visibility:\\s*hidden\\s*!important`));
+      }
+    }
+  });
+
+  it('index.html: el contenido de #seccionResultados vive en un .body hijo directo, y su cabecera fuera', () => {
+    const html = read('index.html');
+    const seccion = html.match(/<section class="card" id="seccionResultados">\s*<div class="head">[\s\S]*?<\/div>\s*<div class="body">/);
+    expect(seccion).not.toBeNull();
   });
 });
