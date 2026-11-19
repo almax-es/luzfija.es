@@ -199,28 +199,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Base Sin Horas 4000",
-      "cPunta": 0.134815,
-      "cLlano": 0.134815,
-      "cValle": 0.134815,
-      "p1": 0.108533,
-      "p2": 0.055196,
-      "web": "https://imaginaenergia.com/plan-base-imagina/",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 4.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 4000.0
-    },
-    {
       "nombre": "Plenitude Fácil Plus 36 Meses +5kW",
       "cPunta": 0.138437,
       "cLlano": 0.138437,
@@ -264,15 +242,15 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Base Sin Horas 8000",
-      "cPunta": 0.144005,
-      "cLlano": 0.144005,
-      "cValle": 0.144005,
+      "nombre": "Imagina Base Sin Horas 4000",
+      "cPunta": 0.139078,
+      "cLlano": 0.139078,
+      "cValle": 0.139078,
       "p1": 0.108533,
-      "p2": 0.055196,
+      "p2": 0.055696,
       "web": "https://imaginaenergia.com/plan-base-imagina/",
       "tipo": "1P",
-      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
+      "requisitos": "Consumo ≤ 4.000 kWh/año.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -283,8 +261,7 @@
         "precioBV": 0.0
       },
       "requiereFV": false,
-      "minConsumoAnualExclusivo": 4000.0,
-      "maxConsumoAnual": 8000.0
+      "maxConsumoAnual": 4000.0
     },
     {
       "nombre": "Visalia Fija 24h",
@@ -625,6 +602,29 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Base Sin Horas 8000",
+      "cPunta": 0.149228,
+      "cLlano": 0.149228,
+      "cValle": 0.149228,
+      "p1": 0.108533,
+      "p2": 0.055696,
+      "web": "https://imaginaenergia.com/plan-base-imagina/",
+      "tipo": "1P",
+      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 4000.0,
+      "maxConsumoAnual": 8000.0
     },
     {
       "nombre": "Bonpreu Hagámoslo Fácil",
@@ -1697,29 +1697,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Base Noche y Findes 8000 3P",
-      "cPunta": 0.201286,
-      "cLlano": 0.127465,
-      "cValle": 0.093068,
-      "p1": 0.108533,
-      "p2": 0.055196,
-      "web": "https://imaginaenergia.com/plan-base-imagina/",
-      "tipo": "3P",
-      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "minConsumoAnualExclusivo": 4000.0,
-      "maxConsumoAnual": 8000.0
-    },
-    {
       "nombre": "Endesa Conecta 3P",
       "cPunta": 0.20241,
       "cLlano": 0.13401,
@@ -1762,9 +1739,9 @@
     },
     {
       "nombre": "Imagina Base Noche y Findes 4000 3P",
-      "cPunta": 0.207096,
-      "cLlano": 0.133275,
-      "cValle": 0.098878,
+      "cPunta": 0.207908,
+      "cLlano": 0.134087,
+      "cValle": 0.09969,
       "p1": 0.108533,
       "p2": 0.055196,
       "web": "https://imaginaenergia.com/plan-base-imagina/",
@@ -1928,6 +1905,29 @@
       },
       "requiereFV": true,
       "maxConsumoAnual": 10000.0
+    },
+    {
+      "nombre": "Imagina Base Noche y Findes 8000 3P",
+      "cPunta": 0.218058,
+      "cLlano": 0.144237,
+      "cValle": 0.10984,
+      "p1": 0.108533,
+      "p2": 0.055196,
+      "web": "https://imaginaenergia.com/plan-base-imagina/",
+      "tipo": "3P",
+      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 4000.0,
+      "maxConsumoAnual": 8000.0
     },
     {
       "nombre": "Nexus Eficiente 3P",
@@ -2545,5 +2545,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-19T07:57:15.310Z"
+  "updatedAt": "2026-11-19T10:51:11.267Z"
 }
