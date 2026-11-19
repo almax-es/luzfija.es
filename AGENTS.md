@@ -215,7 +215,13 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   ya pintados, `hideResultsToInitialState()` vacia la tarjeta sin cerrarla: marca `.is-cleared`
   (cuerpo invisible desde ese mismo instante) y `markResultsCleared()`, para que el siguiente calculo
   reserve como la primera vez. Sin ello, 0,27-0,90 con la pagina arriba en monitores altos (ronda 89).
-  Lo vigila `tests/cls-reserva-resultados.test.js`.
+  Tres detalles mas del 19/11/2026, todos medidos: (1) en tactil `* { transition-duration: .15s !important }`
+  anima tambien `visibility`; esos estados llevan `transition-property: none` en el cuerpo y sus hijos o el
+  ocultado tarda 150 ms. (2) El spinner de Calcular tiene la misma altura que "⚡ Calcular" (hasta 520 px
+  el boton encogia 7 px y empujaba todo al terminar). (3) De 1.100 a 1.440 px la barra de la cabecera
+  cambiaba de una a dos filas segun el texto del estado; en loading/ok/err reserva el ancho de "Resultados
+  actualizados" (0,072 por calculo a 1200x1920). Una factura que pide revision deja `.is-pending` con
+  su propio aviso. Lo vigila `tests/cls-reserva-resultados.test.js`.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,
   la barra de la home se recolocaba o se partia en dos filas y el CLS de carga era 0,13-0,29

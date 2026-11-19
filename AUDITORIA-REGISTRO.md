@@ -7744,7 +7744,8 @@ Auditoria acotada de ChatGPT sobre la reserva de espacio de la home contra el CL
 **Limites medidos y no tratados en esta ronda (anteriores al cambio, mismas cifras en `HEAD`):**
 - Bajar la pagina mas de ~250 px DURANTE la espera del primer calculo (1280x900): 0,13 a 500 px. La reserva deja
   el footer 160 px por debajo de la posicion del clic.
-- Primer calculo en 1200x1920 (vertical): 0,072, con `main` y la seccion como fuentes.
+- Primer calculo en 1200x1920 (vertical): 0,072, con `main` y la seccion como fuentes. Corregido en la QA de
+  la tarde (barra de la cabecera, ver abajo).
 
 **Revision del arreglo por ChatGPT (lectura estatica de `bd83f05`, 19/11/2026).** Cinco preguntas; una mejora
 defensiva aplicada y cuatro sin hallazgo.
@@ -7759,3 +7760,33 @@ defensiva aplicada y cuatro sin hallazgo.
   sin filas no invalida `state.rows`); `#resultsLiveStatus` dentro de `.body` (el anuncio se escribe tras
   `renderDone`, con la clase ya retirada; el error sale en `#statusPill`); especificidad de la regla
   `!important` (id + dos clases frente a una clase; no hay otro `visibility` `!important` dentro de `.body`).
+
+**QA exhaustiva de Claude tras el despliegue (19/11/2026, tarde).** Banco nuevo en Chrome 157 real: 9 tamanos
+(360, 412, 768x1024, 1280x900, 1280x1440, 1920x1080, 2560x1440, 1440x2560 y 1200x1920 verticales) x tema
+web x tema del sistema (36 combinaciones; la mitad con "Mi tarifa"), CPU 4x en movil, `tarifas.json` a 1,5 s,
+clic o toque real y estado de la tarjeta muestreado en cada fotograma. Escenarios: primer calculo, filtros,
+orden, CSV arriba, CSV por el boton real (selector de fichero) con la pagina bajada al maximo que deja el
+boton a la vista, recalculo, factura PDF real (sintetica, ruta de revision), cambio de tema y error de red
+con reintento. Linea base `b608f62` en paralelo con la misma carga. Cuatro defectos encontrados y corregidos:
+- **En tactil el ocultado no era inmediato.** `* { transition-duration: .15s !important }` (bloque
+  `pointer: coarse`) deja `transition-property` en `all`: al entrar en `.is-cleared`/`.is-reserving` el cuerpo
+  y cada hijo seguian visibles 150 ms. `transition-property: none !important` en esos estados.
+- **El boton Calcular encogia 7 px hasta 520 px** (texto -> spinner) y al terminar empujaba todo: 0,0035-0,0046
+  en cada calculo, recalculo, factura y reintento en movil. Un "⚡" invisible y sin ancho da al hueco del spinner
+  la altura del texto en cada tramo; spinner centrado y alturas en reposo identicas de 320 a 2560 px.
+- **La barra de la cabecera cambiaba de fila segun el texto del estado (1.100-1.440 px).** "Calculando..." ->
+  "Resultados actualizados" la pasaba de una fila a dos a 1.150-1.250 px y bajaba toda la pagina 56 px: 0,072
+  en cada calculo a 1200x1920 (era el limite anotado arriba). En loading/ok/err `#statusText` reserva con una
+  copia invisible el ancho de "Resultados actualizados"; 0 anchos con cambio de altura entre 360 y 2560 px.
+- **Factura que pide revision: tarjeta en blanco sin explicacion** (antes, con restos del resultado anterior y
+  un "Compartir esta comparacion" del calculo viejo). `factura.js` marca `.is-pending` solo sin calculo
+  automatico, con aviso fuera de flujo; lo retiran `reserveResultsSpace()`, `renderAll()` y el siguiente vaciado.
+  Banco local de facturas (16 PDF) por la interfaz real contra produccion: 16/16 identicas.
+Resultado (peor de las 4 combinaciones de tema por tamano, antes -> ahora): CSV arriba 0,98 -> 0,013; CSV por
+el boton 0,93 -> 0,014; factura 0,98 -> 0,001; primer calculo 0,075 -> 0,000 y recalculo 0,074 -> 0,004;
+filtros, orden, tema y error 0. 0 problemas funcionales en las 36 combinaciones (estado final, cifras, KPI =
+minimo, fila "Mi tarifa", aviso de error, foco, sin scroll horizontal, sin errores de consola).
+**No son bugs (NO REABRIR):** aplicar un CSV con la pagina al fondo da 0,76 (igual en `b608f62`), pero no es
+alcanzable: los tres botones de importar viven en la cabecera, que no es fija, y el modal restaura el scroll.
+Bajar la pagina mas de ~160 px durante la espera sigue siendo el limite de diseno ya anotado (la reserva deja el
+footer 160 px por debajo): un banco que hace capturas desplazando la pagina durante la espera lo provoca.

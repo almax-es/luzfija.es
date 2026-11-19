@@ -221,6 +221,40 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.style.minHeight).toBe('');
   });
 
+  // QA del 19/11/2026: una factura que pide revision no calcula sola y la tarjeta vaciada se veia
+  // en blanco, sin explicacion. factura.js marca .is-pending; el siguiente calculo lo retira.
+  it('factura en revision: aviso propio en la tarjeta vaciada, que cede a "Calculando…" y desaparece al pintar', async () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    const primera = window.LF.reserveResultsSpace();
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(primera);
+
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState();
+    seccion.classList.add('is-pending'); // lo que hace factura.js sin calculo automatico
+    // Un segundo vaciado (otra factura, un CSV) parte de cero.
+    window.LF.hideResultsToInitialState();
+    expect(seccion.classList.contains('is-pending')).toBe(false);
+
+    seccion.classList.add('is-pending');
+    const abierta = window.LF.reserveResultsSpace();
+    expect(seccion.classList.contains('is-pending')).toBe(false);
+    expect(seccion.classList.contains('is-reserving')).toBe(true);
+    seccion.classList.add('is-pending');
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(abierta);
+    expect(seccion.className.trim()).toBe('card visible');
+  });
+
+  it('factura.js marca .is-pending solo cuando no calcula sola, despues de vaciar', () => {
+    const fac = read('js/factura.js');
+    const i = fac.indexOf('hideResultsToInitialState();\n\n        if (shouldAutoCalc)');
+    expect(i).toBeGreaterThan(-1);
+    const tramo = fac.slice(i, i + 2500);
+    expect(tramo).toMatch(/if \(!shouldAutoCalc\) document\.getElementById\('seccionResultados'\)\?\.classList\.add\('is-pending'\);/);
+  });
+
   // Revision de ChatGPT del arreglo, 19/11/2026: un renderTable() de filtro/orden suspendido entre
   // bloques podia reanudar tras el vaciado del CSV/Datadis y reescribir filas antiguas bajo
   // .is-cleared (invisibles, pero en el DOM). La factura ya cancelaba; ahora cancela el vaciado.
@@ -536,6 +570,15 @@ describe('CSS de la reserva (styles.css)', () => {
     expect(error[1]).not.toMatch(/position:\s*(static|relative)/);
   });
 
+  it('el aviso de factura en revision tambien va fuera de flujo', () => {
+    const regla = css.match(/#seccionResultados\.is-pending::after\s*\{([^}]*)\}/);
+    expect(regla).not.toBeNull();
+    expect(regla[1]).toMatch(/position:\s*absolute/);
+    expect(regla[1]).toMatch(/top:\s*var\(--lf-aviso-top,\s*96px\)/);
+    expect(regla[1]).toMatch(/content:\s*"Revisa los datos/);
+    expect(css).toMatch(/#seccionResultados\.is-pending\s*\{\s*position:\s*relative;/);
+  });
+
   it('la nota de impuestos se oculta con visibility, no con display (reaparecer no mueve nada)', () => {
     const regla = css.match(/#seccionResultados\.is-reserving \.tableWrap > p,\s*#seccionResultados\.is-error \.tableWrap > p\s*\{([^}]*)\}/);
     expect(regla).not.toBeNull();
@@ -558,6 +601,55 @@ describe('CSS de la reserva (styles.css)', () => {
         expect(css).toMatch(new RegExp(`#seccionResultados\\.${estado} \\.${sel}[,\\s][^{]*\\{[^}]*visibility:\\s*hidden\\s*!important`));
       }
     }
+  });
+
+  // 19/11/2026: en tactil `* { transition-duration: .15s !important }` deja transition-property en
+  // `all`, visibility incluida, y el cuerpo vaciado seguia visible 150 ms (Chrome 157 movil).
+  it('al entrar en esos estados no hay transicion: el ocultado es inmediato tambien en pantallas tactiles', () => {
+    expect(css).toMatch(/@media \(pointer: coarse\), \(hover: none\)[\s\S]*\*\s*\{\s*transition-duration:\s*0\.15s !important;/);
+    for (const estado of ['is-cleared', 'is-reserving', 'is-error']) {
+      for (const sel of ['> \\.body', '> \\.body \\*']) {
+        expect(css).toMatch(new RegExp(`#seccionResultados\\.${estado} ${sel}[,\\s][^{]*\\{[^}]*transition-property:\\s*none\\s*!important`));
+      }
+    }
+  });
+
+  // 19/11/2026: hasta 520 px el boton encogia 7 px al cambiar el texto por el spinner y, al acabar
+  // el calculo, empujaba todo lo de debajo (CLS 0,0035-0,0046 en cada calculo).
+  it('el hueco del spinner de Calcular mide lo mismo que "⚡ Calcular" en cada tramo de anchura', () => {
+    const tamano = (bloque, sel) => {
+      const m = bloque.match(new RegExp(`${sel}\\s*\\{[^}]*font-size:\\s*(\\d+)px`));
+      return m && Number(m[1]);
+    };
+    expect(css).toMatch(/\.btn\.primary #btnSpinner::before\s*\{[^}]*content:\s*"⚡";[^}]*width:\s*0;[^}]*visibility:\s*hidden;/);
+    expect(css).toMatch(/\.btn\.primary #btnSpinner\s*\{[^}]*line-height:\s*1;[^}]*font-size:\s*26px/);
+    const tramos = [
+      ['@media \\(max-width: 768px\\)', 23],
+      ['@media \\(min-width: 521px\\) and \\(max-width: 768px\\)', 20]
+    ];
+    for (const [media, px] of tramos) {
+      const spinner = css.match(new RegExp(`${media}\\s*\\{\\s*\\.btn\\.primary #btnSpinner\\s*\\{\\s*font-size:\\s*(\\d+)px`));
+      expect(spinner && Number(spinner[1])).toBe(px);
+    }
+    expect(css).toMatch(/@media \(min-width: 1101px\)\s*\{\s*\.grid\.has-results #btnCalc #btnSpinner\s*\{\s*font-size:\s*22px/);
+    // Y #btnText sigue con esos mismos tamanos (si alguien los cambia, el test obliga a mirar los dos).
+    expect(tamano(css, '\\.btn\\.primary #btnText')).toBe(26);
+    expect(css).toMatch(/\.btn\.primary #btnText\s*\{\s*font-size:\s*23px;/);
+    expect(css).toMatch(/\.btn\.primary #btnText\s*\{\s*font-size:\s*20px;/);
+    expect(css).toMatch(/\.grid\.has-results #btnCalc #btnText\s*\{\s*font-size:\s*22px;/);
+  });
+
+  // 19/11/2026: de 1.100 a 1.440 px la barra de la cabecera pasaba de una fila a dos cuando
+  // "Calculando..." se convertia en "Resultados actualizados" (CLS 0,072 por calculo a 1200x1920).
+  it('el estado reserva, mientras calcula y despues, el ancho del mensaje de resultados', () => {
+    const regla = css.match(/@media \(min-width: 769px\)\{\s*#statusPill\.loading #statusText, #statusPill\.ok #statusText, #statusPill\.err #statusText\{ display: inline-grid;[^}]*\}\s*#statusPill\.loading #statusText::after, #statusPill\.ok #statusText::after, #statusPill\.err #statusText::after\{([^}]*)\}/);
+    expect(regla).not.toBeNull();
+    const contenido = regla[1].match(/content:\s*"([^"]+)"/);
+    expect(contenido && contenido[1]).toBe('Resultados actualizados');
+    expect(regla[1]).toMatch(/height:\s*0;/);
+    expect(regla[1]).toMatch(/visibility:\s*hidden;/);
+    // El texto real al terminar debe ser el mismo que se reserva.
+    expect(read('js/lf-render.js')).toContain(`setStatus('${contenido[1]}', 'ok')`);
   });
 
   it('index.html: el contenido de #seccionResultados vive en un .body hijo directo, y su cabecera fuera', () => {

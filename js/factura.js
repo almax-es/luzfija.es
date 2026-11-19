@@ -2492,6 +2492,10 @@
         } else {
           setStatus('Hemos rellenado los datos con la factura. Revísalos y pulsa Calcular.', 'idle');
         }
+        // Sin calculo automatico la tarjeta queda vaciada y oculta (.is-cleared) hasta que el
+        // usuario pulse Calcular: sin esto se veia en blanco, sin explicacion (en movil el estado
+        // de arriba queda fuera de la pantalla). reserveResultsSpace() y renderAll() la retiran.
+        if (!shouldAutoCalc) document.getElementById('seccionResultados')?.classList.add('is-pending');
       }
 
       window.__LF_bindFacturaParser = function(){

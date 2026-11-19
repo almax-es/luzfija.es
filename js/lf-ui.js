@@ -212,7 +212,11 @@
     // aunque fuera 150 ms (lo que tarda el recalculo de CSV en arrancar), al volver el ranking sus
     // bloques "saltaban" desde esa posicion intermedia (0,18-0,22 en monitores altos con la
     // pagina arriba, Chrome 157, 19/11/2026). renderAll() quita la clase al pintar.
-    document.getElementById('seccionResultados')?.classList.add('is-cleared');
+    const seccionResultados = document.getElementById('seccionResultados');
+    if (seccionResultados) {
+      seccionResultados.classList.remove('is-pending');
+      seccionResultados.classList.add('is-cleared');
+    }
 
     const seoFold = document.getElementById('info');
     if (seoFold) seoFold.classList.remove('show');

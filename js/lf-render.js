@@ -1038,6 +1038,8 @@
   function reserveResultsSpace() {
     const seccion = document.getElementById('seccionResultados');
     if (!seccion) return false;
+    // Factura en revision (factura.js): su aviso "Revisa los datos..." cede a "Calculando…".
+    seccion.classList.remove('is-pending');
     // Reintento tras un fallo (ver releaseResultsSpace): la seccion sigue abierta y el aviso
     // pasa de "error" a "Calculando…". La altura se recalcula para la posicion actual: si el
     // usuario bajo la pagina despues del fallo, la reserva del primer intento ya no deja el
@@ -1105,7 +1107,7 @@
     // cuando la tabla termina de pintarse (releaseResultsSpace).
     // Tambien `.is-cleared` (hideResultsToInitialState en lf-ui.js): el cuerpo reaparece en el
     // mismo tick en que se pinta el contenido nuevo.
-    document.getElementById('seccionResultados')?.classList.remove('is-reserving', 'is-cleared');
+    document.getElementById('seccionResultados')?.classList.remove('is-reserving', 'is-cleared', 'is-pending');
     state.pending = false;
     state.lastRenderSolarOn = Boolean(d.solarOn);
     state.lastRenderPeriodoLargo = Boolean(d.periodoLargoConExcedentes);

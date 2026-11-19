@@ -348,6 +348,17 @@
     .pill.loading{border-color: rgba(139,92,246,.55); box-shadow: 0 0 0 4px rgba(139,92,246,.12), 0 18px 55px rgba(0,0,0,.35);}
     .pill.ok{border-color: rgba(34,197,94,.55); box-shadow: 0 0 0 4px rgba(34,197,94,.12), 0 18px 55px rgba(0,0,0,.35);}
     .pill.err{border-color: rgba(239,68,68,.55); box-shadow: 0 0 0 4px rgba(239,68,68,.12), 0 18px 55px rgba(0,0,0,.35);}
+    /* De 1.100 a 1.440 px la barra decide si cabe en una fila segun lo que mida el texto del
+       estado. Al acabar el calculo "Calculando..." pasa a "Resultados actualizados" (106 -> 168 px)
+       y, a 1.150-1.250 px, la barra pasaba de una fila a dos: toda la pagina bajaba 56 px fuera de
+       los 500 ms del clic (CLS 0,072 en cada calculo a 1200x1920, Chrome 157, 19/11/2026).
+       Mientras calcula y despues (loading/ok/err) el estado reserva el ancho de "Resultados
+       actualizados" con una copia invisible del texto: el cambio de texto al final ya no cambia
+       la barra. Los mensajes de error de red son mas cortos. En movil el estado ya va en su fila. */
+    @media (min-width: 769px){
+      #statusPill.loading #statusText, #statusPill.ok #statusText, #statusPill.err #statusText{ display: inline-grid; justify-items: center; }
+      #statusPill.loading #statusText::after, #statusPill.ok #statusText::after, #statusPill.err #statusText::after{ content: "Resultados actualizados"; display: block; height: 0; overflow: hidden; visibility: hidden; }
+    }
     .btn{ border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 10px 12px; border-radius: 12px; cursor:pointer; font-weight: 900; font-size: 13px; display:inline-flex; align-items:center; gap: 10px; transition: transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease; backdrop-filter: blur(14px); min-height: 44px; touch-action: manipulation; will-change: auto; }
     .btn:hover{transform: translateY(-1px); border-color: var(--border2); background: var(--card2);}
     .btn:hover,
@@ -2147,6 +2158,16 @@ footer.footer-container p[style*="opacity:0.5"]{ opacity: 1 !important; color: v
       .grid.has-results #btnCalc.btn.primary { padding-left: 12px; padding-right: 12px; }
       .grid.has-results #btnCalc #btnText { font-size: 22px; letter-spacing: 1px; }
     }
+    /* Mientras calcula, setStatus() (lf-ui.js) cambia "⚡ Calcular" por el spinner. Hasta 520 px
+       el boton no tiene un alto minimo que cubra los dos y encogia 7 px (59 -> 52): al acabar el
+       calculo, fuera de los 500 ms del clic, empujaba todo lo de debajo (CLS 0,0035 en cada
+       recalculo, Chrome 157, 19/11/2026). Un "⚡" invisible y sin ancho, al mismo tamano de letra
+       que #btnText en cada tramo, da al hueco del spinner la misma altura que el texto. */
+    .btn.primary #btnSpinner { align-items: center; line-height: 1; font-size: 26px; }
+    .btn.primary #btnSpinner::before { content: "⚡"; display: inline-block; width: 0; overflow: hidden; visibility: hidden; }
+    @media (max-width: 768px) { .btn.primary #btnSpinner { font-size: 23px; } }
+    @media (min-width: 521px) and (max-width: 768px) { .btn.primary #btnSpinner { font-size: 20px; } }
+    @media (min-width: 1101px) { .grid.has-results #btnCalc #btnSpinner { font-size: 22px; } }
 
     /* Light mode fixes - componentes que faltaban */
     html.light-mode .kwhLabel {
@@ -2490,6 +2511,24 @@ html.light-mode .custom-tariff-highlight {
   color: var(--warn, #f59e0b);
   padding: 0 24px;
 }
+/* Factura aplicada que pide revision antes de calcular (factura.js): la tarjeta queda vaciada y
+   oculta (.is-cleared) hasta que el usuario pulse Calcular. Mismo aviso fuera de flujo, para que
+   no se vea en blanco. reserveResultsSpace() y renderAll() quitan la clase. */
+#seccionResultados.is-pending {
+  position: relative;
+}
+#seccionResultados.is-pending::after {
+  content: "Revisa los datos que hemos rellenado y pulsa ⚡ Calcular para ver el ranking.";
+  position: absolute;
+  top: var(--lf-aviso-top, 96px);
+  left: 0;
+  right: 0;
+  padding: 0 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
 /* La nota "* Impuestos…" bajo la tabla no es fade-container: sin esto quedaria sola en la
    tarjeta vacia. visibility (no display) para que reaparecer no mueva nada. */
 #seccionResultados.is-reserving .tableWrap > p,
@@ -2519,6 +2558,19 @@ html.light-mode .custom-tariff-highlight {
 #seccionResultados.is-error .statsbar,
 #seccionResultados.is-error .statCard {
   visibility: hidden !important;
+}
+/* En pantallas tactiles `* { transition-duration: .15s !important }` (bloque pointer:coarse) deja
+   la propiedad de transicion por defecto, `all`, y eso incluye visibility: al entrar en estos
+   estados el cuerpo y cada hijo seguian VISIBLES 150 ms y el ocultado no era inmediato (medido en
+   Chrome 157 movil, 19/11/2026). Sin transicion al entrar se oculta en el acto; al salir, la
+   transicion normal de visibility hace visible el contenido desde su primer fotograma. */
+#seccionResultados.is-cleared > .body,
+#seccionResultados.is-cleared > .body *,
+#seccionResultados.is-reserving > .body,
+#seccionResultados.is-reserving > .body *,
+#seccionResultados.is-error > .body,
+#seccionResultados.is-error > .body * {
+  transition-property: none !important;
 }
 
 
