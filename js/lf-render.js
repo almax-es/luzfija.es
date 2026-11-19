@@ -1016,6 +1016,33 @@
   // renderAll() cuya tabla se cancelo a mitad por un vaciado no debe anunciar su resumen ni
   // desplazar la pagina al terminar (revision de ChatGPT, 19/11/2026).
   let __lfVaciados = 0;
+  // Ciclo de calculo en curso (solo hay uno: __LF_CALC_INFLIGHT). calculate() lo abre con
+  // beginResultsCycle() ANTES de cualquier await. Si la tarjeta se vacia durante el ciclo (factura,
+  // CSV/XLSX o Datadis), su resultado es de los datos anteriores: renderAll() no lo pinta y
+  // releaseResultsSpace() no lo trata como fallo. Cruces revisados (19/11/2026):
+  //  - vaciado antes de empezar: el ciclo nace con el contador nuevo -> calculo normal.
+  //  - durante la red/PVPC/calculo: renderAll() no pinta; al terminar, si hay un calculo encolado
+  //    (CSV) este reserva y pinta; si no (factura en revision, o el usuario edito despues), queda el
+  //    aviso .is-pending "Revisa los datos... pulsa Calcular", sin .is-error y con la altura.
+  //  - durante el pintado por bloques: la tabla se cancela (hideResultsToInitialState) y la
+  //    continuacion no anuncia, no desplaza y markResultsCleared() oculta "Ver resultados".
+  let __lfCicloVaciados = null;
+  function beginResultsCycle() {
+    __lfCicloVaciados = __lfVaciados;
+    return __lfVaciados;
+  }
+  function resultsCycleDiscarded(ciclo) {
+    return typeof ciclo === 'number' && ciclo !== __lfVaciados;
+  }
+  // Un ciclo descartado deja su reserva ("Calculando…") al calculo encolado. Si este no arranca
+  // (los datos no validan), la reserva pasa al aviso de "pulsa Calcular". Sin calculo en vuelo,
+  // .is-reserving solo puede venir de ahi: una reserva normal siempre vive dentro de calculate().
+  function settleOrphanReservation() {
+    const seccion = document.getElementById('seccionResultados');
+    if (!seccion || window.__LF_CALC_INFLIGHT || !seccion.classList.contains('is-reserving')) return;
+    seccion.classList.remove('is-reserving');
+    seccion.classList.add('is-pending');
+  }
 
   // Coloca el aviso ("Calculando…" o el de error) 96 px por debajo de lo que se ve de la
   // tarjeta: su cabecera si esta a la vista, o el borde superior de la ventana si la pagina
@@ -1085,9 +1112,19 @@
   // contaba (0,0646 medido el 23/10/2026 con la pagina a 500 px; lo detecto la revision de
   // ChatGPT). Se queda abierta, con su altura y un aviso de error fuera de flujo
   // (`.is-error`), hasta el siguiente Calcular, que la reutiliza (reserveResultsSpace).
-  function releaseResultsSpace(abiertaPorEsteCalculo) {
+  function releaseResultsSpace(abiertaPorEsteCalculo, opciones) {
     const seccion = document.getElementById('seccionResultados');
     if (!seccion) return;
+    // Ciclo descartado por un vaciado (ver beginResultsCycle): no hubo fallo ni resultados.
+    if (opciones && opciones.descartado) {
+      // El calculo encolado (CSV/XLSX, Datadis) sigue ahora mismo: reserva y avisa el. Se deja todo
+      // como esta (altura y "Calculando…" si los habia) para que no se mueva nada entre ambos.
+      if (opciones.sigue) return;
+      // Nadie va a calcular: la tarjeta queda vaciada, con su altura y el aviso de "pulsa Calcular".
+      seccion.classList.remove('is-reserving', 'is-error');
+      seccion.classList.add('is-pending');
+      return;
+    }
     seccion.classList.remove('is-reserving');
     if (abiertaPorEsteCalculo && !__lfResultadosPintados) {
       // Con una factura en revision aplicada durante el calculo no hubo fallo: se conserva su
@@ -1112,7 +1149,11 @@
     // (factura.js marca .is-pending tras vaciar; cualquier calculo posterior la retira al reservar)
     // trae resultados de los datos ANTERIORES: no se pintan sobre la tarjeta vaciada. Sin esto
     // reaparecia el ranking viejo y desaparecia el aviso (revision de ChatGPT, 19/11/2026).
-    if (document.getElementById('seccionResultados')?.classList.contains('is-pending')) {
+    // Y en general: cualquier vaciado durante este ciclo de calculo (tambien CSV/XLSX y Datadis,
+    // que no marcan .is-pending). Pintar el ranking viejo marcaba ademas la tarjeta como "pintada"
+    // y el calculo encolado del CSV ya no reservaba su altura (segunda revision de ChatGPT).
+    if ((__lfCicloVaciados !== null && __lfCicloVaciados !== __lfVaciados) ||
+        document.getElementById('seccionResultados')?.classList.contains('is-pending')) {
       return Promise.resolve();
     }
 
@@ -1228,7 +1269,25 @@
     markResultsCleared: () => {
       __lfResultadosPintados = false;
       __lfVaciados++;
-    }
+      // Vaciada con un calculo en vuelo (que se descartara): el siguiente no arranca hasta que este
+      // acabe, quiza segundos despues. Sin reservar YA, la tarjeta vaciada encogia, el footer subia a
+      // la vista y el encolado lo volvia a empujar fuera de los 500 ms (0,0157 a 1200x1920 con
+      // resultados previos, red lenta; 19/11/2026). Aqui seguimos dentro del gesto de "Aplicar".
+      const seccionVaciada = document.getElementById('seccionResultados');
+      if (window.__LF_CALC_INFLIGHT && seccionVaciada && seccionVaciada.classList.contains('visible')) {
+        seccionVaciada.classList.add('is-reserving');
+        reservarAltura(seccionVaciada);
+        colocarAviso(seccionVaciada);
+      }
+      // "Ver resultados" (movil) lo pudo mostrar un pintado que se acaba de cancelar.
+      if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
+      __lfScrollResultsTimer = 0;
+      const verResultados = $('scrollToResults');
+      if (verResultados) verResultados.style.display = 'none';
+    },
+    beginResultsCycle,
+    resultsCycleDiscarded,
+    settleOrphanReservation
   });
 
   window.renderTable = renderTable;

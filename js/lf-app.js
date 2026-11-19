@@ -162,6 +162,13 @@
       // que el click se perdia (residual detectado por Codex el 26/08/2026). Quien impide
       // aplicar ediciones POSTERIORES a esta peticion es la igualdad de generation al
       // drenar, no este guard.
+      // El debounce de las ediciones que motivaron esta peticion (p. ej. los inputs que rellena un
+      // CSV) ya esta incluido en ella, igual que calculate() lo cancela al empezar: si siguiera vivo
+      // pisaria "Calculando..." con "Cambios pendientes...", y al arrancar el encolado la barra de la
+      // cabecera volvia a cambiar de fila fuera de los 500 ms (CLS 0,094 a 1280x1440, CSV aplicado
+      // con un calculo en vuelo; tercera revision de ChatGPT, 19/11/2026). El encolado valida al arrancar.
+      clearTimeout(state.debounce);
+      state.debounce = null;
       __lf_queuedCalculation = {
         generation: state.generation || 0,
         forceRefresh: Boolean(forceRefresh) || Boolean(__lf_queuedCalculation?.forceRefresh),
@@ -335,10 +342,13 @@
   async function calculate(isUserAction, forceRefresh = false) {
     if (!validateInputs()) {
       setStatus('Corrige los datos para calcular', 'err');
+      // Si un calculo descartado dejo su "Calculando…" para este (encolado), no queda colgado.
+      window.LF.settleOrphanReservation?.();
       return;
     }
     if (typeof validateMiTarifa === 'function' && !validateMiTarifa({ silent: true })) {
       setStatus('Corrige los datos para calcular', 'err');
+      window.LF.settleOrphanReservation?.();
       return;
     }
     
@@ -363,6 +373,10 @@
 
     if (window.__LF_CALC_INFLIGHT) return;
     window.__LF_CALC_INFLIGHT = true;
+    // Antes de cualquier await: si la tarjeta se vacia mientras dura este calculo (factura, CSV,
+    // Datadis), su resultado se descarta entero (ver beginResultsCycle en lf-render.js).
+    const cicloResultados = window.LF.beginResultsCycle?.();
+    const cicloDescartado = () => Boolean(window.LF.resultsCycleDiscarded?.(cicloResultados));
     let resultadosAbiertos = false;
     // Solo se libera la reserva si ESTE calculo llego a gestionarla. Si algo lanza antes
     // (saveInputs, setStatus), liberar con `false` borraria la altura y el aviso `.is-error`
@@ -432,11 +446,10 @@
       await new Promise(resolve => setTimeout(resolve, 0));
       
       await calculateLocal(values);
-      // Con una factura en revision aplicada durante el calculo, renderAll() descarta el resultado:
-      // la firma sigue a null, como la dejo el vaciado (revision de ChatGPT, 19/11/2026).
-      if (!document.getElementById('seccionResultados')?.classList.contains('is-pending')) {
-        state.lastSignature = signature;
-      }
+      // Vaciada durante el calculo: renderAll() descarto el resultado. La firma sigue a null, como
+      // la dejo el vaciado, y el estado de arriba es el del flujo que vacio (revision de ChatGPT).
+      const descartado = cicloDescartado();
+      if (!descartado) state.lastSignature = signature;
       // Entre capturar `values`/catalogo y llegar aqui ha habido varios `await` (red,
       // PVPC, SSAA, render por chunks). El resultado solo puede declararse vigente si
       // siguen iguales AMBOS productores del snapshot: los datos editables y la version
@@ -454,9 +467,9 @@
         // ademas decidir si una peticion de calculo encolada sigue correspondiendo al
         // estado que el usuario tenia cuando la hizo.
         state.pending = true;
-        // Factura en revision aplicada mientras este calculo seguia en vuelo: renderAll() no pinto
-        // (ver alli) y el estado conserva la instruccion concreta de factura.js.
-        if (!document.getElementById('seccionResultados')?.classList.contains('is-pending')) {
+        // Descartado por un vaciado: el estado lo puso ese flujo (instruccion de la factura en
+        // revision, o "Calculando..." del CSV cuyo calculo va en la cola) y no se pisa.
+        if (!descartado) {
           setStatus(
             tarifasUnchanged
               ? 'Cambios pendientes. Pulsa Calcular para actualizar.'
@@ -475,11 +488,16 @@
       toast('No se ha podido calcular. Inténtalo de nuevo.', 'err');
     } finally {
       window.__LF_CALC_INFLIGHT = false;
-      if (reservaIntentada) window.LF.releaseResultsSpace?.(resultadosAbiertos);
-
       const queued = __lf_queuedCalculation;
       __lf_queuedCalculation = null;
-      if (queued && (state.generation || 0) === queued.generation) {
+      const sigue = Boolean(queued && (state.generation || 0) === queued.generation);
+      // Descartado: la tarjeta la gestiona el calculo encolado (sigue) o queda con el aviso de
+      // "pulsa Calcular"; en ningun caso es un fallo ni se suelta la altura antes de tiempo.
+      const descartadoFinal = cicloDescartado();
+      if (reservaIntentada || descartadoFinal) {
+        window.LF.releaseResultsSpace?.(resultadosAbiertos, { descartado: descartadoFinal, sigue });
+      }
+      if (sigue) {
         runCalculation(queued.forceRefresh, queued.announceRequest);
       }
     }

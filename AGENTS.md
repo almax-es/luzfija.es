@@ -221,7 +221,11 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   el boton encogia 7 px y empujaba todo al terminar). (3) De 1.100 a 1.440 px la barra de la cabecera
   cambiaba de una a dos filas segun el texto del estado; en loading/ok/err reserva el ancho de "Resultados
   actualizados" (0,072 por calculo a 1200x1920). Una factura que pide revision deja `.is-pending` con
-  su propio aviso. Lo vigila `tests/cls-reserva-resultados.test.js`.
+  su propio aviso. Un calculo que empezo antes de un vaciado NO pinta nunca: `calculate()` abre
+  `beginResultsCycle()` antes de cualquier `await` y `renderAll()`/`releaseResultsSpace()` descartan el
+  ciclo si la tarjeta se vacio entretanto (factura, CSV o Datadis); al encolar se cancela el debounce de
+  los inputs. Sin esto, con red lenta, el ranking viejo reaparecia y el encolado perdia su reserva (0,09-0,91).
+  Lo vigila `tests/cls-reserva-resultados.test.js`.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,
   la barra de la home se recolocaba o se partia en dos filas y el CLS de carga era 0,13-0,29

@@ -310,6 +310,122 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     }
   });
 
+  // Tercera revision de ChatGPT, 19/11/2026: los vaciados de CSV/XLSX y Datadis no marcan .is-pending.
+  // Un calculo en vuelo pintaba el ranking viejo, quedaba "pintado" y el calculo encolado del CSV ya
+  // no reservaba altura. Ahora el ciclo de calculo descarta su resultado ante cualquier vaciado.
+  it('CSV durante la red del primer calculo: no pinta lo viejo y el calculo encolado reserva y pinta', async () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    const ciclo = window.LF.beginResultsCycle();
+    const abierta = window.LF.reserveResultsSpace();
+    const altura = seccion.style.minHeight;
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState(); // CSV: sin .is-pending
+    expect(window.LF.resultsCycleDiscarded(ciclo)).toBe(true);
+
+    await window.LF.renderAll({ success: true, resumen: { mejor: 'Vieja', precio: '9 €' }, stats: null, resultados: [{ nombre: 'Vieja', totalNum: 1 }] });
+    expect(window.LF.el.kpiBest.textContent).toBe('');
+    expect(window.LF.state.rows).toEqual([]);
+
+    // Hay calculo encolado: se deja todo como esta para el.
+    window.LF.releaseResultsSpace(abierta, { descartado: true, sigue: true });
+    expect(seccion.classList.contains('is-reserving')).toBe(true);
+    expect(seccion.classList.contains('is-error')).toBe(false);
+    expect(seccion.style.minHeight).toBe(altura);
+
+    // El encolado: nuevo ciclo, reserva (la tarjeta NO cuenta como pintada) y pinta.
+    const ciclo2 = window.LF.beginResultsCycle();
+    expect(window.LF.reserveResultsSpace()).toBe(true);
+    await window.LF.renderAll({ success: true, resumen: { mejor: 'Nueva', precio: '1 €' }, stats: null, resultados: [] });
+    expect(window.LF.resultsCycleDiscarded(ciclo2)).toBe(false);
+    window.LF.releaseResultsSpace(true, { descartado: false, sigue: false });
+    expect(window.LF.el.kpiBest.textContent).toBe('Nueva');
+    expect(seccion.className.trim()).toBe('card visible');
+    expect(seccion.style.minHeight).toBe('');
+  });
+
+  it('vaciada con un calculo en vuelo y resultados previos: reserva en el acto (el encolado tarda)', () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    seccion.classList.add('visible'); // resultados ya pintados: el calculo en vuelo no reservo
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.__LF_CALC_INFLIGHT = true;
+    try {
+      window.LF.hideResultsToInitialState();
+      expect(seccion.classList.contains('is-reserving')).toBe(true);
+      expect(seccion.style.minHeight).toBe('872px');
+    } finally {
+      delete window.__LF_CALC_INFLIGHT;
+    }
+    // Sin calculo en vuelo no reserva: lo hace el calculo que arranca justo despues.
+    const otra = bootRender();
+    setGeometry(otra.seccion, { top: 188, innerHeight: 900 });
+    otra.seccion.classList.add('visible');
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState();
+    expect(otra.seccion.classList.contains('is-reserving')).toBe(false);
+    expect(otra.seccion.style.minHeight).toBe('');
+  });
+
+  it('descartado y sin calculo encolado: aviso de "pulsa Calcular", sin error y con su altura', () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    window.LF.beginResultsCycle();
+    const abierta = window.LF.reserveResultsSpace();
+    const altura = seccion.style.minHeight;
+    new Function('window', read('js/lf-ui.js'))(window);
+    window.LF.hideResultsToInitialState();
+    window.LF.releaseResultsSpace(abierta, { descartado: true, sigue: false });
+    expect(seccion.classList.contains('is-pending')).toBe(true);
+    expect(seccion.classList.contains('is-error')).toBe(false);
+    expect(seccion.classList.contains('is-reserving')).toBe(false);
+    expect(seccion.style.minHeight).toBe(altura);
+  });
+
+  it('si el calculo encolado no llega a arrancar (no valida), su "Calculando…" heredado pasa al aviso', () => {
+    const { seccion } = bootRender();
+    seccion.classList.add('visible', 'is-cleared', 'is-reserving');
+    window.__LF_CALC_INFLIGHT = true; // con un calculo en vuelo la reserva es suya: no se toca
+    window.LF.settleOrphanReservation();
+    expect(seccion.classList.contains('is-reserving')).toBe(true);
+    window.__LF_CALC_INFLIGHT = false;
+    window.LF.settleOrphanReservation();
+    expect(seccion.classList.contains('is-reserving')).toBe(false);
+    expect(seccion.classList.contains('is-pending')).toBe(true);
+    delete window.__LF_CALC_INFLIGHT;
+  });
+
+  it('CSV a mitad del pintado por bloques (sin .is-pending): ni anuncio, ni scroll, ni "Ver resultados"', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    Object.defineProperty(window, 'innerWidth', { value: 412, configurable: true });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      const ver = document.getElementById('scrollToResults');
+      let reanudar;
+      window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
+      const filas = Array.from({ length: 25 }, (_, i) => ({ nombre: 'Vieja ' + i, tipo: '1P', totalNum: i, total: i + ' €', potencia: '1 €', consumo: '1 €', impuestos: '1 €', vsMejor: '', vsMejorNum: 0 }));
+      window.LF.beginResultsCycle();
+      window.LF.reserveResultsSpace();
+      const pintado = window.LF.renderAll({ success: true, resumen: { mejor: 'Vieja 0', precio: '0 €' }, stats: null, resultados: filas });
+      await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+      expect(ver.style.display).toBe('block');
+
+      new Function('window', read('js/lf-ui.js'))(window);
+      window.LF.hideResultsToInitialState(); // CSV: sin .is-pending
+      expect(ver.style.display).toBe('none');
+      reanudar();
+      await pintado;
+      await vi.advanceTimersByTimeAsync(10);
+      expect(window.LF.el.tbody.children.length).toBe(0);
+      expect(window.LF.el.resultsLiveStatus.textContent).not.toMatch(/Vieja/);
+      expect(seccion.scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+      Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true });
+    }
+  });
+
   it('sin vaciado, el pintado por bloques sigue anunciando y desplazando como siempre', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
@@ -578,7 +694,7 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
   it('libera al terminar, pasando si la abrio este calculo', async () => {
     bootApp();
     await window.calculate(true, false);
-    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true);
+    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true, { descartado: false, sigue: false });
     expect(window.LF.releaseResultsSpace.mock.invocationCallOrder[0])
       .toBeGreaterThan(window.LF.calculateLocal.mock.invocationCallOrder[0]);
   });
@@ -587,13 +703,13 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     bootApp({ fetchTarifas: vi.fn(async () => false), baseTarifasCache: [] });
     await window.calculate(true, false);
     expect(window.LF.calculateLocal).not.toHaveBeenCalled();
-    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true);
+    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true, { descartado: false, sigue: false });
   });
 
   it('tambien libera si el calculo lanza un error', async () => {
     bootApp({ calculateLocal: vi.fn(async () => { throw new Error('boom'); }) });
     await window.calculate(true, false);
-    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true);
+    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true, { descartado: false, sigue: false });
     // Estado corto (cabe en el ancho reservado; puede llegar tarde) y el detalle en el toast.
     expect(window.LF.setStatus).toHaveBeenLastCalledWith('No se pudo calcular', 'err');
     expect(window.LF.toast).toHaveBeenCalledWith('No se ha podido calcular. Inténtalo de nuevo.', 'err');
@@ -603,20 +719,77 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
   // la espera. Al terminar, el estado conserva la instruccion de la factura.
   it('si durante el calculo se aplico una factura en revision, no pisa su instruccion con "Cambios pendientes"', async () => {
     let soltar;
-    const state = bootApp({ fetchTarifas: vi.fn(() => new Promise((r) => { soltar = r; })) });
+    let vaciados = 0;
+    const state = bootApp({
+      fetchTarifas: vi.fn(() => new Promise((r) => { soltar = r; })),
+      beginResultsCycle: vi.fn(() => vaciados),
+      resultsCycleDiscarded: vi.fn((c) => c !== vaciados)
+    });
     document.body.insertAdjacentHTML('beforeend', '<section id="seccionResultados" class="card visible"></section>');
     const calc = window.calculate(true, false);
     await vi.waitFor(() => expect(window.LF.fetchTarifas).toHaveBeenCalled());
-    // factura.js: markPending() + vaciar + .is-pending, mientras se espera a tarifas.json
+    // factura.js: markPending() + vaciar (markResultsCleared) + .is-pending, durante la espera
     state.generation += 1;
+    vaciados += 1;
     document.getElementById('seccionResultados').classList.add('is-cleared', 'is-pending');
     window.LF.setStatus.mockClear();
     soltar(true);
     await calc;
     expect(window.LF.setStatus).not.toHaveBeenCalledWith('Cambios pendientes. Pulsa Calcular para actualizar.', 'idle');
     expect(state.pending).toBe(true);
-    // El resultado se descarto: la firma sigue como la dejo el vaciado.
+    // El resultado se descarto: la firma sigue como la dejo el vaciado, y la liberacion lo sabe.
     expect(state.lastSignature).toBeNull();
+    expect(window.LF.releaseResultsSpace).toHaveBeenCalledWith(true, { descartado: true, sigue: false });
+  });
+
+  it('CSV con el calculo en vuelo: libera como descartado con "sigue" y arranca el encolado', async () => {
+    let soltar;
+    let vaciados = 0;
+    const fetchTarifas = vi.fn()
+      .mockImplementationOnce(() => new Promise((r) => { soltar = r; }))
+      .mockImplementation(async () => true);
+    const state = bootApp({
+      fetchTarifas,
+      beginResultsCycle: vi.fn(() => vaciados),
+      resultsCycleDiscarded: vi.fn((c) => c !== vaciados)
+    });
+    const primero = window.calculate(true, false);
+    await vi.waitFor(() => expect(fetchTarifas).toHaveBeenCalledTimes(1));
+    // lf-csv-import.js: inputs (generation) -> vaciado -> runCalculation() (se encola)
+    state.generation += 1;
+    vaciados += 1;
+    expect(window.runCalculation()).toBe(false);
+    soltar(true);
+    await primero;
+    expect(window.LF.releaseResultsSpace).toHaveBeenNthCalledWith(1, true, { descartado: true, sigue: true });
+    expect(state.lastSignature).toBeNull();
+    await vi.waitFor(() => expect(fetchTarifas).toHaveBeenCalledTimes(2)); // el encolado arranco
+    // Y termina aqui: si siguiera en vuelo, su finally soltaria __LF_CALC_INFLIGHT en el test siguiente.
+    await vi.waitFor(() => expect(window.LF.releaseResultsSpace).toHaveBeenCalledTimes(2));
+    expect(window.__LF_CALC_INFLIGHT).toBe(false);
+  });
+
+  it('al encolar se cancela el debounce de las ediciones: no pisa "Calculando..." con "Cambios pendientes"', async () => {
+    vi.useFakeTimers();
+    try {
+      bootApp({ fetchTarifas: vi.fn(() => new Promise(() => {})) });
+      window.calculate(true, false); // en vuelo
+      await vi.advanceTimersByTimeAsync(150);
+      // Un CSV rellena inputs (debounce de 200 ms) y pide calcular: se encola.
+      window.LF.state.debounce = setTimeout(() => window.LF.setStatus('Cambios pendientes. Pulsa Calcular para actualizar.', 'idle'), 200);
+      expect(window.runCalculation()).toBe(false);
+      window.LF.setStatus.mockClear();
+      await vi.advanceTimersByTimeAsync(300);
+      expect(window.LF.setStatus).not.toHaveBeenCalledWith('Cambios pendientes. Pulsa Calcular para actualizar.', 'idle');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('si los datos no validan, una reserva heredada no queda en "Calculando…"', async () => {
+    bootApp({ validateInputs: vi.fn(() => false), settleOrphanReservation: vi.fn() });
+    await window.calculate(true, false);
+    expect(window.LF.settleOrphanReservation).toHaveBeenCalled();
   });
 
   it('si setStatus falla ANTES de reservar, tampoco libera', async () => {

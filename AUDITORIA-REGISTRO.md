@@ -7819,8 +7819,28 @@ el retorno anticipado). Corregido:
   `lf:results-ready` no se veia afectado (no se emite con 0 filas).
 - **Hardening:** `calculate()` ya no guarda `state.lastSignature` de un resultado descartado por `.is-pending`.
 Tests del pintado cancelado (con su contraprueba sin vaciado) y de la firma; 3/3 mutaciones detectadas.
-**Residual conocido, decidido no tratar (NO REABRIR sin esa decision):** con un calculo en vuelo (red muy
-lenta), aplicar un CSV/XLSX o Datadis hace que el calculo viejo pinte su ranking en la tarjeta vaciada; el
-calculo del CSV va en la cola (`__lf_queuedCalculation`, misma `generation`) y lo sustituye en cuanto termina.
-Se autocorrige y el estado final es siempre el correcto. Taparlo exige llevar el contador de vaciados del inicio
-de `calculate()` hasta `renderAll()` y `releaseResultsSpace()`; se descarto por riesgo frente a beneficio.
+
+**Tercera revision de ChatGPT (lectura estatica de `8ce7f8b`, 19/11/2026).** Contador sin hallazgo (unico
+vaciado: `hideResultsToInitialState()`; el `tbody` vacio de un filtro no es vaciado). Tres hallazgos reales con
+una raiz comun: un calculo que empezo ANTES de un vaciado no debia pintar nunca, viniera el vaciado de factura,
+CSV/XLSX o Datadis, y solo se habia tapado para la factura (`.is-pending`). Corregido en general:
+- **Ciclo de calculo.** `calculate()` abre `beginResultsCycle()` antes de cualquier `await`; si la tarjeta se
+  vacia durante el ciclo, `renderAll()` descarta el resultado y `releaseResultsSpace(abierta, {descartado,
+  sigue})` no lo trata como fallo: con calculo encolado (`sigue`) deja altura y "Calculando…" para el; sin el,
+  aviso `.is-pending` y altura. `settleOrphanReservation()` evita un "Calculando…" colgado si el encolado no
+  valida. La firma y el estado de arriba no se tocan en un ciclo descartado.
+- **El calculo encolado del CSV perdia su reserva** (el viejo pintaba y marcaba la tarjeta como pintada).
+  Corregido por lo anterior. Ademas, al vaciar con un calculo en vuelo `markResultsCleared()` reserva en el acto
+  (dentro del gesto de "Aplicar"): con resultados previos la tarjeta vaciada encogia y el encolado empujaba el
+  footer segundos despues (0,0157 a 1200x1920).
+- **"Ver resultados" sobrevivia al vaciado:** `markResultsCleared()` lo oculta y cancela su temporizador.
+- **Nuevo, encontrado al medir este caso:** al encolar, el debounce de 200 ms de los inputs que rellena el CSV
+  seguia vivo y pisaba "Calculando..." con "Cambios pendientes..."; al arrancar el encolado la barra de la
+  cabecera volvia a cambiar de fila (0,094 a 1280x1440, 0,13 a 1200x1920). `runCalculation()` lo cancela al
+  encolar, como ya hacia `calculate()` al empezar. Anterior a esta ronda.
+Medido en Chrome con tarifas a 8 s y CSV real aplicado durante la espera (1280x1440, 1200x1920, 1920x1080 y
+movil; primer calculo y con resultados previos), frente a `8ce7f8b`: CLS 0,0022-0,9077 -> 0,0001-0,0005 y un
+solo ranking pintado (antes, el viejo y luego el nuevo). Factura en revision durante la espera y vaciado a mitad
+del pintado: correctos, 3/3. Banco de 16 facturas: 16/16 identicas a produccion. 12 mutaciones nuevas, todas
+detectadas por `tests/cls-reserva-resultados.test.js` (incluido el vaciado a mitad del pintado SIN `.is-pending`).
+El "residual conocido" anotado en la revision anterior queda resuelto y se retira.
