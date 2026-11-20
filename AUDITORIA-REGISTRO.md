@@ -7951,3 +7951,26 @@ efectos de "hay resultados": `pending`, estado, particulas, "Ver resultados", fo
 - Test integrado del catalogo: auto-refresh en la pausa entre copiar las tarifas y llamar al motor (el motor
   recibe la version de la copia y `calculate()` lo marca pendiente). 6 mutaciones, todas detectadas (una era
   equivalente al codigo y se rehizo el test para que la distinguiera).
+
+**QA final sobre lo publicado (`de71ee2`, 20/11/2026, madrugada).** Un navegador cada vez (sin carga paralela):
+- **Chrome, 36 combinaciones** (9 tamanos x tema web x tema del sistema; 18 con "Mi tarifa"; CPU 4x en movil;
+  todos los escenarios): 0 problemas funcionales. Peor CLS de interaccion 0,0137 (CSV por el boton); resto <= 0,004.
+- **WebKit 27.2, 20 combinaciones** (iPhone 15, iPhone SE, iPad, Safari 1200 y 1280 x 4 temas): 0 problemas
+  (geometria por fotograma, ocultado, boton y barra estables, avisos de error y revision, estado final y tema).
+- **INP frente a `b608f62`** (version de partida de la ronda; overlay con los 8 ficheros cambiados): iguales;
+  el filtro en movil, que con 3 repeticiones parecia peor (136 -> 184 ms), da mediana 80 ms en ambas con 24 clics.
+- **Lighthouse frente a `b608f62`:** sin compresion, el FCP movil salia +150 ms constante: artefacto del servidor
+  sin gzip (`styles.css` +4,9 KB crudos cruzaba una ventana TCP en la simulacion). Con gzip, como Pages
+  (+1,5 KB): FCP ~1836 frente a ~1822 ms, LCP y nota iguales, CLS 0. Para medir carga, usar siempre gzip.
+- Banco de 16 facturas reales frente a produccion: 16/16 identicas.
+
+**Hallazgo NUEVO, anterior a esta ronda y NO tratado (pendiente de decision):** CLS de CARGA para quien vuelve con
+opciones guardadas. `lf-inputs.js` muestra `#solarFields`/`#bonoSocialFields` tras el primer pintado al restaurar
+los datos guardados; el formulario crece (~217 px con solar) a los ~186 ms y, en pantallas altas, empuja el footer
+visible. Medido (activar, calcular, recargar): solar 0,012 (1920x1080), 0,017 (2560x1440), 0,050 (1280x1440);
+bono social 0,007/0,009/0,028; las tres opciones 0,019/0,026/0,077; "Mi tarifa" 0; movil y pantallas <= 900 px de
+alto 0; sin datos guardados 0. Identico en `b608f62`. Explica el "carga 0,012-0,05" del banco (cada pagina hereda lo
+guardado por la anterior). Arreglo propuesto: en el arranque temprano (donde ya se lee el tema) leer las opciones
+guardadas y poner una clase en `<html>` para que el CSS muestre esos bloques desde el primer fotograma; la
+retirarian `updateSolarUI()`/`updateBonoSocialUI()` al tomar el control. Toca el arranque compartido por las tres
+aplicaciones: exige leer `ARRANQUE-CARGA.md` y una tanda propia, no se hizo de madrugada sin supervision.
