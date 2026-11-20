@@ -7937,3 +7937,17 @@ efectos de "hay resultados": `pending`, estado, particulas, "Ver resultados", fo
 - **Particulas de exito:** solo con resultado vigente (cosmetico).
 - Tests de los cuatro, mas el boton a mitad de pintado (la primera version del test no veia que asomaba durante
   el pintado; corregido). 9 mutaciones, todas detectadas. Regresion en Chrome sin cambios.
+
+**Novena revision de ChatGPT (lectura estatica de `8089efe`, 20/11/2026).** Funcion central correcta. Corregido:
+- **Bug: editar con un calculo YA terminado no retiraba "Ver resultados"** (movil; seguia 5 s llevando a un ranking
+  pendiente; a mitad del pintado tampoco hasta terminar). `retirarVerResultados()` (lf-render) es ahora el unico
+  sitio que lo retira; lo llaman los dos productores de `generation` (`scheduleCalculateDebounced()` en lf-app y
+  `markPending()` en lf-ui), el vaciado y la continuacion del pintado. Chrome 412 px: con `8089efe` seguia visible
+  tras editar; ahora se retira en el acto.
+- **Hardening:** el foco diferido del interruptor vuelve a mirar `resultadoVigente()` al llegar el frame; el banner
+  AECC no aparece si hay cambios pendientes al vencer su espera (llegaba vigente pero el usuario edito en los 2,8 s).
+- **Decidido (NO REABRIR):** `tarifasVersion` compara el `updatedAt` exacto; una version nueva sin cambios efectivos
+  marca pendiente. Es la identidad de version del catalogo (ronda 73), no una comparacion semantica.
+- Test integrado del catalogo: auto-refresh en la pausa entre copiar las tarifas y llamar al motor (el motor
+  recibe la version de la copia y `calculate()` lo marca pendiente). 6 mutaciones, todas detectadas (una era
+  equivalente al codigo y se rehizo el test para que la distinguiera).

@@ -94,6 +94,9 @@
     if (Date.now() - requestedAt > REQUEST_WINDOW_MS) return false;
     if (window.__LF_PRIVACY_MODE === true || window.__LF_FACTURA_BUSY === true) return false;
     if (!hasVisibleResults(detail)) return false;
+    // El evento llego vigente, pero el usuario puede haber cambiado datos en los 2,8 s de espera: con
+    // cambios pendientes (home) el ranking ya no es "un resultado util" (revision de ChatGPT, 20/11/2026).
+    if (window.LF && window.LF.state && window.LF.state.pending === true) return false;
     if (shouldKeepBannerHidden()) return false;
     return !isBlockingUiVisible();
   }

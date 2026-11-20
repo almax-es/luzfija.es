@@ -72,6 +72,8 @@
   function markPending(message = 'Cambios pendientes. Pulsa Calcular para actualizar.') {
     state.pending = true;
     state.generation = (state.generation || 0) + 1;
+    // El ranking pintado ya no es el de estos datos: "Ver resultados" (movil) no debe llevar a el.
+    if (window.LF && typeof window.LF.retirarVerResultados === 'function') window.LF.retirarVerResultados();
     setStatus(message, 'idle');
   }
 

@@ -852,6 +852,17 @@
     return true;
   }
 
+  // "Ver resultados" (movil) lleva al ranking pintado. Se retira en cuanto ese ranking deja de ser el de
+  // los datos: al vaciar la tarjeta, si deja de ser vigente al terminar el pintado y, sobre todo, en cuanto
+  // el usuario edita (scheduleCalculateDebounced/markPending lo llaman al subir `generation`), tambien con
+  // un calculo ya terminado: antes seguia 5 s a la vista (revision de ChatGPT, 20/11/2026).
+  function retirarVerResultados() {
+    if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
+    __lfScrollResultsTimer = 0;
+    const verResultados = $('scrollToResults');
+    if (verResultados) verResultados.style.display = 'none';
+  }
+
   function renderConsumoLimitsNotice(info, opciones = {}) {
     const notice = document.getElementById('consumoLimitsNotice');
     if (!notice) return;
@@ -866,6 +877,8 @@
         // otro sitio (fuera de este aviso), no se le quita (revision de ChatGPT, 20/11/2026).
         const activo = document.activeElement;
         if (activo && activo !== document.body && !notice.contains(activo)) return;
+        // Y el resultado sigue siendo el de los datos al llegar el frame (pudo cambiar entretanto).
+        if (typeof opciones.sigueVigente === 'function' && !opciones.sigueVigente()) return;
         toggle?.focus({ preventScroll: true });
       });
     };
@@ -1255,7 +1268,7 @@
     el.toolbar.classList.add('show');
 
     renderSolarHomeNotice();
-    renderConsumoLimitsNotice(d.limitesConsumo, { permitirFoco: generacionVigente });
+    renderConsumoLimitsNotice(d.limitesConsumo, { permitirFoco: generacionVigente, sigueVigente: () => resultadoVigente(d) });
     renderTopChart();
     renderPvpcInfo();
 
@@ -1271,12 +1284,7 @@
       const vigente = resultadoVigente(d);
       // Si dejo de ser vigente DURANTE el pintado, "Ver resultados" (mostrado al empezar) ya no debe
       // llevar a este ranking.
-      if (!vigente) {
-        if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
-        __lfScrollResultsTimer = 0;
-        const verResultados = $('scrollToResults');
-        if (verResultados) verResultados.style.display = 'none';
-      }
+      if (!vigente) retirarVerResultados();
       if (vigente) announceResultsSummary(d);
       dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0, vigente);
       // Ni se lleva al usuario hasta un ranking que ya no es el de sus datos.
@@ -1343,11 +1351,9 @@
         colocarAviso(seccionVaciada);
       }
       // "Ver resultados" (movil) lo pudo mostrar un pintado que se acaba de cancelar.
-      if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
-      __lfScrollResultsTimer = 0;
-      const verResultados = $('scrollToResults');
-      if (verResultados) verResultados.style.display = 'none';
+      retirarVerResultados();
     },
+    retirarVerResultados,
     beginResultsCycle,
     resultsCycleDiscarded,
     endResultsCycle,

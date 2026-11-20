@@ -118,6 +118,8 @@
     // en cada tecla, pero el estado interno no puede esperar a eso.
     state.pending = true;
     state.generation = (state.generation || 0) + 1;
+    // El ranking pintado ya no es el de estos datos: "Ver resultados" (movil) no debe llevar a el.
+    window.LF.retirarVerResultados?.();
 
     clearTimeout(state.debounce);
     state.debounce = setTimeout(() => {

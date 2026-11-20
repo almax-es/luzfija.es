@@ -599,6 +599,73 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     }
   });
 
+  // Revision de ChatGPT, 20/11/2026: con un calculo YA terminado, editar no retiraba "Ver resultados"
+  // (seguia 5 s llevando a un ranking pendiente); tampoco si se editaba con el pintado suspendido.
+  // markPending()/setStatus() reales necesitan el estado y el boton Calcular.
+  const conEstadoReal = () => {
+    document.body.insertAdjacentHTML('beforeend', '<div id="statusPill"><span id="statusText"></span></div><button id="btnCalc"><span id="btnText"></span><span id="btnSpinner"></span></button>');
+    Object.assign(window.LF.el, { statusPill: document.getElementById('statusPill'), statusText: document.getElementById('statusText'), btnCalc: document.getElementById('btnCalc'), btnText: document.getElementById('btnText'), btnSpinner: document.getElementById('btnSpinner') });
+    new Function('window', read('js/lf-ui.js'))(window);
+  };
+
+  it('movil: editar retira "Ver resultados" en el acto, con el calculo terminado o a mitad del pintado', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    Object.defineProperty(window, 'innerWidth', { value: 412, configurable: true });
+    try {
+      let { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      conEstadoReal(); // markPending() real
+      let ver = document.getElementById('scrollToResults');
+      window.LF.state.generation = 0;
+      await window.LF.renderAll({ success: true, generation: 0, resumen: {}, stats: null, resultados: filasDePrueba('Nueva') });
+      expect(ver.style.display).toBe('block');
+      window.LF.markPending(); // el usuario edita con el calculo ya terminado
+      expect(ver.style.display).toBe('none');
+      await vi.advanceTimersByTimeAsync(6000); // el temporizador viejo no lo vuelve a tocar
+      expect(ver.style.display).toBe('none');
+
+      // A mitad del pintado: se retira en el acto, sin esperar a que termine.
+      ({ seccion } = bootRender());
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      conEstadoReal();
+      ver = document.getElementById('scrollToResults');
+      window.LF.state.generation = 0;
+      let reanudar;
+      window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
+      const pintado = window.LF.renderAll({ success: true, generation: 0, resumen: {}, stats: null, resultados: filasDePrueba('Vieja') });
+      await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+      expect(ver.style.display).toBe('block');
+      window.LF.markPending();
+      expect(ver.style.display).toBe('none');
+      reanudar();
+      await pintado;
+      expect(ver.style.display).toBe('none');
+    } finally {
+      vi.useRealTimers();
+      Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true });
+    }
+  });
+
+  it('el foco diferido del interruptor vuelve a mirar la vigencia al llegar el frame', async () => {
+    const raf = window.requestAnimationFrame;
+    const pendientes = [];
+    window.requestAnimationFrame = (cb) => { pendientes.push(cb); return pendientes.length; };
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      document.activeElement?.blur?.();
+      window.LF.state.generation = 0;
+      window.LF.state.focusAnnualConsumptionEstimateToggle = true;
+      await window.LF.renderAll({ success: true, generation: 0, resumen: {}, stats: null, resultados: [], limitesConsumo: limitesConInterruptor });
+      const toggle = document.querySelector('#consumoLimitsNotice .consumo-estimate-toggle');
+      window.LF.state.generation = 1; // edicion entre programar el foco y el frame
+      pendientes.splice(0).forEach((cb) => cb(0));
+      expect(document.activeElement).not.toBe(toggle);
+    } finally {
+      window.requestAnimationFrame = raf;
+    }
+  });
+
   it('el interruptor de la estimacion no roba el foco: ni con resultado obsoleto ni si el usuario esta en otro campo', async () => {
     const raf = window.requestAnimationFrame;
     window.requestAnimationFrame = (cb) => { cb(0); return 0; };
@@ -1089,6 +1156,34 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  // Revision de ChatGPT, 20/11/2026: recorrido integrado del catalogo. La version se captura junto a la
+  // copia de tarifas; si el auto-refresh cambia `updatedAt` mientras se calcula, el motor (y por el, el
+  // render) recibe la version VIEJA y calculate() lo marca pendiente con su aviso.
+  it('auto-refresh durante el calculo: el motor recibe la version con la que calculo y queda pendiente', async () => {
+    const raf = window.requestAnimationFrame;
+    let descargado = false;
+    // El auto-refresh llega en la pausa que hay entre copiar las tarifas y llamar al motor.
+    window.requestAnimationFrame = (cb) => { if (descargado) window.LF.__LF_tarifasMeta = { updatedAt: 'v2' }; return setTimeout(() => cb(0), 0); };
+    let st;
+    try {
+      st = bootApp({
+        fetchTarifas: vi.fn(async () => { window.LF.__LF_tarifasMeta = { updatedAt: 'v1' }; descargado = true; return true; })
+      });
+      await window.calculate(true, false);
+    } finally {
+      window.requestAnimationFrame = raf;
+    }
+    expect(window.LF.calculateLocal.mock.calls[0][1]).toMatchObject({ tarifasVersion: 'v1' });
+    expect(st.pending).toBe(true);
+    expect(window.LF.setStatus).toHaveBeenCalledWith('Tarifas actualizadas. Pulsa Calcular para aplicar la nueva versión.', 'idle');
+  });
+
+  it('editar (scheduleCalculateDebounced) retira "Ver resultados"', () => {
+    bootApp({ retirarVerResultados: vi.fn() });
+    window.scheduleCalculateDebounced();
+    expect(window.LF.retirarVerResultados).toHaveBeenCalled();
   });
 
   it('si los datos no validan, una reserva heredada no queda en "Calculando…"', async () => {

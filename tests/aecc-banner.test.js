@@ -118,6 +118,26 @@ describe('AECC donation banner', () => {
     expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-mostrado', expect.anything());
   });
 
+  // Revision de ChatGPT, 20/11/2026: el evento llega vigente pero el usuario edita en los 2,8 s de espera.
+  it('no aparece si, mientras espera, hay cambios pendientes', () => {
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    window.LF = { state: { pending: false } };
+    try {
+      loadAeccBanner();
+      document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+      document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1, vigente: true } }));
+      window.LF.state.pending = true; // edicion durante la espera
+      vi.advanceTimersByTime(20000);
+      expect(document.getElementById('aecc-banner').classList.contains('aecc-banner--visible')).toBe(false);
+    } finally {
+      delete window.LF;
+    }
+  });
+
   it('se muestra tras resultados reales en home y guarda cooldown al cerrar', () => {
     document.body.innerHTML = `
       <button id="btnCalc"></button>
