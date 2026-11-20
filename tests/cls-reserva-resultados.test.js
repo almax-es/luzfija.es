@@ -453,6 +453,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
       setGeometry(seccion, { top: 188, innerHeight: 900 });
       const st = window.LF.state;
       st.generation = 1; st.pending = true; // el usuario edito durante la descarga
+      const listos = []; document.addEventListener('lf:results-ready', (e) => listos.push(e.detail));
       let reanudar;
       window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
       window.LF.reserveResultsSpace();
@@ -467,6 +468,9 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
       expect(window.LF.el.tbody.children.length).toBe(25); // el ranking si se pinta (como pendiente)
       expect(st.pending).toBe(true);
       expect(window.LF.el.resultsLiveStatus.textContent).not.toMatch(/Resultados actualizados/);
+      // results-ready se emite (cierra su ciclo) pero marcado no vigente; y no se desplaza la pagina.
+      expect(listos.at(-1)).toMatchObject({ origin: 'home', rows: 25, vigente: false });
+      expect(seccion.scrollIntoView).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }
@@ -486,11 +490,39 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
       await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
       expect(st.pending).toBe(false); // vigente al empezar: "actualizados", como siempre
       st.generation = 1; st.pending = true; // scheduleCalculateDebounced() de una edicion
+      const listos = []; document.addEventListener('lf:results-ready', (e) => listos.push(e.detail));
       reanudar();
       await pintado;
       await vi.advanceTimersByTimeAsync(10);
       expect(st.pending).toBe(true);
       expect(window.LF.el.resultsLiveStatus.textContent).not.toMatch(/Vieja/);
+      expect(listos.at(-1)).toMatchObject({ vigente: false });
+      expect(seccion.scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // Revision de ChatGPT, 20/11/2026: el anuncio se escribe en el turno siguiente; en ese hueco una
+  // edicion (generation) o un vaciado lo dejaban anunciar un resumen que ya no corresponde.
+  it('el anuncio diferido no se escribe si en ese hueco cambian los datos o se vacia la tarjeta', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      for (const caso of ['edicion', 'vaciado']) {
+        const { seccion } = bootRender();
+        setGeometry(seccion, { top: 188, innerHeight: 900 });
+        const st = window.LF.state;
+        st.generation = 0;
+        window.LF.reserveResultsSpace();
+        await window.LF.renderAll({ success: true, generation: 0, resumen: { mejor: 'Vieja 0', precio: '0 €' }, stats: null, resultados: filasDePrueba('Vieja') });
+        // La continuacion ya programo el anuncio (vigente en ese momento); aun no se ha escrito.
+        if (caso === 'edicion') { st.generation = 1; st.pending = true; } else {
+          new Function('window', read('js/lf-ui.js'))(window);
+          window.LF.hideResultsToInitialState();
+        }
+        await vi.advanceTimersByTimeAsync(10);
+        expect(window.LF.el.resultsLiveStatus.textContent, caso).not.toMatch(/Vieja/);
+      }
     } finally {
       vi.useRealTimers();
     }
@@ -503,12 +535,15 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
       setGeometry(seccion, { top: 188, innerHeight: 900 });
       const st = window.LF.state;
       st.generation = 3; st.pending = true;
+      const listos = []; document.addEventListener('lf:results-ready', (e) => listos.push(e.detail));
       window.LF.reserveResultsSpace();
       await window.LF.renderAll({ success: true, generation: 3, resumen: { mejor: 'Nueva 0', precio: '0 €' }, stats: null, resultados: filasDePrueba('Nueva') });
       await vi.advanceTimersByTimeAsync(10);
       expect(st.pending).toBe(false);
       expect(window.LF.setStatus).toHaveBeenCalledWith('Resultados actualizados', 'ok');
       expect(window.LF.el.resultsLiveStatus.textContent).toMatch(/Nueva 0/);
+      expect(listos.at(-1)).toMatchObject({ vigente: true });
+      expect(seccion.scrollIntoView).toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }

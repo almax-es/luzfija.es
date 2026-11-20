@@ -325,6 +325,8 @@
   function onResultsReady(event) {
     var detail = event && event.detail ? event.detail : {};
     if (detail.origin !== pageOrigin) return;
+    // Ranking pintado pero de datos que el usuario ya cambio (lf-render.js): no es un resultado util.
+    if (detail.vigente === false) return;
     if (Date.now() - requestedAt > REQUEST_WINDOW_MS) return;
     retryCount = 0;
     scheduleShow(detail);

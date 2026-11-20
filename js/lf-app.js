@@ -895,7 +895,8 @@
       openShareDialog(shareResultsButton);
     });
     document.addEventListener('lf:results-ready', (e) => {
-      if (e?.detail?.origin === 'home' && shareResultsWrap) shareResultsWrap.hidden = false;
+      // `vigente: false`: ranking de datos que el usuario ya cambio; no se ofrece compartirlo.
+      if (e?.detail?.origin === 'home' && e.detail.vigente !== false && shareResultsWrap) shareResultsWrap.hidden = false;
     });
     shareConsumptionInput?.addEventListener('change', updateShareScope);
     sharePrivateInput?.addEventListener('change', updateShareScope);

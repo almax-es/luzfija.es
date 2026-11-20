@@ -7904,3 +7904,20 @@ sin hallazgo. Corregido:
   informa del fallo de esa operacion y el calculo no se descarta. Solo se suprime el de ciclos descartados.
 - Tests: generacion obsoleta antes de pintar y durante el pintado (con `renderTable()` real), vigente, ciclo
   descartado sin limites (lf-calc real) y `crearTarifaPVPC()` real. 9 mutaciones, todas detectadas.
+
+**Septima revision de ChatGPT (lectura estatica de `7e2f508`, 20/11/2026).** Guard de `pending` y desglose sin
+hallazgo. Corregido:
+- **Bug: `lf:results-ready` y el scroll se emitian para un ranking ya obsoleto** (datos cambiados durante el
+  calculo o el pintado). Consumidores: `lf-app.js` mostraba "Compartir esta comparacion" y `aecc-banner.js`
+  programaba el banner, ninguno mira `pending`; `tracking.js` lo cuenta. El evento NO se suprime (cierra el ciclo
+  de la peticion anterior antes de la encolada y la analitica cuenta un pintado real): lleva `vigente`, y
+  compartir y AECC ignoran `vigente: false`; el `scrollIntoView` solo con `vigente`. Chrome (tarifas a 3 s,
+  edicion durante la espera): con `7e2f508` aparecia "Compartir" y la pagina bajaba 278 px; ahora ni lo uno ni lo
+  otro. Sin edicion, identico a antes.
+- **Hardening: el anuncio de `#resultsLiveStatus` se escribe en `setTimeout(0)`**; el callback vuelve a mirar la
+  generacion y el contador de vaciados antes de escribir.
+- **No es bug (decidido, NO REABRIR):** editar un dato y devolverlo a su valor durante el calculo deja el
+  resultado como pendiente. `generation` cuenta ediciones, no compara valores; es conservador a proposito y solo
+  pide volver a pulsar Calcular.
+- Tests: senal y scroll en los tres casos de generacion, hueco del anuncio diferido (edicion y vaciado), compartir
+  y banner AECC con `vigente: false`. 6 mutaciones, todas detectadas.

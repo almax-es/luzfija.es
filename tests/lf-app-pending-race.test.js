@@ -405,6 +405,19 @@ describe('calculate(): editar durante un calculo en curso no borra el aviso de p
     expect(calculateLocal).toHaveBeenCalledTimes(2);
   });
 
+  // Revision de ChatGPT, 20/11/2026: un ranking pintado con datos ya cambiados emite results-ready
+  // (cierra su ciclo), pero no debe ofrecer "Compartir esta comparacion".
+  it('"Compartir esta comparacion" solo aparece con resultados vigentes', () => {
+    boot();
+    document.body.insertAdjacentHTML('beforeend', '<div id="shareResultsWrap" hidden><button id="shareResultsButton"></button></div>');
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+    const wrap = document.getElementById('shareResultsWrap');
+    document.dispatchEvent(new window.CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 5, vigente: false } }));
+    expect(wrap.hidden).toBe(true);
+    document.dispatchEvent(new window.CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 5, vigente: true } }));
+    expect(wrap.hidden).toBe(false);
+  });
+
   it('Compartir abierto desde el menú devuelve el foco al botón de menú', async () => {
     boot();
     document.dispatchEvent(new window.Event('DOMContentLoaded'));

@@ -101,6 +101,23 @@ describe('AECC donation banner', () => {
     expect(document.getElementById('aecc-banner').classList.contains('aecc-banner--visible')).toBe(false);
   });
 
+  // Revision de ChatGPT, 20/11/2026: un ranking de datos que el usuario ya cambio no es un resultado util.
+  it('no se programa con un results-ready de resultados no vigentes', () => {
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1, vigente: false } }));
+    vi.advanceTimersByTime(5000);
+
+    expect(document.getElementById('aecc-banner').classList.contains('aecc-banner--visible')).toBe(false);
+    expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-mostrado', expect.anything());
+  });
+
   it('se muestra tras resultados reales en home y guarda cooldown al cerrar', () => {
     document.body.innerHTML = `
       <button id="btnCalc"></button>

@@ -777,9 +777,14 @@
 
     live.textContent = '';
     if (__lf_resultsAnnounceTimer) clearTimeout(__lf_resultsAnnounceTimer);
+    // La escritura va en el siguiente turno: si entretanto el usuario cambia datos (generation) o la
+    // tarjeta se vacia, ese resumen ya no corresponde y no se anuncia (revision de ChatGPT, 20/11/2026).
+    const vaciadosAlProgramar = __lfVaciados;
     __lf_resultsAnnounceTimer = setTimeout(() => {
-      live.textContent = parts.join(' ');
       __lf_resultsAnnounceTimer = null;
+      if (vaciadosAlProgramar !== __lfVaciados) return;
+      if (typeof d?.generation === 'number' && d.generation !== (state.generation || 0)) return;
+      live.textContent = parts.join(' ');
     }, 0);
   }
 
@@ -986,13 +991,18 @@
     }
   }
 
-  function dispatchResultsReady(rowsCount) {
+  // `vigente`: false si los datos cambiaron mientras se calculaba o pintaba. El evento se emite IGUAL
+  // (cierra el ciclo de la peticion anterior antes de la encolada y la analitica cuenta el pintado),
+  // pero quien muestra algo por "hay resultados" (compartir, banner AECC) debe ignorarlo
+  // (revision de ChatGPT, 20/11/2026).
+  function dispatchResultsReady(rowsCount, vigente = true) {
     if (!Number.isFinite(rowsCount) || rowsCount <= 0) return;
     try {
       document.dispatchEvent(new CustomEvent('lf:results-ready', {
         detail: {
           origin: 'home',
-          rows: rowsCount
+          rows: rowsCount,
+          vigente: Boolean(vigente)
         }
       }));
     } catch (_) {}
@@ -1240,11 +1250,11 @@
       if (vaciadosAlPintar !== __lfVaciados) return;
       // No se anuncia como "Resultados actualizados" un ranking cuyos datos ya cambiaron (antes de
       // pintar o durante el pintado): el estado de arriba, region viva, ya dice "Cambios pendientes".
-      if (typeof d.generation !== 'number' || d.generation === (state.generation || 0)) {
-        announceResultsSummary(d);
-      }
-      dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0);
-      if (seccionResultados) {
+      const vigente = typeof d.generation !== 'number' || d.generation === (state.generation || 0);
+      if (vigente) announceResultsSummary(d);
+      dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0, vigente);
+      // Ni se lleva al usuario hasta un ranking que ya no es el de sus datos.
+      if (vigente && seccionResultados) {
         seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
