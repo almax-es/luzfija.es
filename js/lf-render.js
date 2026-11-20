@@ -783,7 +783,7 @@
     __lf_resultsAnnounceTimer = setTimeout(() => {
       __lf_resultsAnnounceTimer = null;
       if (vaciadosAlProgramar !== __lfVaciados) return;
-      if (typeof d?.generation === 'number' && d.generation !== (state.generation || 0)) return;
+      if (!resultadoVigente(d)) return;
       live.textContent = parts.join(' ');
     }, 0);
   }
@@ -840,11 +840,35 @@
       : `precio válido solo hasta ${nbKw(formatKw(item.limiteKw))}`;
   }
 
-  function renderConsumoLimitsNotice(info) {
+  // ¿Este resultado es el de los datos y el catalogo ACTUALES? Unico criterio para todo lo que dice
+  // "hay resultados nuevos" (estado, pending, particulas, "Ver resultados", foco, anuncio, evento,
+  // scroll). Antes cada efecto lo decidia por su cuenta y siempre se escapaba alguno (revisiones de
+  // ChatGPT del 20/11/2026). Sin datos de origen (llamadas sueltas) se considera vigente.
+  function resultadoVigente(d) {
+    if (typeof d?.generation === 'number' && d.generation !== (state.generation || 0)) return false;
+    // Igual que calculate() (lf-app.js): el auto-refresh pudo traer otra version de tarifas.json.
+    if (d && d.tarifasVersion !== undefined &&
+        d.tarifasVersion !== (window.LF.__LF_tarifasMeta?.updatedAt || null)) return false;
+    return true;
+  }
+
+  function renderConsumoLimitsNotice(info, opciones = {}) {
     const notice = document.getElementById('consumoLimitsNotice');
     if (!notice) return;
-    const restoreToggleFocus = Boolean(state.focusAnnualConsumptionEstimateToggle);
+    // La peticion de foco del interruptor se consume siempre, pero solo se atiende con un resultado
+    // vigente (opciones.permitirFoco) y si el usuario no se ha ido a otro campo mientras calculaba.
+    const restoreToggleFocus = Boolean(state.focusAnnualConsumptionEstimateToggle) && opciones.permitirFoco !== false;
     state.focusAnnualConsumptionEstimateToggle = false;
+    const enfocarInterruptor = () => {
+      const toggle = notice.querySelector('.consumo-estimate-toggle');
+      requestAnimationFrame(() => {
+        // El interruptor viejo se recreo y el foco cayo al body: se devuelve. Si el usuario esta en
+        // otro sitio (fuera de este aviso), no se le quita (revision de ChatGPT, 20/11/2026).
+        const activo = document.activeElement;
+        if (activo && activo !== document.body && !notice.contains(activo)) return;
+        toggle?.focus({ preventScroll: true });
+      });
+    };
     notice.setAttribute('role', 'note');
     notice.setAttribute('aria-label', 'Límites y estimación anual de consumo');
     const excluded = Array.isArray(info?.excluidas) ? info.excluidas : [];
@@ -962,10 +986,7 @@
 
     const listed = [...excludedReal, ...excludedEstimated];
     if (!listed.length) {
-      if (restoreToggleFocus) {
-        const toggle = notice.querySelector('.consumo-estimate-toggle');
-        requestAnimationFrame(() => toggle?.focus({ preventScroll: true }));
-      }
+      if (restoreToggleFocus) enfocarInterruptor();
       return;
     }
     const details = document.createElement('details');
@@ -985,10 +1006,7 @@
     details.append(summary, list);
     notice.appendChild(details);
 
-    if (restoreToggleFocus) {
-      const toggle = notice.querySelector('.consumo-estimate-toggle');
-      requestAnimationFrame(() => toggle?.focus({ preventScroll: true }));
-    }
+    if (restoreToggleFocus) enfocarInterruptor();
   }
 
   // `vigente`: false si los datos cambiaron mientras se calculaba o pintaba. El evento se emite IGUAL
@@ -1194,7 +1212,7 @@
     // durante el pintado por bloques, se podia abrir el desglose de una fila vieja con los inputs
     // nuevos (su guard mira `pending`); calculate() solo lo restauraba al terminar. Ademas el estado
     // cambiaba dos veces de texto, y con el la barra de la cabecera (revision de ChatGPT, 20/11/2026).
-    const generacionVigente = typeof d.generation !== 'number' || d.generation === (state.generation || 0);
+    const generacionVigente = resultadoVigente(d);
     if (generacionVigente) state.pending = false;
     state.lastRenderSolarOn = Boolean(d.solarOn);
     state.lastRenderPeriodoLargo = Boolean(d.periodoLargoConExcedentes);
@@ -1211,7 +1229,7 @@
     const seoFold = document.getElementById('info');
     if (seoFold) seoFold.classList.add('show');
     el.heroKpis.classList.add('show');
-    createSuccessParticles(el.heroKpis);
+    if (generacionVigente) createSuccessParticles(el.heroKpis);
 
     // Mostrar sección de resultados
     const seccionResultados = document.getElementById('seccionResultados');
@@ -1237,7 +1255,7 @@
     el.toolbar.classList.add('show');
 
     renderSolarHomeNotice();
-    renderConsumoLimitsNotice(d.limitesConsumo);
+    renderConsumoLimitsNotice(d.limitesConsumo, { permitirFoco: generacionVigente });
     renderTopChart();
     renderPvpcInfo();
 
@@ -1250,7 +1268,15 @@
       if (vaciadosAlPintar !== __lfVaciados) return;
       // No se anuncia como "Resultados actualizados" un ranking cuyos datos ya cambiaron (antes de
       // pintar o durante el pintado): el estado de arriba, region viva, ya dice "Cambios pendientes".
-      const vigente = typeof d.generation !== 'number' || d.generation === (state.generation || 0);
+      const vigente = resultadoVigente(d);
+      // Si dejo de ser vigente DURANTE el pintado, "Ver resultados" (mostrado al empezar) ya no debe
+      // llevar a este ranking.
+      if (!vigente) {
+        if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
+        __lfScrollResultsTimer = 0;
+        const verResultados = $('scrollToResults');
+        if (verResultados) verResultados.style.display = 'none';
+      }
       if (vigente) announceResultsSummary(d);
       dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0, vigente);
       // Ni se lleva al usuario hasta un ranking que ya no es el de sus datos.
@@ -1264,7 +1290,8 @@
       if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
       __lfScrollResultsTimer = 0;
 
-      if (window.innerWidth < 1100) {
+      // "Ver resultados" lleva al ranking: solo si es el de los datos actuales (revision de ChatGPT).
+      if (generacionVigente && window.innerWidth < 1100) {
         scrollResultsButton.style.display = 'block';
         __lfScrollResultsTimer = setTimeout(() => {
           scrollResultsButton.style.display = 'none';

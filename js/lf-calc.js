@@ -657,6 +657,8 @@
       // Generacion con la que arranco el calculo: renderAll() no da por "actualizados" unos
       // resultados si el usuario cambio datos mientras se calculaban.
       generation: contexto ? contexto.generation : undefined,
+      // Version de tarifas.json con la que se calculo (el auto-refresh puede cambiarla en vuelo).
+      tarifasVersion: contexto ? contexto.tarifasVersion : undefined,
       // Modo del cálculo: el render lo usa para avisos que describen ESTOS
       // resultados (no el estado actual del formulario, que puede cambiar después)
       solarOn: Boolean(solarOn),

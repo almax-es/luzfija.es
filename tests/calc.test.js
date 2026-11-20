@@ -673,9 +673,10 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       expect(st.useAnnualConsumptionEstimate).toBe(true);
       // ...ni uno descartado con la generacion correcta (segunda revision de ChatGPT).
       window.LF.currentResultsCycleDiscarded = () => true;
-      await window.LF.calculateLocal(valores, { generation: 7 });
+      await window.LF.calculateLocal(valores, { generation: 7, tarifasVersion: 'v-prueba' });
       expect(st.useAnnualConsumptionEstimate).toBe(true);
       expect(st.annualConsumptionEstimateBasis).toBeNull();
+      expect(window.LF.renderAll.mock.calls.at(-1)[0].tarifasVersion).toBe('v-prueba');
       window.LF.currentResultsCycleDiscarded = descartadoReal;
       // El motor le pasa al render la generacion con la que arranco (renderAll no da por actualizado
       // un resultado de datos ya cambiados).

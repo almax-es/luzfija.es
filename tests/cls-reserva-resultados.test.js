@@ -528,6 +528,105 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     }
   });
 
+  // Revision de ChatGPT, 20/11/2026: todo efecto de "hay resultados" pasa por resultadoVigente(d)
+  // (generacion de los datos y version del catalogo).
+  const limitesConInterruptor = { consumoKwh: 6512, excluidas: [{ tarifa: { nombre: 'Imagina 4000' }, tipo: 'maximo', limiteKwh: 4000 }] };
+
+  it('catalogo cambiado durante el calculo: ni "actualizados", ni senal vigente, ni scroll', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      const st = window.LF.state;
+      st.generation = 0; st.pending = true;
+      window.LF.__LF_tarifasMeta = { updatedAt: '2026-11-20T08:00' }; // el auto-refresh trajo otra version
+      const listos = []; document.addEventListener('lf:results-ready', (e) => listos.push(e.detail));
+      window.LF.reserveResultsSpace();
+      await window.LF.renderAll({ success: true, generation: 0, tarifasVersion: '2026-11-19T08:00', resumen: { mejor: 'Vieja 0', precio: '0 €' }, stats: null, resultados: filasDePrueba('Vieja') });
+      await vi.advanceTimersByTimeAsync(10);
+      expect(st.pending).toBe(true);
+      expect(window.LF.setStatus).not.toHaveBeenCalledWith('Resultados actualizados', 'ok');
+      expect(window.LF.createSuccessParticles).not.toHaveBeenCalled();
+      expect(listos.at(-1)).toMatchObject({ vigente: false });
+      expect(seccion.scrollIntoView).not.toHaveBeenCalled();
+      // Misma version: vigente.
+      await window.LF.renderAll({ success: true, generation: 0, tarifasVersion: '2026-11-20T08:00', resumen: { mejor: 'Nueva 0', precio: '0 €' }, stats: null, resultados: filasDePrueba('Nueva') });
+      await vi.advanceTimersByTimeAsync(10);
+      expect(st.pending).toBe(false);
+      expect(listos.at(-1)).toMatchObject({ vigente: true });
+      expect(window.LF.createSuccessParticles).toHaveBeenCalled();
+    } finally {
+      delete window.LF.__LF_tarifasMeta;
+      vi.useRealTimers();
+    }
+  });
+
+  it('movil: "Ver resultados" no aparece para un ranking obsoleto, ni se queda si deja de serlo al pintar', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    Object.defineProperty(window, 'innerWidth', { value: 412, configurable: true });
+    try {
+      // Obsoleto desde el principio.
+      let { seccion } = bootRender();
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      let ver = document.getElementById('scrollToResults');
+      window.LF.state.generation = 1;
+      let pausa;
+      window.LF.yieldControl = vi.fn(() => (pausa ? Promise.resolve() : new Promise((r) => { pausa = r; })));
+      const obsoleto = window.LF.renderAll({ success: true, generation: 0, resumen: {}, stats: null, resultados: filasDePrueba('Vieja') });
+      await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+      expect(ver.style.display).toBe('none'); // ni siquiera asoma mientras se pinta
+      pausa();
+      await obsoleto;
+      expect(ver.style.display).toBe('none');
+
+      // Vigente al empezar (se muestra) y obsoleto durante el pintado (se retira).
+      ({ seccion } = bootRender());
+      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      ver = document.getElementById('scrollToResults');
+      window.LF.state.generation = 0;
+      let reanudar;
+      window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
+      const pintado = window.LF.renderAll({ success: true, generation: 0, resumen: {}, stats: null, resultados: filasDePrueba('Vieja') });
+      await vi.waitFor(() => expect(window.LF.el.tbody.children.length).toBe(10));
+      expect(ver.style.display).toBe('block');
+      window.LF.state.generation = 1; window.LF.state.pending = true;
+      reanudar();
+      await pintado;
+      expect(ver.style.display).toBe('none');
+    } finally {
+      vi.useRealTimers();
+      Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true });
+    }
+  });
+
+  it('el interruptor de la estimacion no roba el foco: ni con resultado obsoleto ni si el usuario esta en otro campo', async () => {
+    const raf = window.requestAnimationFrame;
+    window.requestAnimationFrame = (cb) => { cb(0); return 0; };
+    try {
+      const casos = [
+        { nombre: 'obsoleto', generacionEstado: 1, enfocarOtro: false, espera: false },
+        { nombre: 'otro campo', generacionEstado: 0, enfocarOtro: true, espera: false },
+        { nombre: 'vigente y sin foco ajeno', generacionEstado: 0, enfocarOtro: false, espera: true }
+      ];
+      for (const caso of casos) {
+        const { seccion } = bootRender();
+        setGeometry(seccion, { top: 188, innerHeight: 900 });
+        document.body.insertAdjacentHTML('beforeend', '<input id="campoUsuario">');
+        if (caso.enfocarOtro) document.getElementById('campoUsuario').focus();
+        else document.activeElement?.blur?.();
+        window.LF.state.generation = caso.generacionEstado;
+        window.LF.state.focusAnnualConsumptionEstimateToggle = true;
+        await window.LF.renderAll({ success: true, generation: 0, resumen: {}, stats: null, resultados: [], limitesConsumo: limitesConInterruptor });
+        const toggle = document.querySelector('#consumoLimitsNotice .consumo-estimate-toggle');
+        expect(toggle, caso.nombre).toBeTruthy();
+        expect(document.activeElement === toggle, caso.nombre).toBe(caso.espera);
+        expect(window.LF.state.focusAnnualConsumptionEstimateToggle, caso.nombre).toBe(false);
+      }
+    } finally {
+      window.requestAnimationFrame = raf;
+    }
+  });
+
   it('generacion vigente: "Resultados actualizados", pending limpio y anuncio, como siempre', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
@@ -901,8 +1000,8 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
     expect(beginResultsCycle).toHaveBeenCalledTimes(2);
     expect(endResultsCycle.mock.invocationCallOrder[0]).toBeLessThan(beginResultsCycle.mock.invocationCallOrder[1]);
     // El motor recibe la generacion con la que arranco cada calculo (estimacion anual en lf-calc.js).
-    expect(window.LF.calculateLocal.mock.calls[0][1]).toEqual({ generation: 0 });
-    expect(window.LF.calculateLocal.mock.calls[1][1]).toEqual({ generation: 1 });
+    expect(window.LF.calculateLocal.mock.calls[0][1]).toEqual({ generation: 0, tarifasVersion: null });
+    expect(window.LF.calculateLocal.mock.calls[1][1]).toEqual({ generation: 1, tarifasVersion: null });
   });
 
   // Cuarta revision de ChatGPT, 19/11/2026: los caminos de ERROR de un ciclo descartado pisaban el

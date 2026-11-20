@@ -228,6 +228,8 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   Todo modulo que el calculo atraviese y escriba por su cuenta debe respetar el ciclo: los avisos de `pvpc.js`
   miran `currentResultsCycleDiscarded()` y `lf-calc.js` solo toca la estimacion anual si su `generation` sigue
   vigente. Si anades un aviso o una escritura de estado compartido dentro del calculo, haz lo mismo.
+  Y todo efecto de "hay resultados" en `renderAll()` (estado, `pending`, foco, anuncio, eventos, scroll,
+  botones) pasa por `resultadoVigente(d)` (generacion de los datos y version de `tarifas.json`).
   Lo vigila `tests/cls-reserva-resultados.test.js`.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,

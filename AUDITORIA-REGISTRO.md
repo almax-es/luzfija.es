@@ -7921,3 +7921,19 @@ hallazgo. Corregido:
   pide volver a pulsar Calcular.
 - Tests: senal y scroll en los tres casos de generacion, hueco del anuncio diferido (edicion y vaciado), compartir
   y banner AECC con `vigente: false`. 6 mutaciones, todas detectadas.
+
+**Octava revision de ChatGPT (lectura estatica de `c6fab10`, 20/11/2026).** Raiz comun de esta y las anteriores:
+`renderAll()` decidia en sitios sueltos si un resultado "valia" y siempre se escapaba un efecto. Corregido con UNA
+funcion, `resultadoVigente(d)` (generacion de los datos Y version de `tarifas.json`), por la que pasan todos los
+efectos de "hay resultados": `pending`, estado, particulas, "Ver resultados", foco del interruptor, anuncio
+(tambien el diferido), `lf:results-ready.vigente` y scroll. Si anades un efecto asi, usala.
+- **Bug: "Ver resultados" (movil) para un ranking obsoleto.** Ahora no aparece; y si deja de ser vigente durante
+  el pintado, la continuacion lo retira. Chrome 412 px, edicion durante la espera: con `c6fab10` aparecia; ahora no.
+- **Bug: el interruptor de la estimacion robaba el foco.** Pulsarlo y pasar a otro campo mientras calcula
+  devolvia el foco al interruptor recreado. Ahora solo con resultado vigente y si el foco cayo al body o sigue en
+  el aviso. Chrome: con `c6fab10` el foco saltaba al interruptor; ahora se queda en el campo.
+- **Catalogo cambiado durante el calculo (auto-refresh):** `vigente` miraba solo la generacion. `calculate()`
+  pasa tambien `tarifasVersion` (la misma comprobacion que ya hacia al terminar). Muy raro; cubierto por test.
+- **Particulas de exito:** solo con resultado vigente (cosmetico).
+- Tests de los cuatro, mas el boton a mitad de pintado (la primera version del test no veia que asomaba durante
+  el pintado; corregido). 9 mutaciones, todas detectadas. Regresion en Chrome sin cambios.
