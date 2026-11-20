@@ -202,6 +202,8 @@
     const isCeutaMelilla = zonaRaw === 'CeutaMelilla';
     // El checkbox de vivienda solo aplica a Canarias (IGIC 0% vivienda ≤10kW)
     // En Ceuta/Melilla el IPSI es igual para todos (1%)
+    // A partir de aqui manda el JS: se retira la marca temprana de theme.js (ver styles.css, lf-pre-*).
+    document.documentElement.classList.remove('lf-pre-canarias');
     if (el.viviendaGroup) {
       el.viviendaGroup.style.display = isCanarias ? 'flex' : 'none';
     }
@@ -217,12 +219,22 @@
     }
   }
 
+  // Lo que pinta el indicador "Total kWh" para unos valores ya parseados. Puro: lo comparten
+  // updateKwhHint() y saveInputs(), que lo guarda para que theme.js pinte lo mismo antes del
+  // primer fotograma (ver vistaKwhTrasRecargar).
+  function kwhHintTexts(v) {
+    const t = v.cPunta + v.cLlano + v.cValle;
+    return {
+      solar: Boolean(v.solarOn),
+      total: t > 0,
+      t: t.toFixed(2).replace('.', ','),
+      ex: v.exTotal.toFixed(2).replace('.', ',')
+    };
+  }
+
   function updateKwhHint() {
     const v = getInputValues();
-    const t = v.cPunta + v.cLlano + v.cValle;
-    const ex = v.exTotal;
-    const tStr = t.toFixed(2).replace('.', ',');
-    const exStr = ex.toFixed(2).replace('.', ',');
+    const { t: tStr, ex: exStr, total } = kwhHintTexts(v);
     if (v.solarOn) {
       if (el.kwhHint) el.kwhHint.removeAttribute('data-placeholder');
       el.kwhHint.innerHTML = `
@@ -238,7 +250,7 @@
             <span class="kwh-unit">kWh</span>
           </div>
         </div>`;
-    } else if (t > 0) {
+    } else if (total) {
       if (el.kwhHint) el.kwhHint.removeAttribute('data-placeholder');
       el.kwhHint.textContent = `${tStr} kWh`;
     } else {
@@ -248,6 +260,8 @@
   }
 
   function updateSolarUI() {
+    // A partir de aqui manda el JS: se retira la marca temprana de theme.js (ver styles.css, lf-pre-*).
+    document.documentElement.classList.remove('lf-pre-solar');
     const box = document.getElementById('solarFields');
     if (!box) return;
     const on = Boolean(el.inputs.solarOn?.checked);
@@ -261,6 +275,8 @@
   }
 
   function updateBonoSocialUI() {
+    // A partir de aqui manda el JS: se retira la marca temprana de theme.js (ver styles.css, lf-pre-*).
+    document.documentElement.classList.remove('lf-pre-bono');
     const box = document.getElementById('bonoSocialFields');
     if (!box) return;
     const on = Boolean(el.inputs.bonoSocialOn?.checked);
@@ -524,6 +540,27 @@
     });
   }
 
+  // Indicador "Total kWh" que vera quien vuelva. Con placas solares son dos pastillas que, segun las
+  // cifras y el ancho, ocupan una o dos filas; pintadas tras el primer fotograma empujaban el footer
+  // (CLS de carga, 20/11/2026). theme.js las pinta antes con estos textos, que viajan DENTRO del mismo
+  // JSON guardado (campo `vistaKwh`, una sola escritura): nunca pueden corresponder a otra configuracion
+  // ni duplican los datos en otra clave. loadInputs() solo lee las claves de DEFAULTS, asi que lo ignora,
+  // y no forma parte del objeto que devuelve saveInputs() (de ahi salen los enlaces de Compartir).
+  // Se calculan como los vera loadInputs() al recargar (migrateExcedentes + DEFAULTS +
+  // formatValueForDisplay + parseNum), no con el valor del campo en este instante.
+  function vistaKwhTrasRecargar(d) {
+    try {
+      const f = migrateExcedentes({ ...DEFAULTS, ...migrateExcedentes({ ...d }) });
+      const n = (k) => clampNonNeg(parseNum(formatValueForDisplay(f[k])));
+      return kwhHintTexts({
+        cPunta: n('cPunta'), cLlano: n('cLlano'), cValle: n('cValle'), exTotal: n('exTotal'),
+        solarOn: asBool(f.solarOn, DEFAULTS.solarOn)
+      });
+    } catch (_) {
+      return undefined; // Sin vista, el indicador se pinta al cargar, como antes.
+    }
+  }
+
   // ===== SAVE INPUTS =====
   function saveInputs() {
     const d = {};
@@ -534,7 +571,7 @@
     d.bonoSocialTipo = getRadioValue('bonoSocialTipo', DEFAULTS.bonoSocialTipo);
     d.bonoSocialLimite = getRadioValue('bonoSocialLimite', DEFAULTS.bonoSocialLimite);
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify(d));
+      localStorage.setItem(LS_KEY, JSON.stringify({ ...d, vistaKwh: vistaKwhTrasRecargar(d) }));
     } catch (e) {
       if (window.LF && typeof window.LF.toast === 'function') {
         window.LF.toast('No pude guardar tu configuración (espacio lleno o localStorage deshabilitado)', 'err');

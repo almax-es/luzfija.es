@@ -231,6 +231,14 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   Y todo efecto de "hay resultados" en `renderAll()` (estado, `pending`, foco, anuncio, eventos, scroll,
   botones) pasa por `resultadoVigente(d)` (generacion de los datos y version de `tarifas.json`).
   Lo vigila `tests/cls-reserva-resultados.test.js`.
+- **Quien vuelve a la home en escritorio ve su formulario desde el primer fotograma** (20/11/2026).
+  `theme.js` adelanta lo que `loadInputs()` restaurara tras el primer pintado: marca `<html>` con
+  `lf-pre-solar`/`lf-pre-bono`/`lf-pre-canarias` (CSS los muestra; `updateSolarUI()`,
+  `updateBonoSocialUI()` y `updateZonaFiscalUI()` retiran la marca) y pinta "Total kWh" con
+  `vistaKwh`, que `saveInputs()` guarda en el mismo JSON. Sin ello, CLS de carga 0,012-0,077 en
+  pantallas altas. Solo >= 769 px (en movil no se veia y costaba FCP). Si tocas `DEFAULTS`,
+  `loadInputs()` o `updateKwhHint()`, manten la paridad: `tests/arranque-usuario-vuelve.test.js`.
+  Ver `ARRANQUE-CARGA.md` 4.2b.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,
   la barra de la home se recolocaba o se partia en dos filas y el CLS de carga era 0,13-0,29

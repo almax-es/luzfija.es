@@ -1,6 +1,6 @@
 # Arranque Y Orden De Carga
 
-Ultima actualizacion: 2026-11-12
+Ultima actualizacion: 2026-11-20
 
 Contrato de arranque de las tres aplicaciones de LuzFija.es. Documenta QUE orden
 existe, POR QUE existe y QUE se rompe si se altera.
@@ -303,6 +303,30 @@ obligatorios.
 Colocarlo con `defer` o detras del CSS sigue siendo una regresion puramente
 visual: ningun calculo falla, ninguna consola avisa y ninguna telemetria la
 registra. Si aparece, solo se detecta mirando.
+
+### 4.2b Estado temprano del formulario de la home (usuario que vuelve)
+
+Desde el 20/11/2026 `theme.js` tambien adelanta, SOLO en la home y en anchos >= 769 px, lo
+que `loadInputs()` (`lf-inputs.js`, en `DOMContentLoaded`) restaurara despues del primer
+pintado. Sin ello, en pantallas altas los bloques de placas solares, bono social y vivienda
+en Canarias y las dos pastillas del indicador "Total kWh" aparecian ~190 ms despues y
+empujaban el footer visible (CLS de carga 0,012-0,077):
+
+- Marca `<html>` con `lf-pre-solar`, `lf-pre-bono` y `lf-pre-canarias` a partir de lo
+  guardado (`almax_comparador_v6_inputs`) o de una configuracion compartida en la URL, con
+  las mismas reglas que `loadInputs()` (claves de `SHAREABLE_INPUT_KEYS`; `asBool`).
+  `styles.css` muestra esos bloques con `!important` sobre su `display:none` en linea, y
+  `updateSolarUI()`, `updateBonoSocialUI()` y `updateZonaFiscalUI()` retiran la marca al
+  tomar el control. En `load` se retiran siempre (carga parcial sin `lf-inputs.js`).
+- Pinta `#kwhHint` con los textos que `saveInputs()` guardo en el mismo JSON (`vistaKwh`),
+  con la estructura de `updateKwhHint()`, mediante un `MutationObserver` que espera a que
+  exista `#btnCalc` (el parser ya cerro el indicador) y entrega antes del siguiente pintado.
+
+Por que no en movil: alli el salto quedaba fuera de la pantalla (CLS 0) y pintar mas en el
+primer fotograma costaba ~50 ms de FCP con CPU 4x. Por que no una altura reservada: las
+pastillas ocupan una o dos filas segun las cifras. Si cambias `DEFAULTS`, `loadInputs()`,
+`updateKwhHint()` o el `display` con que se muestran esos bloques, cambia tambien esta
+prediccion: la vigila `tests/arranque-usuario-vuelve.test.js` (paridad con `loadInputs()`).
 
 ### 4.3 Orden de ejecucion y `defer`
 

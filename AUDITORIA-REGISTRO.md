@@ -7964,7 +7964,7 @@ efectos de "hay resultados": `pending`, estado, particulas, "Ver resultados", fo
   (+1,5 KB): FCP ~1836 frente a ~1822 ms, LCP y nota iguales, CLS 0. Para medir carga, usar siempre gzip.
 - Banco de 16 facturas reales frente a produccion: 16/16 identicas.
 
-**Hallazgo NUEVO, anterior a esta ronda y NO tratado (pendiente de decision):** CLS de CARGA para quien vuelve con
+**Hallazgo NUEVO, anterior a esta ronda (RESUELTO el 20/11/2026, ver mas abajo):** CLS de CARGA para quien vuelve con
 opciones guardadas. `lf-inputs.js` muestra `#solarFields`/`#bonoSocialFields` tras el primer pintado al restaurar
 los datos guardados; el formulario crece (~217 px con solar) a los ~186 ms y, en pantallas altas, empuja el footer
 visible. Medido (activar, calcular, recargar): solar 0,012 (1920x1080), 0,017 (2560x1440), 0,050 (1280x1440);
@@ -7974,3 +7974,40 @@ guardado por la anterior). Arreglo propuesto: en el arranque temprano (donde ya 
 guardadas y poner una clase en `<html>` para que el CSS muestre esos bloques desde el primer fotograma; la
 retirarian `updateSolarUI()`/`updateBonoSocialUI()` al tomar el control. Toca el arranque compartido por las tres
 aplicaciones: exige leer `ARRANQUE-CARGA.md` y una tanda propia, no se hizo de madrugada sin supervision.
+
+**Resuelto el CLS de carga de quien vuelve (20/11/2026).** Ademas de los bloques, al medir aparecio una segunda causa:
+con placas solares el indicador "Total kWh" pasa de una raya a dos pastillas (Red / Exced.) y el boton Calcular crece
+~30 px; segun las cifras y el ancho las pastillas ocupan una o dos filas (de 768 a 2560 px con cifras grandes), asi
+que una altura reservada fija seria incorrecta. Arreglo (ver `ARRANQUE-CARGA.md` 4.2b):
+- `theme.js` (sincrono, antes del CSS) lee lo guardado, o la configuracion compartida de la URL con las mismas reglas
+  que `loadInputs()` (claves de `SHAREABLE_INPUT_KEYS`, `asBool`), y marca `<html>` con `lf-pre-solar`,
+  `lf-pre-bono` y `lf-pre-canarias`; `styles.css` muestra esos bloques con `!important` y `updateSolarUI()`,
+  `updateBonoSocialUI()` y `updateZonaFiscalUI()` retiran la marca al tomar el control. Red de seguridad en `load`
+  por si `lf-inputs.js` no llega a ejecutarse.
+- `saveInputs()` guarda en el MISMO JSON (`vistaKwh`) los textos que pintara `updateKwhHint()` al recargar
+  (`kwhHintTexts()` compartida; calculados como los vera `loadInputs()`: `migrateExcedentes` + `DEFAULTS` +
+  `formatValueForDisplay` + `parseNum`). `theme.js` los pinta con la misma estructura en cuanto el parser cierra
+  `#kwhHint` (MutationObserver hasta que existe `#btnCalc`), antes del primer fotograma. Una sola escritura: no puede
+  corresponder a otros datos ni duplica nada; no sale en `saveInputs()` (Compartir) y `loadInputs()` la ignora.
+  Datos guardados por versiones anteriores (sin `vistaKwh`) no se pintan; el siguiente guardado la anade.
+- **Solo en anchos >= 769 px.** En movil el salto nunca se veia (CLS 0) y pintar los bloques en el primer fotograma
+  retrasaba el FCP de quien vuelve ~50 ms (412 px, CPU 4x, 24 cargas por version); alli se conserva el arranque de
+  siempre: FCP 504 frente a 492 ms (ruido), nuevo visitante 1868 frente a 1860.
+- Medido en Chrome (activar, calcular, recargar; 6 escenarios x 7 tamanos, de 412x915 a 2560x1440): todo 0,0000,
+  tambien solar con cifras grandes (pastillas en dos filas) en tema claro y oscuro; footer inmovil desde el primer
+  fotograma. Control negativo con `fe9975d`: 0,017-0,063 (el footer saltaba 217-272 px). Escritorio 1920x1080, quien
+  vuelve: CLS 0,020 -> 0 y FCP +12 ms; nuevo visitante igual. WebKit (iPhone, iPad, Mac 1280x1440 y 1920x1080, claro y
+  oscuro, 32 combinaciones): footer inmovil, bloques y casillas correctos; alli el fallo no existia (WebKit no pinta
+  hasta terminar el parseo).
+- Limite asumido: un enlace compartido con placas solares no trae `vistaKwh`; en escritorio alto el indicador aun
+  crece al cargar (entrada rara; una altura aproximada podria pasarse y crear otro salto).
+- `tests/arranque-usuario-vuelve.test.js` (20 tests con los modulos reales y el HTML real): paridad del pintado
+  temprano con `loadInputs()` en 6 combinaciones de cifras (miles con punto, decimales, vacios, negativos, basura),
+  enlace compartido, parametros de tracking, JSON roto, vista manipulada, movil, fuera de la home, lista de claves =
+  `DEFAULTS`, retirada de la marca y espera a `#btnCalc`. 22 mutaciones, todas detectadas salvo una equivalente que
+  delato codigo muerto (retirado).
+
+**Revision de `de71ee2` (la que se iba a pedir a ChatGPT), hecha por Claude el 20/11/2026.** Sin defectos nuevos:
+`retirarVerResultados()` en los dos productores de `generation`, `sigueVigente` en el foco diferido y `pending` en el
+banner AECC son coherentes; el unico camino que marca pendiente sin subir `generation` (tarifas actualizadas durante
+el calculo) ya lo cubre `resultadoVigente()` al comparar tambien la version de `tarifas.json`.

@@ -724,6 +724,15 @@
     #bonoSocialFields .radio-label .tooltip{ margin-left: 2px; }
 
     @media (max-width: 520px){ #bonoSocialFields.form.fv-fields { grid-template-columns: 1fr; } }
+    /* Usuario que vuelve (theme.js marca <html> antes del CSS con lo que restaurara lf-inputs.js): los
+       bloques ya salen visibles en el primer fotograma, en vez de aparecer tras el primer pintado y empujar
+       el footer (CLS de carga 0,012-0,077 en pantallas altas, 20/11/2026). updateSolarUI(),
+       updateBonoSocialUI() y updateZonaFiscalUI() retiran la clase y vuelven a mandar con su estilo inline;
+       por eso estas reglas llevan !important (el HTML trae style="display:none"). Solo se marca en
+       anchos >= 769 px (ver theme.js). */
+    html.lf-pre-solar #solarFields,
+    html.lf-pre-bono #bonoSocialFields { display: grid !important; }
+    html.lf-pre-canarias #viviendaCanariasGroup { display: flex !important; }
     @media (max-width: 900px){ .form.fv-fields { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 520px){ .form.fv-fields { grid-template-columns: 1fr; } }
     .form.fv-fields label, .form.fv-toggle label {
