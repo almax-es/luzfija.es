@@ -110,17 +110,18 @@ describe('theme.js: marca temprana de los bloques del formulario', () => {
     expect(root.classList.contains('lf-pre-solar')).toBe(true);
   });
 
-  it('en movil (< 769 px) no marca ni pinta nada: alli el salto no se veia y retrasaba el FCP', () => {
+  it('en movil (<= 520 px) no marca ni pinta nada: alli el salto no se veia y retrasaba el FCP', () => {
     rellenar({ solarOn: true, cPunta: '120', cLlano: '110', cValle: '150', exTotal: '85' });
     window.LF.saveInputs();
-    for (const w of [360, 768]) {
+    for (const w of [360, 430, 520]) {
       ancho = w;
       const hint = hintInicial();
       ejecutarTheme();
       expect(MARCAS.some((c) => root.classList.contains(c))).toBe(false);
       expect(hint.textContent).toBe('—');
     }
-    ancho = 769;
+    // Tablet o ventana estrecha: 768x1024 tambien saltaba (0,002-0,023).
+    ancho = 521;
     ejecutarTheme();
     expect(root.classList.contains('lf-pre-solar')).toBe(true);
   });

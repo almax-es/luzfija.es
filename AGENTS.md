@@ -236,7 +236,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   `lf-pre-solar`/`lf-pre-bono`/`lf-pre-canarias` (CSS los muestra; `updateSolarUI()`,
   `updateBonoSocialUI()` y `updateZonaFiscalUI()` retiran la marca) y pinta "Total kWh" con
   `vistaKwh`, que `saveInputs()` guarda en el mismo JSON. Sin ello, CLS de carga 0,012-0,077 en
-  pantallas altas. Solo >= 769 px (en movil no se veia y costaba FCP). Si tocas `DEFAULTS`,
+  pantallas altas. Solo >= 521 px (en un movil no se veia y costaba FCP). Si tocas `DEFAULTS`,
   `loadInputs()` o `updateKwhHint()`, manten la paridad: `tests/arranque-usuario-vuelve.test.js`.
   Ver `ARRANQUE-CARGA.md` 4.2b.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en

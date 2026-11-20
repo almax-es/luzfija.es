@@ -729,7 +729,7 @@
        el footer (CLS de carga 0,012-0,077 en pantallas altas, 20/11/2026). updateSolarUI(),
        updateBonoSocialUI() y updateZonaFiscalUI() retiran la clase y vuelven a mandar con su estilo inline;
        por eso estas reglas llevan !important (el HTML trae style="display:none"). Solo se marca en
-       anchos >= 769 px (ver theme.js). */
+       anchos >= 521 px (ver theme.js). */
     html.lf-pre-solar #solarFields,
     html.lf-pre-bono #bonoSocialFields { display: grid !important; }
     html.lf-pre-canarias #viviendaCanariasGroup { display: flex !important; }

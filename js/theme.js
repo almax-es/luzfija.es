@@ -41,12 +41,14 @@ try {
   // fotograma y updateSolarUI()/updateBonoSocialUI()/updateZonaFiscalUI() retiran la clase al tomar el control.
   // Mismas reglas que lf-inputs.js: un enlace con configuracion compartida (cualquier clave de DEFAULTS,
   // ver SHAREABLE_INPUT_KEYS en lf-state.js) manda sobre lo guardado; asBool() de lf-utils.js.
-  // Solo en anchos de escritorio (>= 769 px): es donde el footer puede estar a la vista al cargar. En movil
-  // el salto nunca se veia (CLS 0) y pintar esos bloques en el primer fotograma retrasaba el FCP de quien
-  // vuelve ~50 ms (CPU 4x, medido el 20/11/2026), asi que alli se conserva el arranque de siempre.
+  // Solo por encima del ancho de un movil (>= 521 px, el corte del formulario a una columna): tablets,
+  // ventanas estrechas y escritorio, donde el footer puede estar a la vista al cargar (tambien a 768x1024:
+  // 0,002-0,023). En un movil el formulario es tan largo que el salto nunca se veia (CLS 0) y pintar esos
+  // bloques en el primer fotograma retrasaba el FCP de quien vuelve ~50 ms (412 px, CPU 4x, medido el
+  // 20/11/2026), asi que alli se conserva el arranque de siempre.
   try {
     const path = location.pathname;
-    const escritorio = typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 769px)').matches;
+    const escritorio = typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 521px)').matches;
     if (escritorio && (path === '/' || path === '/index.html')) {
       const CLAVES_COMPARTIBLES = ['p1', 'p2', 'dias', 'cPunta', 'cLlano', 'cValle', 'zonaFiscal',
         'viviendaCanarias', 'solarOn', 'exTotal', 'bvSaldo', 'bonoSocialOn', 'bonoSocialTipo',

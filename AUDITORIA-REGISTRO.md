@@ -7990,9 +7990,11 @@ que una altura reservada fija seria incorrecta. Arreglo (ver `ARRANQUE-CARGA.md`
   `#kwhHint` (MutationObserver hasta que existe `#btnCalc`), antes del primer fotograma. Una sola escritura: no puede
   corresponder a otros datos ni duplica nada; no sale en `saveInputs()` (Compartir) y `loadInputs()` la ignora.
   Datos guardados por versiones anteriores (sin `vistaKwh`) no se pintan; el siguiente guardado la anade.
-- **Solo en anchos >= 769 px.** En movil el salto nunca se veia (CLS 0) y pintar los bloques en el primer fotograma
-  retrasaba el FCP de quien vuelve ~50 ms (412 px, CPU 4x, 24 cargas por version); alli se conserva el arranque de
-  siempre: FCP 504 frente a 492 ms (ruido), nuevo visitante 1868 frente a 1860.
+- **Solo en anchos >= 521 px** (el corte del formulario a una columna). En un movil el salto nunca se veia (CLS 0)
+  y pintar los bloques en el primer fotograma retrasaba el FCP de quien vuelve ~50 ms (412 px, CPU 4x, 24 cargas por
+  version); alli se conserva el arranque de siempre: FCP 504 frente a 492 ms (ruido), nuevo visitante 1868 frente a
+  1860. Primero se puso el corte en 769 px y la QA completa posterior lo desmintio: a 768x1024 (tablet o ventana
+  estrecha) el footer esta a la vista y saltaba 0,002-0,023 (QA del banco 0,0148). Corregido el mismo dia.
 - Medido en Chrome (activar, calcular, recargar; 6 escenarios x 7 tamanos, de 412x915 a 2560x1440): todo 0,0000,
   tambien solar con cifras grandes (pastillas en dos filas) en tema claro y oscuro; footer inmovil desde el primer
   fotograma. Control negativo con `fe9975d`: 0,017-0,063 (el footer saltaba 217-272 px). Escritorio 1920x1080, quien

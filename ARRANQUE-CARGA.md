@@ -306,7 +306,7 @@ registra. Si aparece, solo se detecta mirando.
 
 ### 4.2b Estado temprano del formulario de la home (usuario que vuelve)
 
-Desde el 20/11/2026 `theme.js` tambien adelanta, SOLO en la home y en anchos >= 769 px, lo
+Desde el 20/11/2026 `theme.js` tambien adelanta, SOLO en la home y en anchos >= 521 px, lo
 que `loadInputs()` (`lf-inputs.js`, en `DOMContentLoaded`) restaurara despues del primer
 pintado. Sin ello, en pantallas altas los bloques de placas solares, bono social y vivienda
 en Canarias y las dos pastillas del indicador "Total kWh" aparecian ~190 ms despues y
@@ -322,8 +322,9 @@ empujaban el footer visible (CLS de carga 0,012-0,077):
   con la estructura de `updateKwhHint()`, mediante un `MutationObserver` que espera a que
   exista `#btnCalc` (el parser ya cerro el indicador) y entrega antes del siguiente pintado.
 
-Por que no en movil: alli el salto quedaba fuera de la pantalla (CLS 0) y pintar mas en el
-primer fotograma costaba ~50 ms de FCP con CPU 4x. Por que no una altura reservada: las
+Por que no en movil (<= 520 px, el corte del formulario a una columna): alli el salto quedaba
+fuera de la pantalla (CLS 0) y pintar mas en el primer fotograma costaba ~50 ms de FCP con CPU
+4x. En tablets y ventanas estrechas si se veia (768x1024: 0,002-0,023), por eso el corte no es 769. Por que no una altura reservada: las
 pastillas ocupan una o dos filas segun las cifras. Si cambias `DEFAULTS`, `loadInputs()`,
 `updateKwhHint()` o el `display` con que se muestran esos bloques, cambia tambien esta
 prediccion: la vigila `tests/arranque-usuario-vuelve.test.js` (paridad con `loadInputs()`).
