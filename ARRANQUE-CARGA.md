@@ -123,7 +123,7 @@ orden real de ejecucion mezcla parseo y cola diferida.
 HEAD
   <meta CSP> -> preload frame-guard.js -> error-bootstrap.js -> frame-guard.js
   -> preload config.js, theme.js, styles.css, pro.css, desglose-factura.css, fonts.css,
-     bv-sim.css, comparador-solar-mejorado.css, woff2 400 (4.8)
+     bv-sim.css, comparador-solar-mejorado.css, woff2 400, woff2 900 solo >= 769 px (4.8)
   -> config.js -> [JSON-LD x3] -> theme.js
   -> [JSON-LD] -> styles.css -> pro.css -> desglose-factura.css -> fonts.css -> bv-sim.css
   -> comparador-solar-mejorado.css
@@ -321,6 +321,11 @@ empujaban el footer visible (CLS de carga 0,012-0,077):
 - Pinta `#kwhHint` con los textos que `saveInputs()` guardo en el mismo JSON (`vistaKwh`),
   con la estructura de `updateKwhHint()`, mediante un `MutationObserver` que espera a que
   exista `#btnCalc` (el parser ya cerro el indicador) y entrega antes del siguiente pintado.
+
+En el observatorio, `theme.js` marca `<html>` con `lf-pre-excedentes` si la URL trae
+`?type=surplus` (misma regla que `parseParams()`): la seccion de CSV de excedentes viene oculta
+en el HTML y el CSS la muestra con la marca; `pvpc-stats-ui.js` la retira al arrancar
+(`syncCsvSectionVisibility`). Antes se decidia al llegar los datos y todo subia ~300 px.
 
 Por que no en movil (<= 520 px, el corte del formulario a una columna): alli el salto quedaba
 fuera de la pantalla (CLS 0) y pintar mas en el primer fotograma costaba ~50 ms de FCP con CPU
@@ -724,8 +729,11 @@ estan medidos.
   bloquea el renderizado. No anade un recurso ni una transferencia extra (el consumidor
   reutiliza el preload): adelanta la descarga de una hoja que ya era bloqueante. Su
   impacto neto sobre FCP y LCP no se ha medido de forma aislada.
-- No se precargan fuentes nuevas sin evidencia de que las use el elemento LCP (por eso
-  solar solo lleva la 400 y `/estadisticas/` ninguna).
+- No se precargan fuentes nuevas sin evidencia medida: que las use el elemento LCP o que eviten
+  un salto. `/estadisticas/` no lleva ninguna. Solar lleva la 400 y, desde el 20/11/2026, la 900
+  con `media="(min-width: 769px)"`: sin ella, al llegar la fuente el `h1` de la cabecera cambiaba
+  de lineas y todo subia ~35 px tras el primer pintado (CLS 0,022-0,025 a 1280 px de ancho; en
+  movil no salta y el `media` evita su descarga alli). FCP y LCP de escritorio iguales.
 - Ninguno va antes del meta CSP. `maskVolatileSeoChanges` ignora los preloads (no son
   contenido y no deben fechar la pagina), pero NO los comentarios HTML: una regex no los
   distingue de texto en `<style>`, `<textarea>`, `<title>` o un atributo. Editar un

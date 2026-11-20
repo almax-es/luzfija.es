@@ -126,6 +126,22 @@ try {
     // localStorage no disponible o JSON corrupto: sin marca, como antes (lf-inputs lo mostrara al cargar).
   }
 
+  // Observatorio (/estadisticas/): la seccion de CSV de excedentes viene oculta en el HTML (la vista por
+  // defecto es PVPC). Con ?type=surplus (enlace desde el simulador solar) se marca <html> para que el CSS la
+  // muestre desde el primer fotograma; pvpc-stats-ui.js retira la marca al arrancar (syncCsvSectionVisibility).
+  // Misma regla que parseParams(): solo el valor exacto 'surplus'.
+  try {
+    const path = location.pathname;
+    if ((path === '/estadisticas/' || path === '/estadisticas/index.html') &&
+        new URLSearchParams(location.search).get('type') === 'surplus') {
+      const root = document.documentElement;
+      root.classList.add('lf-pre-excedentes');
+      window.addEventListener('load', () => { root.classList.remove('lf-pre-excedentes'); }, { once: true });
+    }
+  } catch (_) {
+    // Sin marca: la seccion aparece al arrancar pvpc-stats-ui.js, como antes.
+  }
+
   function normalizeErrorText(value) {
     const text = (value === null || value === undefined) ? '' : String(value);
     const lower = text.toLowerCase();

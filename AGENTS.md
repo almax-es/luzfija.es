@@ -239,6 +239,13 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   pantallas altas. Solo >= 521 px (en un movil no se veia y costaba FCP). Si tocas `DEFAULTS`,
   `loadInputs()` o `updateKwhHint()`, manten la paridad: `tests/arranque-usuario-vuelve.test.js`.
   Ver `ARRANQUE-CARGA.md` 4.2b.
+- **Simulador solar y observatorio: nada cambia de tamano al llegar el JS o los datos** (20/11/2026;
+  CLS de carga 0,065 y 0,08 en escritorio alto). Solar: preload de Outfit 900 solo >= 769 px y altura
+  de `#bv-manual-grid` reservada en `bv-sim.css` (838 px >= 901, 450 px en 521-900; si cambias las
+  filas, vuelve a medir). Observatorio: `#csv-excedentes` oculta en el HTML (`theme.js` la marca con
+  `?type=surplus`), valor de los KPI en una linea con `cqi` dentro de `@supports` y subtitulo con dos
+  lineas reservadas >= 901 px. Escribir la tabla solar en el HTML se probo y se descarto: +32 ms de
+  FCP/LCP en movil. Lo vigila `tests/cls-carga-solar-observatorio.test.js`.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,
   la barra de la home se recolocaba o se partia en dos filas y el CLS de carga era 0,13-0,29

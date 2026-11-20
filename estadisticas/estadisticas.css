@@ -601,6 +601,36 @@
   line-height: 1.4;
 }
 
+/* CLS de carga (20/11/2026). Los KPI se rellenan al llegar los datos (~0,5 s, tras el primer pintado) y,
+   entre ~1000 y 1365 px, "0,212 €/kWh" partia en dos lineas y "Hasta AAAA-MM-DD vs AAAA-MM-DD" tambien,
+   donde "—" y "Cargando…" ocupaban una: la cabecera crecia 34-52 px y empujaba todo lo de debajo. Ahora el
+   tamano no depende del texto: el valor va siempre en una linea y su letra se ajusta al ancho de la tarjeta
+   (cifras tabulares: "0,000 €/kWh" mide lo mismo con cualquier precio), y en las rejillas de varias columnas
+   el subtitulo reserva dos lineas. Dentro de @supports: un navegador sin unidades de contenedor (Safari < 16)
+   conserva el comportamiento anterior en vez de recortar el valor. */
+@supports (font-size: 1cqi) {
+  .kpi {
+    container-type: inline-size;
+  }
+
+  .kpi__value {
+    white-space: nowrap;
+    font-size: min(2.1rem, 14.5cqi);
+  }
+}
+
+@media (min-width: 901px) {
+  .kpi__sub {
+    min-height: 2.8em;
+  }
+}
+
+/* Seccion de CSV de excedentes: oculta en el HTML (vista PVPC); visible desde el primer fotograma si la URL
+   trae ?type=surplus (theme.js marca <html>; pvpc-stats-ui.js retira la marca al arrancar). */
+html.lf-pre-excedentes #csv-excedentes[hidden] {
+  display: block !important;
+}
+
 /* ===== NAVEGACIÓN FLOTANTE PREMIUM ===== */
 
 .obs-subnav {
@@ -1274,6 +1304,12 @@
 
   .kpi__value {
     font-size: 1.75rem;
+  }
+
+  @supports (font-size: 1cqi) {
+    .kpi__value {
+      font-size: min(1.75rem, 14.5cqi);
+    }
   }
 
   .kpi__sub {

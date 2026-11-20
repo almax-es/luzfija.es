@@ -8009,6 +8009,36 @@ que una altura reservada fija seria incorrecta. Arreglo (ver `ARRANQUE-CARGA.md`
   `DEFAULTS`, retirada de la marca y espera a `#btnCalc`. 22 mutaciones, todas detectadas salvo una equivalente que
   delato codigo muerto (retirado).
 
+**CLS de carga del simulador solar y del observatorio (20/11/2026, anterior a esta ronda).** Salio al revisar el
+resto de paginas tras el cambio de `theme.js`. Identico en `fe9975d` y antes: no lo causo esta ronda.
+- Solar, 0,065 a 1280x1440 y 0,022 a 2560x1440 (siempre). Dos causas: (1) el `h1` de la cabecera, en Outfit 900,
+  cambiaba de lineas al llegar la fuente y todo subia ~35 px (confirmado bloqueando las fuentes: desaparece);
+  solo en algunos anchos de escritorio. Arreglo: preload de la 900 con `media="(min-width: 769px)"` (5/5 cargas
+  sin salto; FCP de escritorio igual; el movil no la descarga). (2) `bv-ui.js` construye la tabla mensual tras el
+  primer pintado (+846 px). Arreglo: altura reservada en `bv-sim.css` (838 px >= 901; 450 px en 521-900, caja con
+  scroll), medida igual en Chrome y WebKit, claro y oscuro, de 521 a 2560 px. Se probo antes escribir la tabla en
+  el HTML (generada desde la plantilla, con test de paridad): quitaba el salto, pero el HTML extra (+27 KB crudos,
+  +1,7 KB gzip) costaba +32-36 ms de FCP y LCP en movil (412 px, CPU 4x, 4G lenta, 20 cargas por version, aislado
+  con y sin tabla), sin beneficio alli; `content-visibility` en movil no lo recuperaba (el coste es el parseo).
+  Descartado. Resultado: 0 en todos los anchos de 360 a 2560; FCP/LCP movil 1868/2212 frente a 1880/2220 ms.
+- Observatorio, 0,08 en la mitad de las cargas a 1280x1440 y 0,033 a 2560x1440 (segun si los datos llegaban antes o
+  despues del primer pintado). Al llegar los datos, en un mismo fotograma: se ocultaba la seccion de CSV de
+  excedentes (~250 px; la vista por defecto es PVPC) y la cabecera crecia 34-52 px porque, entre ~1000 y 1365 px,
+  "0,212 EUR/kWh" y "Hasta AAAA-MM-DD vs AAAA-MM-DD" ocupaban dos lineas donde la raya y "Cargando..." ocupaban una.
+  Arreglo: `#csv-excedentes` oculta en el HTML, `theme.js` la marca con `?type=surplus` (enlace del simulador
+  solar) y `pvpc-stats-ui.js` decide su visibilidad al arrancar y al empezar cada render
+  (`syncCsvSectionVisibility`); KPI con el valor en una linea y letra ajustada al ancho de la tarjeta
+  (`container-type` + `cqi`, cifras tabulares, todo dentro de `@supports` para no recortar en Safari < 16) y
+  subtitulo con dos lineas reservadas >= 901 px. Resultado: 0 en 12 tamanos x 4 cargas, PVPC y excedentes;
+  escritorio 0,0368 -> 0,0007 con FCP/LCP iguales; el valor ya no se parte en dos lineas.
+- E2E Chrome y WebKit (movil y escritorio, claro y oscuro): tabla de 48 celdas, totales y simulacion con
+  resultados; observatorio con cambio de tipo por teclado (seccion CSV, KPI y URL correctos). Sin errores.
+- Queda, igual que antes, un salto de 3-6 px en movil con red lenta (0,002 solar, 0,004 observatorio) por el
+  cambio de la fuente del sistema a Outfit en textos de otros pesos. Quitarlo exige ajustar las metricas de la
+  fuente de respaldo en `fonts.css` para todo el sitio (`size-adjust`/`ascent-override`): cambia la tipografia del
+  primer fotograma en todas las paginas y merece su propia tanda de medicion. No se hace en esta.
+- `tests/cls-carga-solar-observatorio.test.js`: 9 tests; 8 mutaciones detectadas.
+
 **Revision de `de71ee2` (la que se iba a pedir a ChatGPT), hecha por Claude el 20/11/2026.** Sin defectos nuevos:
 `retirarVerResultados()` en los dos productores de `generation`, `sigueVigente` en el foco diferido y `pending` en el
 banner AECC son coherentes; el unico camino que marca pendiente sin subir `generation` (tarifas actualizadas durante

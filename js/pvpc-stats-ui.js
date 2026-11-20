@@ -233,6 +233,11 @@
     };
   }
 
+  function syncCsvSectionVisibility(state) {
+    document.documentElement.classList.remove('lf-pre-excedentes');
+    if (csvSection) csvSection.hidden = state.type !== 'surplus';
+  }
+
   function parseParams() {
     const url = new URL(window.location.href);
     const p = url.searchParams;
@@ -1088,6 +1093,11 @@
     };
 
     applyStateToControls(state);
+    // La seccion de CSV de excedentes viene oculta en el HTML (la vista por defecto es PVPC) y theme.js la
+    // muestra antes del primer pintado si la URL trae type=surplus (clase lf-pre-excedentes). Aqui manda ya
+    // el JS. Antes se decidia al llegar los datos (~0,5 s): la seccion desaparecia tras el primer pintado y
+    // todo lo de debajo subia ~300 px (CLS de carga 0,08 a 1280x1440, 20/11/2026).
+    syncCsvSectionVisibility(state);
 
     const csvState = {
       records: null,
@@ -1273,6 +1283,8 @@
     let _comparisonToken = 0;
     const rerender = debounce(async ({ push = false } = {}) => {
       const myToken = ++_rerenderToken;
+      // Al cambiar de tipo, la seccion de CSV cambia ya (dentro de la ventana del clic), no al llegar los datos.
+      syncCsvSectionVisibility(state);
       setLoadingText();
       writeParams(state, { replace: !push });
 
@@ -1532,6 +1544,7 @@
   }
 
   window.__LF_PvpcStatsUiHelpers = {
+    syncCsvSectionVisibility,
     getKpiCoverageSuffixes,
     buildCsvImportNotice,
     computeWindowOptions,

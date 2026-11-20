@@ -503,6 +503,24 @@ html.light-mode .bv-manual-container {
   }
 }
 
+/* CLS de carga (20/11/2026): bv-ui.js construye la tabla mensual tras el primer pintado y crecia ~850 px,
+   empujando el footer visible en pantallas altas (0,04 a 1280x1440). Se reserva su altura, que es fija:
+   838 px desde 901 px de ancho (12 filas, sin scroll interno) y 450 px entre 521 y 900 (caja con scroll).
+   En movil (<= 520 px) la tabla queda siempre por debajo de la primera pantalla y no hace falta. Se probo
+   escribirla en el HTML: tambien quitaba el salto, pero costaba ~32 ms de FCP y LCP en movil por el HTML
+   extra, sin ningun beneficio alli. Si cambias la altura de las filas, vuelve a medir estas cifras. */
+@media (min-width: 901px) {
+  #bv-manual-grid {
+    min-height: 838px;
+  }
+}
+
+@media (min-width: 521px) and (max-width: 900px) {
+  #bv-manual-grid {
+    min-height: 450px;
+  }
+}
+
 /* En escritorio, la tabla debe encajar sin scroll horizontal.
    En móvil, se permite scroll horizontal para no aplastar inputs. */
 @media (max-width: 900px) {
