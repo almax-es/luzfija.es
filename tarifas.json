@@ -306,6 +306,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "DISA Tranquilidad Black Friday",
+      "cPunta": 0.145,
+      "cLlano": 0.145,
+      "cValle": 0.145,
+      "p1": 0.099398,
+      "p2": 0.099398,
+      "web": "https://ahorracondisaelectricidad.com/",
+      "tipo": "1P",
+      "promo": "30% de descuento en el término de energía durante los 3 primeros meses (0,102 €/kWh), para contratos firmados hasta el 29/11/2026.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "El Corte Inglés Despreocúpate",
       "cPunta": 0.145,
       "cLlano": 0.145,
@@ -2545,5 +2566,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-20T14:27:58.736Z"
+  "updatedAt": "2026-11-20T17:13:53.142Z"
 }
