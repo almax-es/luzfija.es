@@ -594,8 +594,14 @@
     // de los datos viejos hacia que el calculo siguiente viera otra base y apagara el interruptor que
     // el usuario acababa de encender (revision de ChatGPT, 19/11/2026). Este resultado ya no se pinta
     // (descartado) o se pinta marcado como pendiente; la estimacion la fija el calculo siguiente.
+    // Tambien la version de tarifas.json, el mismo criterio que resultadoVigente() (lf-render.js): si el
+    // auto-refresh cambio el catalogo en vuelo, `limitsChoiceAvailable` se decidio con el VIEJO y podia
+    // apagar el interruptor que el catalogo nuevo si ofrece (20/11/2026). Sin version en el contexto
+    // (llamadas sueltas o antiguas) no se compara.
     const calculoVigente = !contexto ||
       ((window.LF.state?.generation || 0) === contexto.generation &&
+       (contexto.tarifasVersion === undefined ||
+        contexto.tarifasVersion === (window.LF.__LF_tarifasMeta?.updatedAt || null)) &&
        !(typeof window.LF.currentResultsCycleDiscarded === 'function' && window.LF.currentResultsCycleDiscarded()));
     if (calculoVigente && window.LF.state?.useAnnualConsumptionEstimate) {
       if (window.LF.state.annualConsumptionEstimateBasis === null) {

@@ -8068,3 +8068,16 @@ INP 242 ms (CLS 0; home y observatorio superadas). Medido en movil emulado (412 
 `retirarVerResultados()` en los dos productores de `generation`, `sigueVigente` en el foco diferido y `pending` en el
 banner AECC son coherentes; el unico camino que marca pendiente sin subir `generation` (tarifas actualizadas durante
 el calculo) ya lo cubre `resultadoVigente()` al comparar tambien la version de `tarifas.json`.
+
+**Seguimiento de esa revision (Claude, 20/11/2026): el mismo camino SI alcanzaba a `lf-calc.js`.** `calculoVigente`
+miraba generacion y ciclo, no la version de `tarifas.json`, asi que un calculo con el catalogo viejo seguia escribiendo
+la estimacion anual. Las escrituras de base (fijarla, o apagar por base distinta) dependen solo de los valores, y con
+la misma generacion son las mismas que haria el calculo siguiente: inocuas. La que no: apagar el interruptor por
+`!limitsChoiceAvailable`, que depende del catalogo. Secuencia: interruptor encendido, el usuario cambia datos a un
+escenario sin limites en el catalogo A, el auto-refresh trae B (que si los tiene) entre la copia de tarifas y la
+escritura; el calculo con A apaga la preferencia y el de B (que el usuario lanza al pulsar Calcular: con la version
+cambiada `calculate()` deja `pending` y `tryRecalc` no recalcula solo) ya la lee apagada. Probabilidad muy baja
+(ventana de cientos de ms frente a pocas regeneraciones del catalogo al dia); impacto acotado (preferencia perdida,
+visible, se recupera con un clic). Corregido con la misma comparacion que `resultadoVigente()`; sin version en el
+contexto (llamadas sueltas) no se compara. Test en `tests/calc.test.js` (catalogo cambiado: no apaga ni anula; con
+la version vigente si decide); mutacion que quita la comparacion detectada.

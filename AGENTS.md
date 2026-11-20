@@ -226,8 +226,8 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   ciclo si la tarjeta se vacio entretanto (factura, CSV o Datadis); al encolar se cancela el debounce de
   los inputs. Sin esto, con red lenta, el ranking viejo reaparecia y el encolado perdia su reserva (0,09-0,91).
   Todo modulo que el calculo atraviese y escriba por su cuenta debe respetar el ciclo: los avisos de `pvpc.js`
-  miran `currentResultsCycleDiscarded()` y `lf-calc.js` solo toca la estimacion anual si su `generation` sigue
-  vigente. Si anades un aviso o una escritura de estado compartido dentro del calculo, haz lo mismo.
+  miran `currentResultsCycleDiscarded()` y `lf-calc.js` solo toca la estimacion anual si su `generation` y su version
+  de `tarifas.json` siguen vigentes (el auto-refresh cambia el catalogo sin subir `generation`). Si anades un aviso o una escritura de estado compartido dentro del calculo, haz lo mismo.
   Y todo efecto de "hay resultados" en `renderAll()` (estado, `pending`, foco, anuncio, eventos, scroll,
   botones) pasa por `resultadoVigente(d)` (generacion de los datos y version de `tarifas.json`).
   Lo vigila `tests/cls-reserva-resultados.test.js`.
