@@ -8081,3 +8081,21 @@ cambiada `calculate()` deja `pending` y `tryRecalc` no recalcula solo) ya la lee
 visible, se recupera con un clic). Corregido con la misma comparacion que `resultadoVigente()`; sin version en el
 contexto (llamadas sueltas) no se compara. Test en `tests/calc.test.js` (catalogo cambiado: no apaga ni anula; con
 la version vigente si decide); mutacion que quita la comparacion detectada.
+
+**Decima revision de ChatGPT (lectura estatica de `1239a0b`, 20/11/2026).** Confirmado y ampliado:
+- **Bug: el auto-refresco perdia un cambio de catalogo.** Comparaba contra `__lf_lastTarifasUpdatedAt`, que solo
+  fijaban el arranque y el propio refresco. Descarga inicial fallida, Calcular que trae v1 y refresco que trae v2:
+  el refresco lo tomaba por "primera carga", guardaba v2 y salia sin avisar ni marcar nada (ranking de v1 sin aviso
+  hasta otro cambio o hasta pulsar Calcular). Probabilidad baja (exige que falle la descarga del arranque).
+- **Mismo origen, mas probable: aviso y recalculo sobrantes.** Calcular siempre descarga (network-only); si traia v2
+  por su cuenta, la referencia seguia en v1 y el refresco siguiente decia "Tarifas actualizadas. Recalculando..." y
+  recalculaba con el mismo catalogo.
+- Corregido con otra referencia, no con la inicializacion propuesta (que solo arreglaba el primero): el refresco
+  compara la version cargada justo antes de SU descarga con la de despues; la variable aparte desaparece. Sin version
+  previa no hubo catalogo con el que calcular y no avisa. Comentario de `calculate()` sobre `renderAll()` y
+  `pending` actualizado (ya no lo limpia con un resultado no vigente).
+- **Sin cambio (decidido):** si el refresco se une a una descarga de Calcular ya en curso que trae v2, sigue avisando y
+  recalculando con lo mismo una vez; para evitarlo habria que guardar la version de los resultados pintados, y el
+  efecto es un recalculo redundante.
+- `tests/lf-app-tarifas-refresh.test.js` (arranque real y listener real de `online`): los dos casos y el de sin
+  version previa. Contra `1239a0b` fallan los dos primeros.

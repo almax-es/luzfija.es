@@ -194,7 +194,6 @@
   // ===== AUTO-REFRESH TARIFAS (agresivo) =====
   const AUTO_REFRESH_MS = 15 * 60 * 1000; // 15 min
   const AUTO_REFRESH_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
-  let __lf_lastTarifasUpdatedAt = null;
   let __lf_lastTarifasCheck = 0;
 
   async function refreshTarifasAndMaybeRecalc(_reason) {
@@ -205,20 +204,19 @@
     if (now - __lf_lastTarifasCheck < AUTO_REFRESH_THROTTLE_MS) return;
     __lf_lastTarifasCheck = now;
 
-    const prev = __lf_lastTarifasUpdatedAt || window.LF.__LF_tarifasMeta?.updatedAt || null;
+    // La referencia es la version cargada justo antes de ESTA descarga, venga de donde venga
+    // (arranque, Calcular u otro refresco). Antes se guardaba aparte y solo la fijaban el arranque y
+    // el propio refresco: si la descarga inicial fallaba y luego Calcular traia v1, el primer
+    // refresco que traia v2 la tomaba como "primera carga" y no avisaba ni recalculaba; y si
+    // Calcular traia v2 por su cuenta, el refresco siguiente avisaba y recalculaba con lo mismo
+    // (revision de ChatGPT, 20/11/2026). Sin version previa no hubo catalogo con el que calcular.
+    const prev = window.LF.__LF_tarifasMeta?.updatedAt || null;
     const ok = await fetchTarifas(true, { silent: true, diagnosticReason: _reason });
     if (!ok) return;
 
     const curr = window.LF.__LF_tarifasMeta?.updatedAt || null;
 
-    // Inicializar referencia sin notificar en la primera carga
-    if (!__lf_lastTarifasUpdatedAt) {
-      __lf_lastTarifasUpdatedAt = curr || prev;
-      return;
-    }
-
     if (curr && prev && curr !== prev) {
-      __lf_lastTarifasUpdatedAt = curr;
       // Con cambios sin confirmar (state.pending), auto-recalcular aplicaria en silencio
       // una edicion que el usuario todavia no ha pedido calcular, rompiendo el contrato de
       // "Cambios pendientes. Pulsa Calcular". Las tarifas ya se han refrescado (fetchTarifas
@@ -469,8 +467,10 @@
       if (generationUnchanged && tarifasUnchanged) {
         state.pending = false;
       } else {
-        // renderAll() acaba de poner pending=false y "Resultados actualizados".
-        // Restaurar el estado sin markPending(): aqui no ha ocurrido un cambio NUEVO,
+        // renderAll() no limpia `pending` ni pone "Resultados actualizados" si el resultado no es
+        // vigente (resultadoVigente(): generacion o version de tarifas), pero el estado se fija aqui
+        // igualmente para no depender de ello.
+        // Sin markPending(): aqui no ha ocurrido un cambio NUEVO,
         // solo estamos reafirmando uno ya contado. Mantener generation estable permite
         // ademas decidir si una peticion de calculo encolada sigue correspondiendo al
         // estado que el usuario tenia cuando la hizo.
@@ -1036,13 +1036,7 @@
     });
 
     // Al entrar, descargar siempre tarifas desde red (sin caché)
-    fetchTarifas(true, { silent: true, diagnosticReason: 'startup' })
-      .then((ok) => {
-        if (ok) {
-          __lf_lastTarifasUpdatedAt = window.LF.__LF_tarifasMeta?.updatedAt || null;
-        }
-      })
-      .catch(() => {});
+    fetchTarifas(true, { silent: true, diagnosticReason: 'startup' }).catch(() => {});
 
     // Auto-refresh: al volver al foco/visibilidad y cada 15 minutos
     // Diferido con requestIdleCallback para no bloquear INP
