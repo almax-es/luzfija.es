@@ -213,11 +213,10 @@ tbody tr:nth-child(10) { animation-delay: 0.32s; }
     display: none !important;
   }
 
-  /* Touch feedback */
-  .card:active {
-    transform: scale(0.98);
-    transition: transform 0.1s ease;
-  }
+  /* Sin "feedback" de pulsacion en .card (retirado el 20/11/2026): .card es el contenedor de todo el
+     simulador (formulario y resultados, ~25.000 px tras simular), asi que cada toque en cualquier sitio
+     encogia la pagina entera al 98 % con transicion y obligaba a repintarla: 150-200 ms por toque en movil
+     con CPU 4x (INP de campo del simulador 242 ms), frente a 64 ms sin la regla. Los botones conservan el suyo. */
 
   /* Sin backdrop-filter en móvil */
   .topbar,

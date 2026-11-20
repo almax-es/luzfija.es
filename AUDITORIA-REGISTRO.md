@@ -8039,6 +8039,31 @@ resto de paginas tras el cambio de `theme.js`. Identico en `fe9975d` y antes: no
   primer fotograma en todas las paginas y merece su propia tanda de medicion. No se hace en esta.
 - `tests/cls-carga-solar-observatorio.test.js`: 9 tests; 8 mutaciones detectadas.
 
+**INP del simulador solar (20/11/2026).** PageSpeed (campo, 28 dias) daba el simulador en movil "No superada" por
+INP 242 ms (CLS 0; home y observatorio superadas). Medido en movil emulado (412 px, CPU 4x, toques reales):
+- **Cambiar el tema con resultados: 850-980 ms** (observatorio 160-220). El boton de `bv-ui.js` y el de
+  `shell-lite.js` cambiaban la clase sin `lf-theme-switching`: animaba el color de cada elemento. Ahora como la
+  home (clase durante dos frames, respaldo a 500 ms, token): ~0,18-0,25 s en solar con resultados, 64 ms en el
+  observatorio.
+- **Tras simular habia 41.000 elementos y 3,8 MB de HTML** (de 599 antes): el desglose mensual de las ~65
+  alternativas (tabla de escritorio + tarjetas de movil con tooltips) que solo se ve al pulsar "Ver desglose".
+  El calculo de las 66 tarifas son 84 ms; construir y parsear ese HTML, ~0,7 s: hilo bloqueado 1,8 s al
+  simular. Ahora cada alternativa construye su desglose al abrirlo (`data-bv-desglose`, la misma
+  `buildTable()`; el ganador lo trae hecho): 2.800 elementos, 234 KB, ~0,45 s. Comparado contra produccion:
+  desglose identico byte a byte (3 tarjetas, movil y escritorio), misma altura, tooltips (modal en movil, hover
+  en escritorio), sin duplicarse al reabrir; Chrome y WebKit.
+- **Cada toque tardaba 150-200 ms incluso con 2.800 elementos**: `comparador-solar-mejorado.css` tenia en movil
+  `.card:active { transform: scale(0.98); transition }`, y `.card` envuelve todo el simulador (~25.000 px con
+  resultados): cada toque encogia la pagina entera y la repintaba. Retirada: abrir un desglose 80-112 ms,
+  tooltip 32-80, Excluir del ranking 96-112, Compartir 80-184 (antes 170-280).
+- **Descartado:** `content-visibility: auto` en las tarjetas. En Chrome bajaba los toques a 48-96 ms, pero en
+  WebKit `elementFromPoint()` devolvia null sobre el boton "Ver desglose" de una tarjeta recien traida a la
+  vista y el toque no hacia nada (con la version publicada, si). No reintroducirlo sin probar en WebKit.
+  Tambien se descarto limitar `.card:hover` a `(hover: hover)`: en movil solo cambia una vez y no era la causa.
+- CLS al simular y al recorrer los resultados (tambien saltando al final), igual que antes (0,001-0,003 y 0).
+- `tests/inp-solar-observatorio.test.js`: 8 tests; 11 mutaciones detectadas.
+- El INP de campo tardara ~28 dias en reflejarlo.
+
 **Revision de `de71ee2` (la que se iba a pedir a ChatGPT), hecha por Claude el 20/11/2026.** Sin defectos nuevos:
 `retirarVerResultados()` en los dos productores de `generation`, `sigueVigente` en el foco diferido y `pending` en el
 banner AECC son coherentes; el unico camino que marca pendiente sin subir `generation` (tarifas actualizadas durante

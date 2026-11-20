@@ -246,6 +246,13 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   `?type=surplus`), valor de los KPI en una linea con `cqi` dentro de `@supports` y subtitulo con dos
   lineas reservadas >= 901 px. Escribir la tabla solar en el HTML se probo y se descarto: +32 ms de
   FCP/LCP en movil. Lo vigila `tests/cls-carga-solar-observatorio.test.js`.
+- **INP del simulador solar y del observatorio** (20/11/2026; INP de campo del simulador en movil 242 ms).
+  (1) El cambio de tema usa `lf-theme-switching` tambien en `bv-ui.js` y `shell-lite.js`, como la home
+  (850-980 ms -> ~0,2 s con resultados). (2) El desglose mensual de cada alternativa se construye al pulsar
+  "Ver desglose" (`data-bv-desglose`, misma `buildTable()`; el ganador lo trae hecho): eran ~3,8 MB de HTML
+  y 41.000 elementos. (3) Sin `.card:active { transform: scale(...) }`: `.card` envuelve todo el simulador y
+  cada toque encogia y repintaba la pagina. NO uses `content-visibility` en las tarjetas: en WebKit dejaba
+  el boton sin respuesta al toque. Lo vigila `tests/inp-solar-observatorio.test.js`.
 - **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
   la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,
   la barra de la home se recolocaba o se partia en dos filas y el CLS de carga era 0,13-0,29

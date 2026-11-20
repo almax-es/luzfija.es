@@ -1581,13 +1581,33 @@ document.addEventListener('DOMContentLoaded', () => {
     btnTheme.setAttribute('aria-pressed', isLight ? 'false' : 'true');
   }
 
+  // Cambio de tema sin transiciones (INP), la misma tecnica que toggleTheme() en la home (js/lf-ui.js):
+  // con resultados pintados, animar los colores de toda la pagina costaba 850-980 ms por clic en movil
+  // (CPU 4x, medido el 20/11/2026; INP de campo del simulador 242 ms). `lf-theme-switching` (pro.css) anula
+  // las transiciones mientras se aplica el tema y se retira tras dos frames, con los colores ya en su valor
+  // final. El token impide que la retirada de un clic anterior la quite durante un segundo clic rapido.
+  let themeSwitchToken = 0;
   if (btnTheme && !btnTheme.dataset.bvBound) {
     btnTheme.dataset.bvBound = '1';
     btnTheme.addEventListener('click', (e) => {
       e.preventDefault();
-      const isLight = document.documentElement.classList.toggle('light-mode');
+      const root = document.documentElement;
+      const token = ++themeSwitchToken;
+      root.classList.add('lf-theme-switching');
+      const isLight = root.classList.toggle('light-mode');
       try { localStorage.setItem('almax_theme', isLight ? 'light' : 'dark'); } catch {}
       updateThemeUI();
+      let released = false;
+      const release = () => {
+        if (released || token !== themeSwitchToken) return;
+        released = true;
+        root.classList.remove('lf-theme-switching');
+      };
+      // rAF puede no llegar en una pestana en segundo plano: el temporizador garantiza la retirada.
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(release));
+      }
+      setTimeout(release, 500);
     });
     updateThemeUI();
   }
@@ -3860,9 +3880,8 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
               </button>
             </div>
 
-            <details class="bv-alt-details">
+            <details class="bv-alt-details" data-bv-desglose="${i + 1}">
               <summary style="display:none;"></summary>
-              ${buildTable(r)}
             </details>
           </div>
         `;
@@ -3923,11 +3942,21 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
 
       resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${saldoSinDestinoMsg}${consumoLimitsMsg}${rankingNote}${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Ranking completo (${totalTarifasLabel})</h3>${alternativesHTML}`;
       focusConsumoEstimateToggle();
+      // El desglose mensual de cada alternativa se construye al abrirlo por primera vez, con la misma
+      // buildTable() de siempre. Construirlos todos de entrada eran ~3,8 MB de HTML y ~41.000 elementos
+      // (65 tarjetas x 12 meses, tabla de escritorio + tarjetas de movil, con sus tooltips) que casi nadie
+      // abre: ~0,9 s de hilo bloqueado al simular y 150-250 ms por cada toque posterior en movil con CPU 4x
+      // (INP de campo del simulador 242 ms; medido el 20/11/2026). El ganador lo sigue trayendo hecho.
       resultsEl.querySelectorAll('.bv-alt-btn-toggle').forEach((button) => {
         button.addEventListener('click', () => {
           const card = button.closest('.bv-alt-card-compact');
           const details = card?.querySelector('details');
           if (!details) return;
+          if (details.dataset.bvDesglose && !details.dataset.bvDesgloseListo) {
+            const resultItem = rankedResults[Number(details.dataset.bvDesglose)];
+            if (resultItem) details.insertAdjacentHTML('beforeend', buildTable(resultItem));
+            details.dataset.bvDesgloseListo = '1';
+          }
           details.toggleAttribute('open');
           button.classList.toggle('active');
           button.setAttribute('aria-expanded', String(details.open));

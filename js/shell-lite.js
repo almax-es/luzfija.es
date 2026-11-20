@@ -15,10 +15,29 @@
 
   const THEME_KEY = window.__ALMAX_THEME_KEY || 'almax_theme';
 
+  // Cambio de tema sin transiciones (INP), la misma tecnica que toggleTheme() en la home (js/lf-ui.js):
+  // en el observatorio animar los colores costaba 160-220 ms por clic en movil (CPU 4x, 20/11/2026).
+  // `lf-theme-switching` (pro.css) anula las transiciones y se retira tras dos frames; el token evita que
+  // la retirada de un clic anterior la quite durante un segundo clic rapido.
+  let themeSwitchToken = 0;
+
   function applyTheme(isLight) {
-    document.documentElement.classList.toggle('light-mode', isLight);
+    const root = document.documentElement;
+    const token = ++themeSwitchToken;
+    root.classList.add('lf-theme-switching');
+    root.classList.toggle('light-mode', isLight);
     if (document.body) document.body.classList.toggle('light-mode', isLight);
     try { localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark'); } catch (_) {}
+    let released = false;
+    const release = () => {
+      if (released || token !== themeSwitchToken) return;
+      released = true;
+      root.classList.remove('lf-theme-switching');
+    };
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(release));
+    }
+    setTimeout(release, 500);
   }
 
   function bindThemeToggle() {
