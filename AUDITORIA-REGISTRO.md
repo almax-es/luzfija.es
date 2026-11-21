@@ -7844,6 +7844,42 @@ mediante scroll, con unos 399 px de footer visibles antes del clic. Descartando
 como en el candidato. El footer figura entre las fuentes del salto cuando llegan
 los resultados. La investigacion del solar se trata en una tarea independiente.
 
+**Correccion del CLS al simular en solar (21/11/2026).** Con clic real, el ranking se
+insertaba solo al volver `tarifas.json`, desplazando el footer visible fuera de los
+500 ms de entrada reciente. El candidato primero pinta la respuesta del boton y
+reserva el espacio del estado antes de pedir tarifas, suspendiendo el anclaje mientras
+espera. Al publicar, el resultado recibe ese minimo, tambien si solo hay un aviso.
+El error conserva su espacio para el reintento. Se estabilizaron tambien la altura del
+boton y el espacio del autoguardado, que podia mover el formulario si terminaba
+durante la descarga o desaparecia el borde del indicador. El brillo se anima con
+`transform`, sin cambiar sus dimensiones. En tactil la etiqueta original se oculta
+en el primer fotograma gracias a `transition-property: none`.
+
+**Entrada mensual y desglose solar en ventanas estrechas (21/11/2026).** El desglose
+mide su contenedor: la tabla necesita 904 px interiores (1044 px si hay "Cuota BV");
+por debajo usa tarjetas por mes, con todos los importes de "A pagar" visibles. Se
+elimina el escalado de la fila al pasar el raton, que daba 6 px de scroll a 1366 px
+con el desglose abierto. El formulario se apila si tiene menos de 1150 px interiores,
+incluidas las ventanas de 960 y 1280 px. La tabla mensual usa el scroll de la pagina
+y muestra los 12 meses y los cuatro campos. Por encima de 520 px, `#bv-manual-grid`
+reserva los 802 px de las filas antes de que llegue `bv-ui.js`; el alto de cada fila
+deriva del alto de los campos. En la vista de tarjetas se conserva la entrada movil.
+Los importes de las tarjetas abren su explicacion con toque, raton o teclado.
+
+**Prueba local del candidato.** 48 combinaciones en Chrome y WebKit, claro y oscuro,
+de 320x720 a 1920x1080, incluidos movil apaisado, tablet vertical, 960x800 y 1280x1440
+con raton. Clic, toque o tecla Espacio reales, pie visible y `tarifas.json` a 1,5 s.
+En Chrome, CLS maximo 0 al cargar y 0 al simular, descartando `hadRecentInput`.
+En WebKit se comprobaron geometria y respuesta a la entrada; el motor no expone
+`layout-shift` en este banco. Con la tabla lista tras retrasar `bv-ui.js`, la reserva
+midio 802 px antes y despues de crear las filas. Se repitio la carga con datos
+guardados y el giro con importes altos y el desglose abierto. Se comprobaron las
+tablas de 8, 10 y 11 columnas justo por debajo y en su ancho de cambio.
+En Chrome con CPU 4x, comparando HEAD y candidato en 320x720, 820x1180, 960x800 y
+1280x1440, en los dos temas, la duracion de la interaccion de Calcular paso de
+48-136 ms a 16-80 ms (mediana de 108 a 60 ms). El candidato dio CLS 0 tambien en
+esas ocho simulaciones.
+
 **Banner AECC sobre el ranking apilado (detectado por el promotor tras el despliegue, 21/11/2026).**
 El banner es fijo abajo a la izquierda (20-392 px) y se pensaba para dos columnas, donde cae sobre la
 columna del formulario. Con el corte del apilado subido a 1.360 px, o con la ventana encogida, la tarjeta
@@ -7886,6 +7922,26 @@ blanco en oscuro) y se ve igual en todos los sistemas. Verificado en Chrome y We
 movil, ambos temas; test en `tests/render-ui.test.js` que falla con el emoji. Los botones con texto
 que tambien llevan el eslabon ("Compartir", "Informacion de la tarifa" del solar) se leen bien y se
 dejan como estan.
+
+**Contraste NO textual de iconos (WCAG 1.4.11), 21/11/2026.** Las pasadas de contraste anteriores
+median texto y trataban los emojis como fondo, asi que los iconos que son el unico contenido de un
+control quedaron fuera. Metodo: por cada control sin letras (o icono informativo: tooltips, bombilla
+del desglose) se captura con y sin el icono; los pixeles que cambian son el icono y se comparan con el
+fondo de debajo (percentil 90 del contraste por pixel; umbral 3:1). Home (inicio, resultados y modal
+del desglose), solar con resultados y observatorio, claro y oscuro, 1440x900 y 390x844, Chrome; cada
+alerta revisada a ojo en su recorte. Defectos reales, ambos en tema claro: el engranaje del menu de las
+tres aplicaciones (emoji lila palido sobre boton lila, 2,1-2,3:1) y la bombilla del desglose en
+tactil (amarillo palido sobre gris translucido y `opacity: .82`). Arreglo en `styles.css`: el engranaje
+se pinta como silueta del color del texto (`-webkit-text-fill-color: transparent` + `text-shadow: 0 0
+0 var(--text)`, sin tocar el HTML) y la bombilla va sobre `#5B21B6` opaco. Verificado en Chrome y
+WebKit. Falsos positivos descartados al ver el recorte: capturas desplazadas por el scroll suave
+(requisitos, "OFERTA", tema y rayo del solar en movil) y el logo del observatorio (marca, se distingue).
+Leccion: un recorte vacio o de otra zona invalida la medicion; mirar siempre el recorte.
+
+**Banner AECC con cambios pendientes (revision de ChatGPT de `8d18e15`, 21/11/2026).** La comprobacion
+de `LF.state.pending` solo se hacia al mostrarse la primera vez; una reevaluacion posterior (scroll o
+un `results-ready` no vigente) podia volver a mostrarlo sobre un ranking que ya no es el de los datos
+del usuario. Ahora forma parte de `shouldKeepBannerHidden()`. Test que falla sin ello.
 
 **Revision de ChatGPT de esa QA (lectura estatica de `1bd79d6`, 19/11/2026).** A, B y E sin hallazgo. Dos bugs
 confirmados en codigo y en Chrome, y un hueco de tests, corregidos:

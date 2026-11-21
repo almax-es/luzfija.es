@@ -159,3 +159,13 @@ describe('resultados del simulador solar: desglose bajo demanda y sin :active en
     }
   });
 });
+
+describe('simulador solar: respuesta visual al calcular', () => {
+  it('conserva la altura del boton y cambia las etiquetas sin animar visibility en tactil', () => {
+    const css = read('bv-sim.css').replace(/\s+/g, ' ');
+    expect(css).toContain('#bv-simulate .bv-btn-text { transition-property: none; }');
+    expect(css).toContain('#bv-simulate[aria-busy="true"] .bv-btn-text { visibility: hidden; }');
+    expect(css).toMatch(/#bv-simulate \.bv-btn-loading \{ display: none; position: absolute;/);
+    expect(css).toContain('#bv-simulate[aria-busy="true"] .bv-btn-loading { display: flex; }');
+  });
+});

@@ -41,12 +41,15 @@ describe('simulador solar: fuente del titulo antes del primer pintado', () => {
 });
 
 describe('simulador solar: altura de la tabla mensual reservada', () => {
-  it('838 px desde 901 px y 450 px entre 521 y 900 (alturas medidas en Chrome y WebKit, claro y oscuro)', () => {
+  it('reserva las doce filas de tabla a partir de 520 px con la misma altura que sus campos', () => {
     const css = read('bv-sim.css').replace(/\s+/g, ' ');
-    expect(css).toContain('@media (min-width: 901px) { #bv-manual-grid { min-height: 838px; } }');
-    expect(css).toContain('@media (min-width: 521px) and (max-width: 900px) { #bv-manual-grid { min-height: 450px; } }');
-    // La caja de 521-900 px es la de altura maxima con scroll: la reserva no puede superarla.
-    expect(css).toMatch(/@media \(max-width: 900px\) \{ \.bv-manual-grid-scroll \{ max-height: 450px;/);
+    const start = css.indexOf('@media (width > 520px)');
+    const end = css.indexOf('@media', start + 1);
+    expect(start).toBeGreaterThan(-1);
+    const layout = css.slice(start, end);
+    expect(layout).toContain('#bv-manual-grid { display: grid; grid-template-rows: repeat(12, minmax(calc(var(--bv-manual-input-height) + 17px), auto));');
+    expect(layout).toContain('min-height: var(--bv-manual-input-height);');
+    expect(css).toMatch(/\.bv-manual-row \{[^}]*padding: 8px 4px; border-bottom: 1px/);
   });
 
   it('la tabla la sigue construyendo bv-ui.js (no viene en el HTML: costaba LCP en movil)', () => {

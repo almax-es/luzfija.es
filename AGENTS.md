@@ -253,12 +253,26 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   `loadInputs()` o `updateKwhHint()`, manten la paridad: `tests/arranque-usuario-vuelve.test.js`.
   Ver `ARRANQUE-CARGA.md` 4.2b.
 - **Simulador solar y observatorio: nada cambia de tamano al llegar el JS o los datos** (20/11/2026;
-  CLS de carga 0,065 y 0,08 en escritorio alto). Solar: preload de Outfit 900 solo >= 769 px y altura
-  de `#bv-manual-grid` reservada en `bv-sim.css` (838 px >= 901, 450 px en 521-900; si cambias las
-  filas, vuelve a medir). Observatorio: `#csv-excedentes` oculta en el HTML (`theme.js` la marca con
+  CLS de carga 0,065 y 0,08 en escritorio alto). Solar: preload de Outfit 900 solo >= 769 px y
+  `#bv-manual-grid` reserva las 12 filas por encima de 520 px (802 px a zoom normal, calculados a
+  partir del alto del campo y los huecos). La entrada mensual usa el scroll de la pagina; si
+  cambias las filas, vuelve a medir. Observatorio: `#csv-excedentes` oculta en el HTML (`theme.js` la marca con
   `?type=surplus`), valor de los KPI en una linea con `cqi` dentro de `@supports` y subtitulo con dos
   lineas reservadas >= 901 px. Escribir la tabla solar en el HTML se probo y se descarto: +32 ms de
   FCP/LCP en movil. Lo vigila `tests/cls-carga-solar-observatorio.test.js`.
+- **CLS al simular con el pie a la vista (solar).** `bv-ui.js` pinta la respuesta de
+  Calcular, espera el siguiente pintado y reserva espacio en `#bv-status-container` antes de
+  solicitar tarifas. Mientras se reserva, Chromium no puede anclar el scroll al pie.
+  El ranking o el aviso corto reciben el mismo minimo, y un error de red lo conserva
+  para el reintento. El boton mantiene la altura de su etiqueta original y el estado de
+  guardado conserva su espacio (incluidas dos lineas para la fecha hasta 430 px). La etiqueta
+  original usa `transition-property: none` para que en tactil se oculte en el primer fotograma.
+  El salto de 0,29 con 1,5 s de red se reproduce y se mide en la ronda 89 de
+  `AUDITORIA-REGISTRO.md`.
+- **El ancho util manda en el solar.** El formulario admite dos columnas cuando dispone de al
+  menos 1150 px interiores. El desglose usa tarjetas si el espacio interior queda por debajo de
+  904 px para la tabla habitual o de 1044 px cuando incluye "Cuota BV". Si cambias el minimo o
+  los bordes de la tabla, ajusta tambien esas consultas de contenedor en `bv-sim.css`.
 - **INP del simulador solar y del observatorio** (20/11/2026; INP de campo del simulador en movil 242 ms).
   (1) El cambio de tema usa `lf-theme-switching` tambien en `bv-ui.js` y `shell-lite.js`, como la home
   (850-980 ms -> ~0,2 s con resultados). (2) El desglose mensual de cada alternativa se construye al pulsar

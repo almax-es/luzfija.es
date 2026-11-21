@@ -400,6 +400,57 @@ describe('AECC donation banner', () => {
     expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
   });
 
+  // Revision de ChatGPT (21/11/2026): con cambios pendientes, una reevaluacion (scroll o un
+  // results-ready no vigente) podia volver a mostrarlo sobre un ranking que ya no es el del usuario.
+  it('no reaparece con cambios pendientes aunque su zona quede libre', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+    const libre = { left: 545, right: 1420, top: 0, bottom: 800, width: 875, height: 800 };
+    let seccionRect = libre;
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('seccionResultados').getBoundingClientRect = () => seccionRect;
+    window.LF = { state: { pending: false } };
+    try {
+      loadAeccBanner();
+      document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+      document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+      vi.advanceTimersByTime(2800);
+      const banner = document.getElementById('aecc-banner');
+      expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+
+      // Se aparta por geometria y el usuario cambia datos
+      seccionRect = { left: 59, right: 1381, top: 0, bottom: 800, width: 1322, height: 800 };
+      document.body.dispatchEvent(new Event('scroll'));
+      vi.advanceTimersByTime(0);
+      expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+      window.LF.state.pending = true;
+
+      // La zona queda libre: ni el scroll ni un results-ready no vigente lo vuelven a mostrar
+      seccionRect = libre;
+      document.body.dispatchEvent(new Event('scroll'));
+      vi.advanceTimersByTime(0);
+      document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1, vigente: false } }));
+      vi.advanceTimersByTime(0);
+      expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+
+      // Con un ranking vigente de nuevo, vuelve
+      window.LF.state.pending = false;
+      document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+      vi.advanceTimersByTime(0);
+      expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+    } finally {
+      delete window.LF;
+    }
+  });
+
   it('pasada la ventana del calculo deja de reintentar', () => {
     window.IntersectionObserver = function () {
       this.observe = vi.fn();

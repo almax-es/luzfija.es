@@ -2644,6 +2644,44 @@ describe('Simulador solar - "Mi tarifa": mtExc no bloquea el calculo con compens
   });
 });
 
+it('reserva espacio antes de pedir tarifas y lo conserva tras el error y en la salida del reintento', async () => {
+  bootSolarUi();
+  editGrid(0, 'p1', '100');
+  const boton = document.getElementById('bv-simulate');
+  const estado = document.getElementById('bv-status-container');
+  const resultados = document.getElementById('bv-results-container');
+  vi.spyOn(estado, 'getBoundingClientRect').mockReturnValue({ top: window.innerHeight - 200 });
+
+  let resolverTarifas;
+  window.BVSim.loadTarifasBV.mockReturnValueOnce(new Promise((resolve) => { resolverTarifas = resolve; }));
+  boton.click();
+  await vi.waitFor(() => expect(window.BVSim.loadTarifasBV).toHaveBeenCalledTimes(1));
+  expect(boton.getAttribute('aria-busy')).toBe('true');
+  expect(estado.classList.contains('is-reserving')).toBe(true);
+  expect(estado.style.minHeight).toBe('360px');
+  expect(resultados.style.display).toBe('none');
+
+  resolverTarifas({ ok: false, error: 'No se pudieron cargar las tarifas' });
+  await vi.waitFor(() => expect(boton.disabled).toBe(false));
+  expect(boton.hasAttribute('aria-busy')).toBe(false);
+  expect(estado.classList.contains('is-reserving')).toBe(false);
+  expect(estado.style.minHeight).toBe('360px');
+  expect(document.getElementById('bv-status').textContent).toContain('No se pudieron cargar las tarifas');
+
+  // La salida corta de "No quedan tarifas" también tiene que preservar el espacio.
+  window.BVSim.loadTarifasBV.mockResolvedValueOnce({ ok: true, tarifasBV: [] });
+  boton.click();
+  await vi.waitFor(() => expect(resultados.classList.contains('show')).toBe(true));
+  expect(boton.disabled).toBe(false);
+  expect(resultados.style.minHeight).toBe('360px');
+  expect(estado.style.display).toBe('none');
+  expect(estado.style.minHeight).toBe('');
+
+  editGrid(0, 'p1', '200');
+  expect(resultados.style.display).toBe('none');
+  expect(resultados.style.minHeight).toBe('');
+});
+
 // 14/08/2026 (novena ronda): potencias (capturadas al pulsar Calcular), tabla mensual
 // (capturada tras 100ms) y "Mi tarifa" (antes se leia despues de loadTarifasBV, un await de
 // red sin duracion acotada) podian venir de tres instantes distintos si el usuario editaba
@@ -2685,7 +2723,7 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
     document.getElementById('bv-p1').value = '3,45';
 
     document.getElementById('bv-simulate').click();
-    // Deja pasar el setTimeout(100) interno antes de loadTarifasBV().
+    // Deja pasar la espera del primer pintado antes de loadTarifasBV().
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     // El usuario edita potencia Y la tabla MIENTRAS loadTarifasBV() sigue esperando.
@@ -2770,7 +2808,7 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
     expect(document.getElementById('bv-results').textContent).not.toContain('Ranking completo');
   });
 
-  it('editar la potencia INMEDIATAMENTE tras pulsar Calcular (antes del setTimeout(100) interno) tambien se detecta', async () => {
+  it('editar la potencia inmediatamente tras pulsar Calcular, antes del primer pintado, tambien se detecta', async () => {
     bootSolarUi();
     window.BVSim.loadTarifasBV.mockImplementation(async () => ({
       ok: true, updatedAt: '2026-08-13T00:00:00Z', tarifasBV: [tarifaMinima]
@@ -2794,7 +2832,7 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
     document.getElementById('bv-p1').value = '3,45';
 
     document.getElementById('bv-simulate').click();
-    // Editar en el mismo tick, antes de que transcurra el setTimeout(100) interno: con la
+    // Editar en el mismo tick, antes de ceder al primer pintado: con la
     // captura movida antes de ese wait, esto ya no puede colarse sin marcar de "cambiado".
     document.getElementById('bv-p1').value = '9,99';
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -2805,9 +2843,9 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
   it('editar tras publicar el HTML pero antes del commit visual de 10 ms no resucita el ranking ni anuncia results-ready', async () => {
     vi.useFakeTimers();
     bootSolarUi();
-    window.BVSim.loadTarifasBV.mockResolvedValue({
-      ok: true, updatedAt: '2026-08-13T00:00:00Z', tarifasBV: [tarifaMinima]
-    });
+    let resolveTarifas;
+    const tarifasGate = new Promise((resolve) => { resolveTarifas = resolve; });
+    window.BVSim.loadTarifasBV.mockReturnValue(tarifasGate);
     window.BVSim.simulateForAllTarifasBV.mockImplementation((args) => ({
       ok: true,
       results: [{
@@ -2830,7 +2868,9 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
 
     document.getElementById('bv-simulate').click();
     await vi.advanceTimersByTimeAsync(100);
-    await Promise.resolve();
+    expect(window.BVSim.loadTarifasBV).toHaveBeenCalledOnce();
+    resolveTarifas({ ok: true, updatedAt: '2026-08-13T00:00:00Z', tarifasBV: [tarifaMinima] });
+    await vi.advanceTimersByTimeAsync(0);
 
     const resultsContainer = document.getElementById('bv-results-container');
     expect(resultsContainer.style.display).toBe('block');

@@ -96,7 +96,7 @@
     if (!hasVisibleResults(detail)) return false;
     // El evento llego vigente, pero el usuario puede haber cambiado datos en los 2,8 s de espera: con
     // cambios pendientes (home) el ranking ya no es "un resultado util" (revision de ChatGPT, 20/11/2026).
-    if (window.LF && window.LF.state && window.LF.state.pending === true) return false;
+    if (hasPendingChanges()) return false;
     if (shouldKeepBannerHidden()) return false;
     return !isBlockingUiVisible();
   }
@@ -241,8 +241,16 @@
     return false;
   }
 
+  // Con "Cambios pendientes" el ranking ya no es el de los datos del usuario: el banner no vuelve a
+  // aparecer al reevaluar (scroll, resize o un results-ready no vigente), no solo al mostrarse la
+  // primera vez (revision de ChatGPT, 21/11/2026).
+  function hasPendingChanges() {
+    return Boolean(window.LF && window.LF.state && window.LF.state.pending === true);
+  }
+
   function shouldKeepBannerHidden() {
-    return Boolean(formInView || !resultsInView || isProtectedInputInBannerZone() || isContentInBannerZone());
+    return Boolean(formInView || !resultsInView || hasPendingChanges() ||
+      isProtectedInputInBannerZone() || isContentInBannerZone());
   }
 
   function updateBannerVisibility() {

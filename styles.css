@@ -2674,6 +2674,17 @@ body:has(#seccionResultados.is-reserving) {
   filter: drop-shadow(0 0 6px rgba(139,92,246,.6));
 }
 
+/* Contraste de iconos en tema claro (WCAG 1.4.11, 21/11/2026). Un emoji no se recolorea con color:
+   - Bombilla del desglose: amarillo palido sobre gris translucido al 82 %. Fondo morado opaco (el
+     tono del importe) y sin atenuar.
+   - Engranaje del menu (las tres aplicaciones): emoji lila palido sobre el boton lila, 2,1-2,3:1.
+     Se pinta como silueta del color del texto (relleno transparente + text-shadow sin desenfoque). */
+html.light-mode #table td.total-cell .desglose-icon{ background: #5B21B6; opacity: 1; }
+html.light-mode #table td.total-cell:hover .desglose-icon,
+html.light-mode #table td.total-cell:focus-within .desglose-icon,
+html.light-mode #table td.total-cell .desglose-icon:hover{ background: #4C1D95; }
+html.light-mode #btnMenu{ -webkit-text-fill-color: transparent; text-shadow: 0 0 0 var(--text); }
+
 #table td.total-cell.desglose-tap .desglose-icon,
 #table td.total-cell:active .desglose-icon{
   

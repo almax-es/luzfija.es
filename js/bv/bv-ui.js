@@ -438,10 +438,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resultsContainer) {
       resultsContainer.classList.remove('show');
       resultsContainer.style.display = 'none';
+      resultsContainer.style.minHeight = '';
     }
     if (shareResultsWrap) shareResultsWrap.hidden = true;
-    if (statusContainer) statusContainer.style.display = 'none';
+    // Un reset o una importación durante la descarga puede invalidar el resultado,
+    // pero el cálculo en vuelo todavía necesita su espacio para publicar el aviso.
+    if (statusContainer?.classList.contains('is-reserving')) return;
+    if (statusContainer) {
+      statusContainer.style.display = 'none';
+      statusContainer.style.minHeight = '';
+    }
     if (statusEl) statusEl.innerHTML = '';
+  }
+
+  function reserveSimulationSpace() {
+    if (!statusContainer) return;
+    const height = Math.ceil(window.innerHeight - statusContainer.getBoundingClientRect().top + 160);
+    statusContainer.style.minHeight = height > 0 ? height + 'px' : '';
+  }
+
+  function startSimulationOutput() {
+    const previousReserve = statusContainer?.style.minHeight || resultsContainer?.style.minHeight || '';
+    clearRenderedSimulationOutput();
+    if (!statusContainer) return;
+    statusContainer.classList.add('is-reserving');
+    statusContainer.style.display = 'block';
+    statusContainer.style.minHeight = previousReserve;
+    statusEl.innerHTML = '<span class="spinner"></span> Calculando...';
+  }
+
+  function showSimulationOutput() {
+    // El ranking y el aviso de espera ocupan el mismo lugar. Incluso una salida
+    // corta conserva el espacio hasta que el usuario vuelva a calcular o edite.
+    resultsContainer.style.minHeight = statusContainer?.style.minHeight || '';
+    resultsContainer.style.display = 'block';
+    if (statusContainer) {
+      statusContainer.style.display = 'none';
+      statusContainer.style.minHeight = '';
+    }
   }
 
   function invalidateVisibleSimulationResults() {
@@ -2557,16 +2591,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Móvil/táctil: tap => modal.
+  // Los botones de las tarjetas abren el detalle también con ratón o teclado.
+  // Las celdas de tabla siguen usando hover en escritorio y modal en táctil.
   document.addEventListener('click', (e) => {
-    if (canHover && !isCoarse) return;
     if (!(e.target instanceof Element)) return;
     const trigger = e.target.closest('.bv-tooltip-trigger');
     if (!trigger) return;
+    if (canHover && !isCoarse && !trigger.matches('button.bv-month-value')) return;
     const tip = trigger.getAttribute('data-tip');
     if (!tip) return;
     e.preventDefault();
     e.stopPropagation();
+    tooltipEl.style.display = 'none';
     openTipModal(tip);
   });
 
@@ -2695,7 +2731,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderZoneMismatchBlock(message, zonaFiscalVal) {
-    if (resultsContainer) { resultsContainer.classList.remove('show'); resultsContainer.style.display = 'none'; }
+    clearRenderedSimulationOutput();
     if (statusContainer) statusContainer.style.display = 'block';
     if (!statusEl) {
       showToast(message, 'err');
@@ -2894,6 +2930,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   simulateButton.addEventListener('click', async () => {
+    if (simulateButton.disabled) return;
     const p1Raw = String(p1Input?.value || '').trim();
     const p2Raw = String(p2Input?.value || '').trim();
     const saldoRaw = String(saldoInput?.value || '').trim();
@@ -3105,19 +3142,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     dispatchResultsRequested();
-
-    clearRenderedSimulationOutput();
-    if (statusContainer) { statusContainer.style.display = 'block'; statusEl.innerHTML = '<span class="spinner"></span> Calculando...'; }
-
-    const btnText = simulateButton.querySelector('.bv-btn-text');
-    const btnSpinner = simulateButton.querySelector('.spinner');
+    // Cancela un posible commit visual pendiente antes de ceder el primer frame.
+    resultRenderGeneration += 1;
     simulateButton.disabled = true;
-    if (btnText) btnText.textContent = 'Calculando...';
-    if (btnSpinner) btnSpinner.style.display = 'inline-block';
+    simulateButton.setAttribute('aria-busy', 'true');
 
     try {
       // TODO el estado sincronico se captura AQUI, en un unico bloque, ANTES del primer
-      // await (ni siquiera el setTimeout(100) de mas abajo, que solo deja pintar el
+      // await (ni siquiera la espera del primer pintado, que solo deja mostrar el
       // spinner). El formulario sigue siendo editable durante loadTarifasBV() (fetch de
       // red sin duracion acotada) y el resto de awaits (SSAA, traza horaria indexada): sin
       // esta captura unica, potencia/tabla/"Mi tarifa"/zona podian venir de instantes
@@ -3163,13 +3195,21 @@ document.addEventListener('DOMContentLoaded', () => {
       // corresponde al formulario: NO se publica el ranking calculado con datos viejos.
       const renderStaleWarning = () => {
         resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2><p class="empty-results">Has cambiado datos mientras se calculaba, así que este resultado ya no corresponde a lo que ves en el formulario. Pulsa <strong>Calcular</strong> de nuevo para actualizarlo.</p>`;
-        resultsContainer.style.display = 'block';
+        showSimulationOutput();
         resultsContainer.classList.add('show');
-        if (statusContainer) statusContainer.style.display = 'none';
         showToast('Has cambiado datos mientras se calculaba. Pulsa Calcular de nuevo para ver el resultado actualizado.', 'err');
       };
 
-      await new Promise(r => setTimeout(r, 100));
+      // Deja que se vea la respuesta del botón antes de cambiar el layout de la
+      // página. Si no hay frame (pestaña oculta), continúa con el respaldo a 100 ms.
+      await new Promise((resolve) => {
+        const fallback = setTimeout(resolve, 100);
+        window.requestAnimationFrame?.(() => setTimeout(() => {
+          clearTimeout(fallback);
+          resolve();
+        }, 0));
+      });
+      startSimulationOutput();
 
       // Validar que haya al menos 1 mes con datos. Se comprueba AQUI (no antes del wait de
       // arriba) para conservar el mismo comportamiento observable de siempre: el error no
@@ -3197,6 +3237,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      // Tras pintar el estado del botón y antes de la red, desplaza el footer
+      // dentro de la ventana de entrada reciente. Ante error se conserva el
+      // espacio del aviso para que el pie no vuelva a saltar al llegar la respuesta.
+      reserveSimulationSpace();
       const tarifasResult = await window.BVSim.loadTarifasBV();
       if (!tarifasResult || !tarifasResult.ok || !Array.isArray(tarifasResult.tarifasBV)) {
         throw new Error(tarifasResult?.error || 'No se pudieron cargar las tarifas (tarifas.json).');
@@ -3303,9 +3347,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const limitsScope = limitesConsumo.estimateApplied ? 'registrados o estimados' : 'registrados';
         const noQuedanMotivo = (limitesConsumo.excluidasPotencia || []).length ? 'de consumo o de potencia' : 'de consumo';
         resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${buildConsumoLimitsMessage(limitesConsumo)}<p class="empty-results">No quedan tarifas solares compatibles con los requisitos ${noQuedanMotivo} ${limitsScope}.</p>`;
-        resultsContainer.style.display = 'block';
+        showSimulationOutput();
         resultsContainer.classList.add('show');
-        statusContainer.style.display = 'none';
         focusConsumoEstimateToggle();
         showToast(`No quedan tarifas solares compatibles con los requisitos ${noQuedanMotivo} ${limitsScope}.`, 'err');
         return;
@@ -3963,13 +4006,12 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         });
       });
       const renderGeneration = ++resultRenderGeneration;
-      resultsContainer.style.display = 'block';
+      showSimulationOutput();
       setTimeout(() => {
         if (renderGeneration !== resultRenderGeneration) return;
         resultsContainer.classList.add('show');
         dispatchResultsReady(totalTarifas);
       }, 10);
-      statusContainer.style.display = 'none';
 
       if (saldoSinDestino) {
         showToast('Cálculo completado. El saldo BV inicial no se ha aplicado: no hay tarifa actual con batería virtual.', 'err');
@@ -3978,14 +4020,15 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       }
 
     } catch (e) {
+      if (!statusContainer?.classList.contains('is-reserving')) startSimulationOutput();
       console.error('BVSim Error:', e);
       const msg = e?.message ? String(e.message) : 'Error inesperado.';
       if (statusEl) statusEl.innerHTML = `<span style="color:var(--danger-text)">⚠️ Error: ${escapeHtml(msg)}</span>`;
       showToast(msg, 'err');
     } finally {
+      statusContainer?.classList.remove('is-reserving');
       simulateButton.disabled = false;
-      if (btnText) btnText.textContent = 'Comparar Tarifas y Ver Ahorro →';
-      if (btnSpinner) btnSpinner.style.display = 'none';
+      simulateButton.removeAttribute('aria-busy');
     }
   });
 });
