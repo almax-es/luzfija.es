@@ -7942,6 +7942,9 @@ Leccion: un recorte vacio o de otra zona invalida la medicion; mirar siempre el 
 de `LF.state.pending` solo se hacia al mostrarse la primera vez; una reevaluacion posterior (scroll o
 un `results-ready` no vigente) podia volver a mostrarlo sobre un ranking que ya no es el de los datos
 del usuario. Ahora forma parte de `shouldKeepBannerHidden()`. Test que falla sin ello.
+Revision de ChatGPT de `897c05c`: `pending` se marca al teclear (`scheduleCalculateDebounced()`), pero
+el banner solo se reevaluaba con `change`, que llega al perder el foco; seguia visible mientras se
+editaba. Escucha tambien `input` en captura (agrupado por fotograma). Test que falla sin el oyente.
 
 **Revision de ChatGPT de esa QA (lectura estatica de `1bd79d6`, 19/11/2026).** A, B y E sin hallazgo. Dos bugs
 confirmados en codigo y en Chrome, y un hueco de tests, corregidos:

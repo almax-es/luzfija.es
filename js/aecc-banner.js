@@ -282,6 +282,10 @@
     window.addEventListener('resize', requestBannerVisibilityUpdate);
     // Paneles que se despliegan sin scroll (p. ej. "Mi tarifa"): reevaluar al vuelo
     document.addEventListener('change', requestBannerVisibilityUpdate, true);
+    // Teclear en un campo marca "cambios pendientes" al instante (lf-app.js), pero `change` no llega
+    // hasta perder el foco: sin esto el banner seguia visible mientras se editaba (revision de
+    // ChatGPT, 21/11/2026). requestBannerVisibilityUpdate agrupa por fotograma, una medida por frame.
+    document.addEventListener('input', requestBannerVisibilityUpdate, true);
   }
 
   function unbindVisibilityWatch() {
@@ -291,6 +295,7 @@
     document.removeEventListener('scroll', requestBannerVisibilityUpdate, { capture: true });
     window.removeEventListener('resize', requestBannerVisibilityUpdate);
     document.removeEventListener('change', requestBannerVisibilityUpdate, true);
+    document.removeEventListener('input', requestBannerVisibilityUpdate, true);
   }
 
   function startFormWatch() {

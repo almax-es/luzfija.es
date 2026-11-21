@@ -451,6 +451,43 @@ describe('AECC donation banner', () => {
     }
   });
 
+  // Revision de ChatGPT de 897c05c: `pending` se marca al teclear, pero el banner solo escuchaba
+  // `change` (al perder el foco) y seguia visible mientras se editaba.
+  it('se aparta en cuanto se teclea en un campo, sin esperar a perder el foco', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+    document.body.innerHTML = `
+      <input id="p2">
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('seccionResultados').getBoundingClientRect = () =>
+      ({ left: 545, right: 1420, top: 0, bottom: 800, width: 875, height: 800 });
+    window.LF = { state: { pending: false } };
+    try {
+      loadAeccBanner();
+      document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+      document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+      vi.advanceTimersByTime(2800);
+      const banner = document.getElementById('aecc-banner');
+      expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+
+      // Como lf-app.js: la tecla marca pending en el acto; no hay change ni scroll.
+      window.LF.state.pending = true;
+      document.getElementById('p2').dispatchEvent(new Event('input', { bubbles: true }));
+      vi.advanceTimersByTime(0);
+      expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+      expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
+    } finally {
+      delete window.LF;
+    }
+  });
+
   it('pasada la ventana del calculo deja de reintentar', () => {
     window.IntersectionObserver = function () {
       this.observe = vi.fn();
