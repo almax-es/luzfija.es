@@ -63,6 +63,24 @@ describe('Buscador de guías: carrera entre búsqueda y categoría', () => {
     delete global.fetch;
   });
 
+  it('la categoría cancela la búsqueda pendiente del temporizador de escritura', async () => {
+    global.fetch = vi.fn(async () => ({ ok: true, json: async () => indicePayload }));
+    GuideSearch.init({ document });
+    const input = document.getElementById('searchInput');
+    const solar = document.querySelector('.category-btn[data-category="solar"]');
+
+    input.value = 'bateria';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    solar.click();
+    await tick(150);
+
+    expect(solar.getAttribute('aria-pressed')).toBe('true');
+    expect(input.value).toBe('');
+    expect(window.location.search).toBe('');
+    expect(document.getElementById('searchResults').hidden).toBe(true);
+    expect(document.getElementById('guidesGrid').hidden).toBe(false);
+  });
+
   it('una búsqueda en vuelo no pisa la categoría elegida después', async () => {
     let soltarIndice;
     global.fetch = vi.fn(() => new Promise((resolve) => {

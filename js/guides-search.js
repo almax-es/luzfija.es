@@ -640,6 +640,7 @@
 
     let preparedGuides = null;
     let indexPromise = null;
+    let searchTimer = null;
 
     function setActiveCategory(category) {
       categoryButtons.forEach((button) => {
@@ -693,6 +694,7 @@
     }
 
     function applyCategory(category) {
+      root.clearTimeout(searchTimer);
       accionVigente += 1;
       setActiveCategory(category);
       updateUrlQuery('');
@@ -841,7 +843,6 @@
       }
     }
 
-    let searchTimer = null;
     searchInput.addEventListener('input', (event) => {
       root.clearTimeout(searchTimer);
       const term = event.target.value;

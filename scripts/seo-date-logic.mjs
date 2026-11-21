@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 // Politica unica para las fechas SEO. Debe ser estable cuando el deploy solo
 // cambia artefactos volatiles: la misma sincronizacion se ejecuta antes del
 // commit local y despues, en CI, con HEAD apuntando a commits distintos.
@@ -95,10 +97,20 @@ function maskPageCss(text) {
   return maskStyleAttrs(maskedHead + rest);
 }
 
+// Solo las dos versiones revisadas del script comun de las 25 guias (indice,
+// progreso y compartir). Si cambia el codigo o el texto que genera, vuelve a contar.
+const GUIDE_UI_BLOCK = /^<script>\n\/\* Progreso de lectura \+ TOC(?: \+ scroll suave)? \*\/\n[\s\S]*?^<\/script>(?=\n[ \t]+<script src="\/js\/tracking\.js\?v=X" defer><\/script>\n<\/body>)/gm;
+const GUIDE_UI_HASHES = new Set([
+  'eda75934215f84a0538fe3d0d2e8f774ccf79863b8bfc1fcfb4073452757d08a',
+  '249879aae66364ae9f228a2a3bf7643cd3d694f689a29d4eb122771609c1df05'
+]);
+
 export function maskVolatileSeoChanges(text) {
   return String(text || '')
     .replace(/\r\n?/g, '\n')
     .replace(/\?v=\d{8}-\d{6}/g, '?v=X')
+    .replace(GUIDE_UI_BLOCK, (block) =>
+      GUIDE_UI_HASHES.has(createHash('sha256').update(block).digest('hex')) ? '<script>UI de guías</script>' : block)
     .replace(/'sha256-[A-Za-z0-9+/=]+'/g, "'sha256-X'")
     .replace(/("dateModified"\s*:\s*")[^"]*(")/g, '$1X$2')
     .replace(/(<span class="updated-badge">[^<]*Act\.\s*)[^<]+(<\/span>)/g, '$1X$2')

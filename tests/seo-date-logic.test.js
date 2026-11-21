@@ -3,6 +3,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   getSelfStampedDate,
   isSignificantlyDirty,
@@ -12,6 +13,18 @@ import {
 } from '../scripts/seo-date-logic.mjs';
 
 describe('SEO date policy', () => {
+  it('ignora el script aprobado de las guías y detecta cambios posteriores de texto', () => {
+    const guide = readFileSync(new URL('../guias/autoconsumo-y-placas-solares-lo-basico.html', import.meta.url), 'utf8');
+    const masked = maskVolatileSeoChanges(guide);
+    expect(masked).toContain('<script>UI de guías</script>');
+    const changed = guide.replace('No se ha podido copiar.', 'Enlace de acceso a la guía.');
+    expect(isSignificantlyDirty({
+      status: ' M guias/autoconsumo-y-placas-solares-lo-basico.html',
+      currentContent: changed,
+      committedContent: guide
+    })).toBe(true);
+  });
+
   it('treats deploy-only changes as non-significant', () => {
     const committed = [
       '<script src="/js/app.js?v=20260718-101010"></script>',
