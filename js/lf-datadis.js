@@ -271,6 +271,10 @@
     return horas;
   }
 
+  function horasEsperadasDia(fecha) {
+    return horasEsperadasMes(fecha.slice(0, 7), { iniYmd: fecha, finYmd: fecha });
+  }
+
   /**
    * Cobertura del CONSUMO contra lo que deberia llegar (no contra lo que llega): un mes o unos
    * dias que Datadis omite por completo tambien cuentan como hueco.
@@ -281,12 +285,20 @@
    *  - Entre el 98 % y el 100 %: se acepta y se avisa de las horas que faltan.
    */
   function evaluarCobertura(filas, rango) {
-    const horas = new Map();
+    const porDia = new Map();
+    // El CSV expresa kWh. Una lectura de consumo que su parser descarta no cubre esa hora.
+    const { MAX_KWH_HORARIOS, parseDateFlexible } = window.LF.csvUtils;
     for (const f of Array.isArray(filas) ? filas : []) {
-      if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date) || !tieneConsumo(f)) continue;
-      if (f.date < rango.iniYmd || f.date > rango.finYmd) continue;
-      const mes = f.date.slice(0, 7);
-      horas.set(mes, (horas.get(mes) || 0) + 1);
+      if (!filaUtil(f) || f.date < rango.iniYmd || f.date > rango.finYmd) continue;
+      const kwh = numero(f.consumptionKWh);
+      if (!Number.isFinite(kwh) || kwh < 0 || kwh > MAX_KWH_HORARIOS) continue;
+      porDia.set(f.date, (porDia.get(f.date) || 0) + 1);
+    }
+    const horas = new Map();
+    for (const [fecha, total] of porDia) {
+      if (!parseDateFlexible(fecha)) continue;
+      const mes = fecha.slice(0, 7);
+      horas.set(mes, (horas.get(mes) || 0) + Math.min(total, horasEsperadasDia(fecha)));
     }
     const meses = mesesDelRango(rango).map((mes) => {
       const esperadas = horasEsperadasMes(mes, rango);
@@ -739,8 +751,9 @@
     const cuerpo = String(r.text || '').trim();
     if (!cuerpo || cuerpo === 'null') return [];
     try { return JSON.parse(cuerpo); } catch {
-      const err = new DatadisError('http', r.status);
-      err.servidor = `${endpoint}: respuesta que no es JSON (${cuerpo.length} caracteres): ${textoTecnicoLimpio(cuerpo.slice(0, 80))}`;
+      const err = new DatadisError('parseo', r.status);
+      err.detalle = 'Datadis ha enviado una respuesta que no podemos leer.';
+      err.servidor = `${endpoint}: respuesta que no es JSON (${cuerpo.length} caracteres)`;
       throw err;
     }
   }
@@ -932,7 +945,8 @@
 
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     progreso('consumos');
-    const clave = [suministro.cups, suministro.distributorCode, rangoPedido.iniMes, rangoPedido.finMes].join('|');
+    const pointType = String(suministro.pointType ?? '');
+    const clave = [suministro.cups, suministro.distributorCode, pointType, rangoPedido.iniMes, rangoPedido.finMes].join('|');
     // En la cache van las filas o, mientras se descargan, la PROMESA: si el usuario cancela (la
     // descarga sigue, ver abajo) y reintenta antes de que acabe, espera a la misma descarga en vez
     // de lanzar otra consulta identica, que Datadis rechazaria durante 24 h.
@@ -946,12 +960,14 @@
     // se descartarian TODAS las filas y el usuario veria "sin datos".
     const descargado = await descarga;
     const mesesSinPedir = descargado.sinPedir || [];
+    const mesesConErrorDistribuidora = descargado.conErrorDistribuidora;
     let filas = descargado.filas.map((f) => (f && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
       ? Object.assign({}, f, { date: f.date.replace(/-/g, '/') }) : f));
 
     async function descargarConsumos() {
       let filas;
       const sinPedir = [];
+      const conErrorDistribuidora = [];
       const params = {
         cups: suministro.cups,
         distributorCode: String(suministro.distributorCode),
@@ -959,25 +975,30 @@
         endDate: rangoPedido.finMes,
         measurementType: '0'
       };
-      if (suministro.pointType !== undefined && suministro.pointType !== null && suministro.pointType !== '') {
-        params.pointType = String(suministro.pointType);
-      }
+      if (pointType !== '') params.pointType = pointType;
       // Sin la senal del usuario A PROPOSITO: una vez pedida, Datadis cuenta la consulta aunque se
       // cancele, y repetirla daria error 24 h. Se deja terminar y se guarda en memoria, asi un
       // segundo intento en esta pagina no vuelve a pedirla.
       const pedir = async (ini, fin, ms) => {
         const r = await consultar('/api-private/api/get-consumption-data-v2',
           Object.assign({}, params, { startDate: ini, endDate: fin }), token, ms, null);
-        const recibidas = Array.isArray(r) ? r : (r && Array.isArray(r.timeCurve) ? r.timeCurve : []);
+        const curva = r?.timeCurve;
+        const recibidas = Array.isArray(r) ? r : (curva === null ? [] : curva);
         // Vacia con un error de SU distribuidora en `distributorError`: el fallo es de la
         // distribuidora (no "no hay datos") y pedir mes a mes solo multiplicaria consultas fallidas.
         if (r && Array.isArray(r.distributorError) && r.distributorError.length) {
           diag.erroresDistribuidora = r.distributorError.slice(0, 4).map((x) => [x && x.distributorCode, x && x.distributorName, x && x.errorCode, x && x.errorDescription]
             .map((v) => textoTecnicoLimpio(v).slice(0, 80)).join(' · '));
         }
-        if (!recibidas.length) {
+        if (!Array.isArray(recibidas) || !recibidas.length) {
           const err = errorDeDistribuidora(r, params.distributorCode);
-          if (err) { diag.respuesta = resumenFilas(recibidas); throw err; }
+          if (err) { diag.respuesta = resumenFilas([]); throw err; }
+        }
+        if (!Array.isArray(recibidas)) {
+          const err = new DatadisError('parseo');
+          err.detalle = 'La respuesta de Datadis no contiene una curva de consumo reconocible.';
+          err.servidor = `get-consumption-data-v2: timeCurve (${typeof curva})`;
+          throw err;
         }
         return recibidas;
       };
@@ -986,8 +1007,8 @@
         filas = await pedir(rangoPedido.iniMes, rangoPedido.finMes, T_CONSUMO);
       } catch (e) {
         if (e && e.code === 'http') e.paso = 'consumos';
-        // Sesion caducada, red caida, tiempo agotado o consulta repetida: pedir mes a mes no lo arregla.
-        if (!e || e.code !== 'http') throw e;
+        // Solo un fallo HTTP del servidor puede depender de algún mes del rango.
+        if (!e || e.code !== 'http' || e.status < 500) throw e;
         errorPeriodo = e;
         diag.periodoError = `HTTP ${e.status}${e.servidor ? ` (${e.servidor})` : ''}`;
         filas = [];
@@ -1001,6 +1022,7 @@
         diag.mesAMes = [];
         const limite = Date.now() + T_MES_A_MES_TOTAL;
         let agotado = false;
+        let errorDistribuidora = null;
         for (const mes of mesesDelRango(rangoPedido).reverse()) {
           const queda = limite - Date.now();
           if (queda < 5000) {
@@ -1015,21 +1037,26 @@
             trozos.unshift(trozo);
           } catch (e) {
             diag.mesAMes.push(`${mes} ${(e && e.code) || 'error'}${e && e.status ? ` ${e.status}` : ''}`);
-            if (e && (e.code === 'sesion' || e.code === 'red')) throw e;
+            if (e && (e.code === 'sesion' || e.code === 'red' || e.code === 'parseo' || (e.code === 'http' && e.status < 500))) throw e;
             // Tiempo agotado o consulta repetida: el mes existe pero no se ha podido descargar, igual
             // que uno sin pedir. Un 500 o un mes vacio se dejan fuera sin mas: es justo el caso del
             // primer mes de un contrato que algunas distribuidoras rechazan (de antes del alta).
             if (e && (e.code === 'timeout' || e.code === 'repeticion')) sinPedir.push(mes);
+            if (e && e.code === 'distribuidora') {
+              conErrorDistribuidora.unshift(mes);
+              errorDistribuidora ||= e;
+            }
           }
         }
         filas = trozos.flat();
         if (!filas.length && agotado) throw new DatadisError('timeout');
+        if (!filas.length && errorDistribuidora) throw errorDistribuidora;
         if (!filas.length && errorPeriodo) throw errorPeriodo;
       }
       // Los meses que NO se llegaron a pedir viajan aparte: un hueco por tiempo agotado no es lo
       // mismo que un suministro sin historial (la cobertura omitiria esos meses como "de antes
       // del alta" y el simulador daria un ano mas corto con una explicacion falsa).
-      return { filas, sinPedir: sinPedir.sort() };
+      return { filas, sinPedir: sinPedir.sort(), conErrorDistribuidora };
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     const recibidas = filas.length;
@@ -1064,6 +1091,13 @@
       }
       // Antes de que la cobertura pueda omitir el primer mes parcial como falta de historial.
       comprobarCurvaDelPeriodo(mesesAfectados, rangoSolar);
+      const mesesConFallo = mesesConErrorDistribuidora.filter((m) => m >= rangoSolar.iniMes && m <= rangoSolar.finMes);
+      if (mesesConFallo.length) {
+        const err = new DatadisError('solar');
+        err.detalle = `Datadis ha indicado un fallo de tu distribuidora al descargar ${listaMeses(mesesConFallo)}. ` +
+          'Para simular el periodo completo, descarga la curva horaria desde tu distribuidora y usa «Seleccionar archivo CSV».';
+        throw err;
+      }
       // 0b) Meses del ano a simular que no se llegaron a pedir por tiempo agotado: no se simula un
       //     ano incompleto por un retraso de Datadis ni se presenta como suministro reciente.
       const sinPedirSolar = mesesSinPedir.filter((m) => m >= rangoSolar.iniMes && m <= rangoSolar.finMes);
@@ -1152,6 +1186,24 @@
         .replace(/^⚠️ CSV antiguo:/, '⚠️ Datos antiguos:')
         .replace('revisa que estás importando el archivo correcto.', 'comprueba que el periodo elegido es el que querías.');
     }).filter((w) => w !== null);
+    // Contar las horas que aceptó el parser. Los días enteros sin datos tienen su propio aviso.
+    const horasPorDia = new Map();
+    for (const { fecha } of resultado.consumosHorarios || []) {
+      const dia = fmtYmd(fecha);
+      horasPorDia.set(dia, (horasPorDia.get(dia) || 0) + 1);
+    }
+    let horasAusentes = 0;
+    let diasParciales = 0;
+    for (const [dia, horas] of horasPorDia) {
+      const faltan = horasEsperadasDia(dia) - horas;
+      if (faltan <= 0) continue;
+      horasAusentes += faltan;
+      diasParciales++;
+    }
+    if (horasAusentes) {
+      resultado.warnings.push(`${horasAusentes === 1 ? 'Falta 1 lectura horaria' : `Faltan ${horasAusentes} lecturas horarias`} en ` +
+        `${diasParciales === 1 ? '1 día con datos' : `${diasParciales} días con datos`}. El cálculo usa las lecturas recibidas y aplica los cargos diarios a cada día con datos.`);
+    }
     if (excedentesHasta) {
       resultado.warnings.push(`Tu distribuidora aún no ha publicado en Datadis los excedentes posteriores al ${fechaEs(excedentesHasta)}: para no contarlos como 0 kWh, se analizan los 365 días que terminan ese día.`);
     }
@@ -1159,9 +1211,10 @@
     // reintento y los anteriores llegaron bien): la deteccion de huecos del importador solo mira
     // DENTRO de lo recibido, asi que se dice aqui. 7 dias de margen: hay distribuidoras que
     // publican con unos dias de retraso y eso no merece aviso.
-    const conConsumo = filas.filter((f) => tieneConsumo(f) && f.date >= rango.iniYmd && f.date <= rango.finYmd).map((f) => f.date).sort();
+    const conConsumo = [...horasPorDia.keys()].sort();
     const sinPedirHome = mesesSinPedir.filter((m) => m >= rango.iniMes && m <= rango.finMes);
-    if (conConsumo.length && !sinPedirHome.length) {
+    const mesesConFallo = mesesConErrorDistribuidora.filter((m) => m >= rango.iniMes && m <= rango.finMes);
+    if (conConsumo.length && !sinPedirHome.length && !mesesConFallo.length) {
       const dias = (a, b) => Math.round((new Date(b.replace(/\//g, '-')) - new Date(a.replace(/\//g, '-'))) / 86400000);
       const primero = conConsumo[0];
       const ultimo = conConsumo[conConsumo.length - 1];
@@ -1172,6 +1225,9 @@
     }
     if (sinPedirHome.length) {
       resultado.warnings.push(`No hemos podido descargar ${listaMeses(sinPedirHome)} (Datadis ha tardado demasiado en responder o no deja repetir hoy esa consulta): esos días faltan en el análisis, no es que no tengas consumo. Si necesitas el periodo completo, prueba mañana o usa el CSV descargado desde Datadis.`);
+    }
+    if (mesesConFallo.length) {
+      resultado.warnings.push(`Datadis ha indicado un fallo de tu distribuidora al descargar ${listaMeses(mesesConFallo)}. El cálculo no incluye los días que faltan.`);
     }
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
@@ -1552,7 +1608,7 @@
             'Mientras tanto puedes descargar el CSV desde Datadis e importarlo con «Importar CSV».';
         }
         return `Datadis ha respondido con un error${err.status ? ` (código ${err.status})` : ''}.` +
-          (err.paso === 'consumos'
+          (err.paso === 'consumos' && err.status >= 500
             ? ' Si ya importaste estos consumos en las últimas 24 horas, es el límite de Datadis: no deja repetir la misma consulta hasta el día siguiente.'
             : '') +
           ' Inténtalo más tarde o usa el CSV descargado desde Datadis.';
@@ -1880,7 +1936,7 @@
         const baja = fechaBaja(s) ? ` (de baja desde el ${fechaEs(fechaBaja(s))})` : (s.validDateTo ? ' (de baja)' : '');
         return `${etiqueta} · ${cupsEnmascarado(s.cups)}${baja}`;
       };
-      const opciones = lista.map((s) => `<option value="${esc(s.cups)}"${s === preferido ? ' selected' : ''}>${esc(describir(s))}</option>`).join('');
+      const opciones = lista.map((s) => `<option${s === preferido ? ' selected' : ''}>${esc(describir(s))}</option>`).join('');
       pintar(`
         ${cabecera}
         <h3 id="lfDdTitulo" class="lf-dd-title">📥 Elige tu suministro</h3>
@@ -1897,12 +1953,11 @@
       `, '#lfDdSuministro');
       const selector = content.querySelector('#lfDdSuministro');
       selector.addEventListener('change', () => {
-        const s = lista.find((x) => x.cups === selector.value);
+        const s = lista[selector.selectedIndex];
         if (s) content.querySelector('#lfDdSuministroInfo').textContent = describir(s);
       });
       content.querySelector('#lfDdElegir').addEventListener('click', () => {
-        const cups = content.querySelector('#lfDdSuministro').value;
-        responder(lista.find((s) => s.cups === cups) || null);
+        responder(lista[selector.selectedIndex] || null);
       });
       content.querySelector('#lfDdCancelar').addEventListener('click', cerrar);
     }

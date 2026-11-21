@@ -13,6 +13,7 @@
   'use strict';
 
   const DEFAULT_FETCH_TIMEOUT_MS = 15000;
+  const MAX_KWH_HORARIOS = 10000;
 
   /**
    * Ejecuta fetch con un deadline finito sin cambiar la política de HTTP/reintentos
@@ -2474,7 +2475,7 @@
       const exportKwh = exportRaw * exportFactor;
       const autoconsumo = autoconsumoRaw * autoconsumoFactor;
 
-      if (importKwh > 10000 || exportKwh > 10000) {
+      if (importKwh > MAX_KWH_HORARIOS || exportKwh > MAX_KWH_HORARIOS) {
         outOfRangeCount++;
         continue;
       }
@@ -2824,7 +2825,7 @@
           counters.negativos++;
           continue;
         }
-        if (kwh > 10000) {
+        if (kwh > MAX_KWH_HORARIOS) {
           counters.fueraDeRango++;
           continue;
         }
@@ -4044,6 +4045,7 @@
     detectHeaderRow,
 
     // Parsing CSV
+    MAX_KWH_HORARIOS,
     splitCSVLine,
     detectCSVSeparator,
     detectCSVSeparatorFromLines,

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import { JSDOM } from 'jsdom';
 
 /**
  * Importacion directa desde Datadis (js/lf-datadis.js).
@@ -789,6 +790,15 @@ describe('importar (fetch simulado)', () => {
     expect(new Set(horas).size).toBe(23);
   });
 
+  it('home: avisa de las horas que faltan en días parciales sin cambiar los días cobrados', async () => {
+    const rango = { iniYmd: '2026/10/01', finYmd: '2026/10/03', iniMes: '2026/10', finMes: '2026/10' };
+    const timeCurve = [...diaDatadis(rango.iniYmd), ...diaDatadis('2026/10/02'), ...diaDatadis(rango.finYmd).slice(0, 8)];
+    respuestas.consumo = () => json(200, { timeCurve });
+    const r = await ejecutar({ rango });
+    expect(r).toMatchObject({ ok: true, dias: 3, horasTotales: 56 });
+    expect(r.warnings).toEqual(expect.arrayContaining([expect.stringContaining('Faltan 16 lecturas horarias en 1 día con datos')]));
+  });
+
   describe.each(['home', 'solar'])('curva con fecha repetida en %s', (destino) => {
     const octubre = { iniYmd: '2026/10/01', finYmd: '2026/10/31', iniMes: '2026/10', finMes: '2026/10' };
 
@@ -852,8 +862,10 @@ describe('importar (fetch simulado)', () => {
       const mes = fecha.slice(0, 7);
       const rango = { iniYmd: fecha, finYmd: fecha, iniMes: mes, finMes: mes };
       const r = await ejecutar({ destino, rango, confirmar: async () => true });
-      if (destino === 'home') expect(r.horasTotales).toBe(horas);
-      else expect((await r.fichero.text()).trim().split('\r\n')).toHaveLength(horas + 1);
+      if (destino === 'home') {
+        expect(r.horasTotales).toBe(horas);
+        expect(r.warnings.join(' ')).not.toMatch(/Faltan? \d+ lecturas? horarias?/);
+      } else expect((await r.fichero.text()).trim().split('\r\n')).toHaveLength(horas + 1);
     });
 
     it.each([
@@ -1204,14 +1216,36 @@ describe('importar (fetch simulado)', () => {
     for (const l of llamadas.filter((x) => !x.url.includes('login'))) expect(l.init.headers.Authorization).toBe('Bearer aaaa.bbbb.cccc');
   });
 
-  it('respuesta vacia o "null" al pedir el periodo: se trata como sin datos y se pide mes a mes', async () => {
+  it.each(['', 'null', { timeCurve: null }])('respuesta vacia (%j): se pide mes a mes', async (vacio) => {
     const rango = D.rangoUltimosDias(new Date());
     const todas = añoCompleto(rango);
     respuestas.consumo = (u) => {
       const q = new URL(u).searchParams;
-      return q.get('startDate') === q.get('endDate') ? json(200, { timeCurve: todas.filter((f) => f.date.startsWith(q.get('startDate'))) }) : json(200, 'null');
+      return q.get('startDate') === q.get('endDate') ? json(200, { timeCurve: todas.filter((f) => f.date.startsWith(q.get('startDate'))) }) : json(200, vacio);
     };
     expect((await ejecutar({ conPotencia: false })).dias).toBe(365);
+  });
+
+  it.each([
+    [200, '<html><title>Mantenimiento</title></html>', 'parseo'],
+    [200, { timeCurve: { unexpected: 'shape' } }, 'parseo'],
+    [200, { message: 'Mantenimiento' }, 'parseo'],
+    [400, { message: 'Fechas incorrectas' }, 'http']
+  ])('no intenta rescatar mes a mes una respuesta inválida (%s, %j)', async (status, body, code) => {
+    respuestas.consumo = () => json(status, body);
+    const e = await ejecutar({ conPotencia: false }).catch((err) => err);
+    expect(e.code).toBe(code);
+    expect(D.textoError(e)).not.toMatch(/código 200|suministro nuevo|límite de Datadis/);
+    expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(1);
+  });
+
+  it('interrumpe el rescate si Datadis devuelve HTML en la primera petición mensual', async () => {
+    respuestas.consumo = (u) => {
+      const q = new URL(u).searchParams;
+      return q.get('startDate') === q.get('endDate') ? json(200, '<html></html>') : json(500, 'Error interno');
+    };
+    await expect(ejecutar({ conPotencia: false })).rejects.toMatchObject({ code: 'parseo' });
+    expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(2);
   });
 
   it('el aviso de consulta repetida en texto plano tambien se reconoce', async () => {
@@ -1251,6 +1285,27 @@ describe('importar (fetch simulado)', () => {
     };
     const r = await ejecutar({ conPotencia: false });
     expect(r.dias).toBe(365);
+  });
+
+  it.each(['home', 'solar'])('%s: el error explícito de un mes no se trata como falta de historial', async (destino) => {
+    const rango = { iniYmd: '2026/09/01', finYmd: '2026/10/31', iniMes: '2026/09', finMes: '2026/10' };
+    const octubre = añoCompleto({ ...rango, iniYmd: '2026/10/01' });
+    respuestas.consumo = (u) => {
+      const q = new URL(u).searchParams;
+      if (q.get('startDate') !== q.get('endDate')) return json(500, 'Error interno');
+      if (q.get('startDate') === rango.finMes) return json(200, { timeCurve: octubre });
+      return json(200, { timeCurve: [], distributorError: [{ distributorCode: '2', errorCode: '10' }] });
+    };
+    const resultado = await ejecutar({ rango, destino, confirmar: async () => true }).catch((e) => e);
+    const mensaje = 'fallo de tu distribuidora al descargar septiembre de 2026';
+    if (destino === 'home') {
+      expect(resultado).toMatchObject({ ok: true, dias: 31 });
+      expect(resultado.warnings.join(' ')).toContain(mensaje);
+      expect(resultado.warnings.join(' ')).not.toContain('Puede ser un suministro reciente');
+    } else {
+      expect(resultado.code).toBe('solar');
+      expect(D.textoError(resultado)).toContain(mensaje);
+    }
   });
 
   it('si fallan el periodo y todos los meses, devuelve el error original', async () => {
@@ -1410,6 +1465,47 @@ describe('importar (fetch simulado)', () => {
     const consumo = llamadas.find((l) => l.url.includes('get-consumption-data'));
     expect(new URL(consumo.url).searchParams.get('cups')).toBe(otro.cups);
     expect(new URL(consumo.url).searchParams.get('distributorCode')).toBe('3');
+  });
+
+  it.each(['2', '5'])('el modal elige la segunda fila aunque el CUPS sea idéntico (distribuidora %s)', async (distributorCode) => {
+    const otro = { ...SUM, distributorCode, pointType: 1, address: 'Segunda dirección' };
+    respuestas.supplies = () => json(200, [SUM, otro]);
+    const dom = new JSDOM('<button id="btnImportarDatadis">Datadis</button>');
+    const w = dom.window;
+    w.LF = { procesarCSVConsumos: global.window.LF.procesarCSVConsumos, mostrarPreviewCSV: vi.fn() };
+    try {
+      new Function('window', 'document', sourceDatadis)(w, w.document);
+      w.LF.initDatadisImport();
+      const buscar = (s) => w.document.querySelector(s);
+      buscar('#btnImportarDatadis').click();
+      buscar('#lfDdNif').value = '12345678Z';
+      buscar('#lfDdClave').value = CLAVE;
+      buscar('#lfDdForm').dispatchEvent(new w.Event('submit', { cancelable: true }));
+      await vi.waitFor(() => expect(buscar('#lfDdSuministro')).not.toBeNull());
+      const selector = buscar('#lfDdSuministro');
+      selector.selectedIndex = 1;
+      selector.dispatchEvent(new w.Event('change'));
+      expect(buscar('#lfDdSuministroInfo').textContent).toContain(otro.address);
+      expect(selector.outerHTML).not.toContain(SUM.cups);
+      buscar('#lfDdElegir').click();
+      await vi.waitFor(() => expect(w.LF.mostrarPreviewCSV).toHaveBeenCalledOnce());
+      const consumo = llamadas.find((l) => l.url.includes('get-consumption-data'));
+      const q = new URL(consumo.url).searchParams;
+      expect(q.get('distributorCode')).toBe(distributorCode);
+      expect(q.get('pointType')).toBe('1');
+    } finally {
+      dom.window.close();
+    }
+  });
+
+  it('la caché separa dos tipos de punto del mismo CUPS y distribuidora', async () => {
+    respuestas.supplies = () => json(200, [SUM, { ...SUM, pointType: '1' }]);
+    for (const indice of [0, 1, 0]) {
+      await ejecutar({ elegirSuministro: async (l) => l[indice], conPotencia: false });
+    }
+    const tipos = llamadas.filter((l) => l.url.includes('get-consumption-data'))
+      .map((l) => new URL(l.url).searchParams.get('pointType'));
+    expect(tipos).toEqual(['5', '1']);
   });
 
   it('NIF con la letra mal: no llama a Datadis ni gasta intento', async () => {
@@ -1746,6 +1842,16 @@ describe('importar (fetch simulado)', () => {
       expect(e).toMatchObject({ code: 'solar' });
       expect(D.textoError(e)).toContain(D.etiquetaMes(mesMedio));
       expect(D.textoError(e)).toContain('infravaloraría tu consumo');
+    });
+
+    it.each([-0.5, 10001])('no cuenta para el 98 %% los consumos que descarta el CSV (%s kWh)', async (kwh) => {
+      const rango = { iniYmd: '2026/09/01', finYmd: '2026/10/31', iniMes: '2026/09', finMes: '2026/10' };
+      const timeCurve = añoCompleto(rango, { surplus: 0.2 }).map((f) =>
+        f.date >= '2026/10/11' && f.date <= '2026/10/13' ? { ...f, consumptionKWh: kwh } : f);
+      respuestas.consumo = () => json(200, { timeCurve });
+      const e = await ejecutarSolar({ rango }).catch((err) => err);
+      expect(e.code).toBe('solar');
+      expect(D.textoError(e)).toContain('octubre de 2026 (90 %)');
     });
 
     it('distribuidora que rechaza el primer mes del contrato: mes a mes, y ese mes queda fuera avisando', async () => {
