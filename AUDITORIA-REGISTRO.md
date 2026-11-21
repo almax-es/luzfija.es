@@ -7791,6 +7791,59 @@ alcanzable: los tres botones de importar viven en la cabecera, que no es fija, y
 Bajar la pagina mas de ~160 px durante la espera sigue siendo el limite de diseno ya anotado (la reserva deja el
 footer 160 px por debajo): un banco que hace capturas desplazando la pagina durante la espera lo provoca.
 
+**Verificacion del ranking apilado hasta 1.360 px (21/11/2026).** En Chrome 157, primer calculo
+de la portada con autoconsumo, dos repeticiones por posicion y tema. Se espera la precarga
+inicial y se retrasa la peticion de `tarifas.json` que sigue al clic (1.501-1.520 ms medidos).
+Se descarta `hadRecentInput` del `PerformanceObserver`; las posiciones son de BODY en el clic.
+Con `#btnCalc` visible se usa el raton. Fuera del viewport, Espacio sobre el boton enfocado
+sin desplazar la pagina genera un clic nativo. Se comprueba `isTrusted` en los 24 calculos.
+
+| Viewport | Arriba | BODY a 500 px | Al fondo |
+| --- | ---: | ---: | ---: |
+| 1280x800 | 0,000090 (teclado) | 0,000090 | 0,000220 (teclado, BODY a 1.307 px) |
+| 1280x1440 | 0,000039 | 0,000104 | 0,000109 (BODY a 667 px) |
+
+Valores maximos por posicion entre ambos temas. A 1280x1440 el footer estaba visible
+en las tres posiciones. A 1280x800, un control adicional arriba sin autoconsumo
+permitio pulsar con raton y dio 0,000130 como maximo. En el caso al fondo de 1280x800,
+Chromium conservaba el footer como ancla al insertar la reserva y lo dejaba visible
+hasta que llegaba la tabla (0,837762). `body:has(#seccionResultados.is-reserving)`
+suspende ese anclaje durante la reserva. El brillo de Calcular se anima con
+`transform` para que su reaparicion bajo el puntero tampoco cuente como salto.
+El formulario conserva sus 720 px centrados antes y despues del calculo; el ranking
+ocupa el ancho disponible. Los tests vigilan el anclaje y la coincidencia del corte
+de CSS con "Ver resultados" en `lf-render.js`.
+
+**Control al fondo en movil, tablet y escritorio (21/11/2026).** Mismo banco en
+Chrome 157 con dos repeticiones por tema y version, 24 calculos en total. La
+peticion posterior al clic tardo 1.501-1.516 ms. La portada y los archivos
+`styles.css`, `lf-render.js`, `lf-app.js` y `theme.js` publicados coincidian con
+HEAD (`9b7b386`, build `20261121-173654`).
+
+| Viewport | Activacion al fondo | BODY en el clic | CLS HEAD max. | CLS candidato max. |
+| --- | --- | ---: | ---: | ---: |
+| 390x844 | Espacio, boton fuera del viewport | 2.201 px | 0,835673 | 0,000248 |
+| 820x1180 | Toque directo | 913 px | 0,000060 | 0,000060 |
+| 1920x1080 | Raton | 787 px | 0,000097 | 0,000102 |
+
+Los clics fueron nativos (`isTrusted`), con `hadRecentInput` descartado. En movil,
+HEAD mantuvo el footer a la vista al reservar y lo desplazo al pintar el ranking.
+Como control, a 390x844 con BODY a 1.704 px y 32 px de Calcular todavia visibles,
+un toque directo dio 0,000203 en ambos temas y versiones. Es el caso de teclado al
+fondo el que reproduce el salto en HEAD.
+En tablet y escritorio el footer no fue fuente de CLS en ninguna version. En dos
+columnas el scroll final fue 228 px en las dos versiones.
+"Ver resultados" observa toda la seccion, incluida la tabla cuando la cabecera
+ha quedado por encima del viewport. El control de 769 px con importes anuales
+dejo de necesitar desplazamiento horizontal en Chrome y WebKit tactiles.
+
+**Seguimiento separado del CLS en el simulador solar.** Chrome 157, clic de raton
+con `isTrusted`, `tarifas.json` a 1,5 s y el boton "Simular" centrado en pantalla
+mediante scroll, con unos 399 px de footer visibles antes del clic. Descartando
+`hadRecentInput`, CLS 0,297489 a 844x960 y 0,294364 a 1200x960 tanto en la base
+como en el candidato. El footer figura entre las fuentes del salto cuando llegan
+los resultados. La investigacion del solar se trata en una tarea independiente.
+
 **Revision de ChatGPT de esa QA (lectura estatica de `1bd79d6`, 19/11/2026).** A, B y E sin hallazgo. Dos bugs
 confirmados en codigo y en Chrome, y un hueco de tests, corregidos:
 - **C. Error tardio mas ancho que la reserva del estado.** El `catch` de `calculate()` ponia "No se ha podido

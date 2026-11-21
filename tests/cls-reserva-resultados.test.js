@@ -104,10 +104,28 @@ function setGeometry(seccion, { top, innerHeight, height = 2000 }) {
 const avisoTop = (seccion) => seccion.style.getPropertyValue('--lf-aviso-top');
 
 describe('reserva de espacio para resultados (lf-render.js)', () => {
+  let observadores;
+
   beforeEach(() => {
     Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true });
+    observadores = [];
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(notificar) {
+        this.notificar = (isIntersecting) => notificar([{ target: this.target, isIntersecting }]);
+        this.disconnect = vi.fn();
+        observadores.push(this);
+      }
+
+      observe(target) {
+        this.target = target;
+        const { top, bottom } = target.getBoundingClientRect();
+        this.notificar(top < window.innerHeight && bottom > 0);
+      }
+    });
   });
   afterEach(() => {
+    window.LF?.retirarVerResultados?.();
+    vi.unstubAllGlobals();
     document.body.innerHTML = '';
     delete window.LF;
   });
@@ -179,7 +197,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.style.minHeight).toBe('');
   });
 
-  // 19/11/2026 (revision de ChatGPT, medido en Chrome 157 con clic real y tarifas a 1,5 s):
+  // Control historico del 19/11/2026 (dos columnas, Chrome 157, clic real y tarifas a 1,5 s):
   // aplicar una factura, un CSV/XLSX o Datadis con resultados ya pintados vacia la seccion con
   // hideResultsToInitialState() pero la deja `.visible`. La reserva salia por "ya visible" y el
   // ranking nuevo crecia fuera de los 500 ms: CLS 0,27 en 1280x1440 y 0,37 en 2560x1440 con la
@@ -415,7 +433,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     Object.defineProperty(window, 'innerWidth', { value: 412, configurable: true });
     try {
       const { seccion } = bootRender();
-      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      setGeometry(seccion, { top: 1000, innerHeight: 900 });
       const ver = document.getElementById('scrollToResults');
       let reanudar;
       window.LF.yieldControl = vi.fn(() => (reanudar ? Promise.resolve() : new Promise((r) => { reanudar = r; })));
@@ -567,7 +585,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     try {
       // Obsoleto desde el principio.
       let { seccion } = bootRender();
-      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      setGeometry(seccion, { top: 1000, innerHeight: 900 });
       let ver = document.getElementById('scrollToResults');
       window.LF.state.generation = 1;
       let pausa;
@@ -581,7 +599,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
 
       // Vigente al empezar (se muestra) y obsoleto durante el pintado (se retira).
       ({ seccion } = bootRender());
-      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      setGeometry(seccion, { top: 1000, innerHeight: 900 });
       ver = document.getElementById('scrollToResults');
       window.LF.state.generation = 0;
       let reanudar;
@@ -613,7 +631,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     Object.defineProperty(window, 'innerWidth', { value: 412, configurable: true });
     try {
       let { seccion } = bootRender();
-      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      setGeometry(seccion, { top: 1000, innerHeight: 900 });
       conEstadoReal(); // markPending() real
       let ver = document.getElementById('scrollToResults');
       window.LF.state.generation = 0;
@@ -626,7 +644,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
 
       // A mitad del pintado: se retira en el acto, sin esperar a que termine.
       ({ seccion } = bootRender());
-      setGeometry(seccion, { top: 188, innerHeight: 900 });
+      setGeometry(seccion, { top: 1000, innerHeight: 900 });
       conEstadoReal();
       ver = document.getElementById('scrollToResults');
       window.LF.state.generation = 0;
@@ -643,6 +661,32 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     } finally {
       vi.useRealTimers();
       Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true });
+    }
+  });
+
+  it('oculta "Ver resultados" si cualquier parte del ranking entra en el viewport', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    try {
+      const { seccion } = bootRender();
+      setGeometry(seccion, { top: 1000, innerHeight: 1440 });
+      const ver = document.getElementById('scrollToResults');
+      await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+      const observer = observadores.at(-1);
+      expect(observer.target).toBe(seccion);
+      expect(ver.style.display).toBe('none');
+
+      observer.notificar(false);
+      expect(ver.style.display).toBe('block');
+      observer.notificar(true);
+      expect(ver.style.display).toBe('none');
+
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(observer.disconnect).toHaveBeenCalledOnce();
+      observer.notificar(false); // callback encolado antes de disconnect()
+      expect(ver.style.display).toBe('none');
+    } finally {
+      vi.useRealTimers();
     }
   });
 
@@ -1230,6 +1274,17 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
 describe('CSS de la reserva (styles.css)', () => {
   const css = read('styles.css');
 
+  it('apila el ranking y muestra el atajo Ver resultados hasta el mismo ancho inclusive', () => {
+    const corteCSS = css.match(/@media\s*\(max-width:\s*(\d+)px\)\s*\{\s*\.grid,\s*\.grid\.has-results\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+    const corteAtajo = renderCode.match(/if\s*\(generacionVigente\s*&&\s*window\.innerWidth\s*<=\s*(\d+)\)\s*\{\s*observarVisibilidadResultados\(seccionResultados\)/);
+    expect(corteCSS?.[1]).toBe('1360');
+    expect(corteAtajo?.[1]).toBe(corteCSS?.[1]);
+  });
+
+  it('suspende el anclaje del scroll mientras la reserva desplaza el footer', () => {
+    expect(css).toMatch(/body:has\(#seccionResultados\.is-reserving\)\s*\{\s*overflow-anchor:\s*none;/);
+  });
+
   it('no vuelve el hueco permanente bajo el formulario (sustituido por la reserva al clic)', () => {
     expect(css).not.toMatch(/\.grid:not\(\.has-results\)\s*\{[^}]*min-height/);
   });
@@ -1261,8 +1316,8 @@ describe('CSS de la reserva (styles.css)', () => {
     expect(regla[1]).not.toMatch(/display:/);
   });
 
-  // 19/11/2026: tras aplicar factura/CSV, la tarjeta vaciada conserva bloques visibles del
-  // resultado anterior que bajaban al volver el ranking (0,27 en 1280x1440, pagina arriba).
+  // Tras aplicar factura/CSV, la tarjeta vaciada conserva bloques visibles del resultado anterior.
+  // Con dos columnas esos bloques saltaban al volver el ranking (19/11/2026: 0,27 a 1280x1440, arriba).
   it('al vaciar, mientras reserva o con el error, el cuerpo de la tarjeta queda invisible (visibility, no display)', () => {
     const regla = css.match(/#seccionResultados\.is-cleared > \.body,\s*#seccionResultados\.is-reserving > \.body,\s*#seccionResultados\.is-error > \.body\s*\{([^}]*)\}/);
     expect(regla).not.toBeNull();
@@ -1306,7 +1361,7 @@ describe('CSS de la reserva (styles.css)', () => {
       const spinner = css.match(new RegExp(`${media}\\s*\\{\\s*\\.btn\\.primary #btnSpinner\\s*\\{\\s*font-size:\\s*(\\d+)px`));
       expect(spinner && Number(spinner[1])).toBe(px);
     }
-    expect(css).toMatch(/@media \(min-width: 1101px\)\s*\{\s*\.grid\.has-results #btnCalc #btnSpinner\s*\{\s*font-size:\s*22px/);
+    expect(css).toMatch(/@media \(width > 1360px\)\s*\{\s*\.grid\.has-results #btnCalc #btnSpinner\s*\{\s*font-size:\s*22px/);
     // Y #btnText sigue con esos mismos tamanos (si alguien los cambia, el test obliga a mirar los dos).
     expect(tamano(css, '\\.btn\\.primary #btnText')).toBe(26);
     expect(css).toMatch(/\.btn\.primary #btnText\s*\{\s*font-size:\s*23px;/);
@@ -1314,8 +1369,8 @@ describe('CSS de la reserva (styles.css)', () => {
     expect(css).toMatch(/\.grid\.has-results #btnCalc #btnText\s*\{\s*font-size:\s*22px;/);
   });
 
-  // 19/11/2026: de 1.100 a 1.440 px la barra de la cabecera pasaba de una fila a dos cuando
-  // "Calculando..." se convertia en "Resultados actualizados" (CLS 0,072 por calculo a 1200x1920).
+  // Caso historico del 19/11/2026: con dos columnas a 1200x1920 la barra cambiaba de fila
+  // al pasar de "Calculando..." a "Resultados actualizados" (CLS 0,072 por calculo).
   it('el estado reserva, mientras calcula y despues, el ancho del mensaje de resultados', () => {
     const regla = css.match(/@media \(min-width: 769px\)\{\s*#statusPill\.loading #statusText, #statusPill\.ok #statusText, #statusPill\.err #statusText\{ display: inline-grid;[^}]*\}\s*#statusPill\.loading #statusText::after, #statusPill\.ok #statusText::after, #statusPill\.err #statusText::after\{([^}]*)\}/);
     expect(regla).not.toBeNull();

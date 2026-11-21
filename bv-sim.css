@@ -890,7 +890,7 @@ html.light-mode .bv-manual-container {
   gap: 12px;
   flex-wrap: wrap;
   flex: 1;
-  min-width: 250px;
+  min-width: min(250px, 100%);
 }
 
 .bv-alt-rank {
@@ -909,6 +909,7 @@ html.light-mode .bv-manual-container {
   font-weight: 800;
   color: var(--text);
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .bv-alt-price-box {

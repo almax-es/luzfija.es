@@ -181,8 +181,19 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 - **Los resultados de la home se abren justo despues del primer pintado tras el clic en
   Calcular, con espacio reservado.** `calculate()` (`js/lf-app.js`) pinta "Calculando..." y,
   tras `afterNextPaint()` (siguiente frame; respaldo programado a 100 ms), llama a `reserveResultsSpace()`
-  (`js/lf-render.js`) ANTES de pedir `tarifas.json`: abre `#seccionResultados`, pasa `.grid` a dos columnas y fija un
-  `min-height` hasta 160 px por debajo del borde inferior de la ventana. En el `finally` llama a
+  (`js/lf-render.js`) ANTES de pedir `tarifas.json`: abre `#seccionResultados` y fija un
+  `min-height` hasta 160 px por debajo del borde inferior de la ventana. Hasta 1.360 px el ranking
+  queda debajo del formulario, que sigue centrado. El atajo "Ver resultados" aparece si el ranking
+  queda fuera del viewport durante los primeros cinco segundos. A partir de
+  1.361 px, `.grid` los pone en dos columnas. `tests/cls-reserva-resultados.test.js` comprueba que
+  el corte de CSS coincide con el del atajo en `js/lf-render.js`. Mientras dura `.is-reserving`,
+  `body:has(#seccionResultados.is-reserving)` suspende el anclaje del scroll: al calcular desde
+  el fondo, Chromium podia compensar la reserva desplazando el BODY y dejando visible el footer
+  hasta el pintado (CLS 0,838 a 1280x800 con el ranking apilado y activacion desde el teclado).
+  Medicion del 21/11/2026 en Chrome 157 con tarifas a 1,5 s: maximo 0,000220 entre 24 calculos
+  a 1280x800 y 1280x1440, arriba, a 500 px y al fondo, en claro y oscuro. Detalle en la ronda 89
+  de `AUDITORIA-REGISTRO.md`.
+  En el `finally` llama a
   `releaseResultsSpace()`, que quita esa altura; si el calculo no llego a pintar resultados
   (sin red, error), NO cierra la seccion: la deja abierta con su altura y `.is-error` (aviso de
   error fuera de flujo) hasta el siguiente Calcular, que la reutiliza recalculando la altura
@@ -218,9 +229,11 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   Tres detalles mas del 19/11/2026, todos medidos: (1) en tactil `* { transition-duration: .15s !important }`
   anima tambien `visibility`; esos estados llevan `transition-property: none` en el cuerpo y sus hijos o el
   ocultado tarda 150 ms. (2) El spinner de Calcular tiene la misma altura que "⚡ Calcular" (hasta 520 px
-  el boton encogia 7 px y empujaba todo al terminar). (3) De 1.100 a 1.440 px la barra de la cabecera
-  cambiaba de una a dos filas segun el texto del estado; en loading/ok/err reserva el ancho de "Resultados
-  actualizados" (0,072 por calculo a 1200x1920). Una factura que pide revision deja `.is-pending` con
+  el boton encogia 7 px y empujaba todo al terminar). (3) Con el layout anterior de dos columnas
+  por encima de 1.100 px, se observo que la barra de la cabecera cambiaba de fila segun el texto del
+  estado (0,072 por calculo a 1200x1920). La reserva del ancho de "Resultados actualizados" en
+  loading/ok/err sigue activa desde 769 px, con el ranking tanto apilado como en dos columnas.
+  Una factura que pide revision deja `.is-pending` con
   su propio aviso. Un calculo que empezo antes de un vaciado NO pinta nunca: `calculate()` abre
   `beginResultsCycle()` antes de cualquier `await` y `renderAll()`/`releaseResultsSpace()` descartan el
   ciclo si la tarjeta se vacio entretanto (factura, CSV o Datadis); al encolar se cancela el debounce de
@@ -261,12 +274,14 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   No los vuelvas a crear por JS. Ver `ARRANQUE-CARGA.md` (nota tras la tabla de dependencias).
 - **Como medir CLS aqui sin enganarte** (aprendido el 22/10/2026): (1) un `.click()` por script
   NO cuenta como entrada del usuario, asi que sus saltos salen como CLS aunque un clic real los
-  excluya; usa un clic real. (2) Una ventana alta no cambia `innerHeight` en automatizacion:
-  emula un monitor alto con scroll para que el footer asome. (3) Mide con un
+  excluya; usa el puntero o Espacio sobre el boton enfocado si queda fuera del viewport, y registra
+  `event.isTrusted` y `document.body.scrollTop` en el clic. (2) Comprueba `innerHeight` y la posicion
+  real del footer en el viewport tras aplicar el scroll. (3) Mide con un
   `PerformanceObserver` de `layout-shift` y descarta `hadRecentInput`. (4) El laboratorio de
   PageSpeed no ve este salto (da ~0,003): solo aparece al interactuar, y el campo (CrUX)
   tarda unas 4 semanas en reflejar un arreglo. (5) Probando en local (`python -m http.server`)
-  la red es instantanea y esconde el problema: retrasa `fetch` ~1,5 s antes de medir. (6) Mira
+  la red es instantanea y esconde el problema: retrasa `tarifas.json` ~1,5 s y verifica el tiempo
+  de la peticion tras el clic; espera a que termine la precarga inicial porque se puede reutilizar. (6) Mira
   la pantalla antes de pulsar: el 22/10 dos clics por coordenadas cayeron en la casilla
   "Comparar con mi tarifa actual", justo encima del boton, y el calculo no arranco ("Corrige
   los datos"), lo que parecia un fallo del arreglo y no lo era.

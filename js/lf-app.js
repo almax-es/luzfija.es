@@ -167,8 +167,9 @@
       // El debounce de las ediciones que motivaron esta peticion (p. ej. los inputs que rellena un
       // CSV) ya esta incluido en ella, igual que calculate() lo cancela al empezar: si siguiera vivo
       // pisaria "Calculando..." con "Cambios pendientes...", y al arrancar el encolado la barra de la
-      // cabecera volvia a cambiar de fila fuera de los 500 ms (CLS 0,094 a 1280x1440, CSV aplicado
-      // con un calculo en vuelo; tercera revision de ChatGPT, 19/11/2026). El encolado valida al arrancar.
+      // cabecera volvia a cambiar de fila fuera de los 500 ms. Caso historico: CSV aplicado
+      // con un calculo en vuelo, CLS 0,094 a 1280x1440 con dos columnas (19/11/2026).
+      // El encolado valida al arrancar.
       clearTimeout(state.debounce);
       state.debounce = null;
       __lf_queuedCalculation = {
@@ -388,11 +389,12 @@
       setStatus('Calculando...', 'loading');
       // INP + CLS: primero se pinta la respuesta al clic (el boton "Calculando..."), y justo
       // despues se abre y se reserva el bloque de resultados. Abrirlo en el mismo tick metia
-      // en el clic su layout de pagina entera (pasar el grid a dos columnas + medir la altura):
+      // en el clic el cambio de layout de toda la pagina y la medicion de la altura:
       // INP de Calcular 112-120 ms -> 40-48 ms con CPU 4x, movil y escritorio (12/11/2026).
       // Sigue siendo antes de la primera descarga y, en condiciones normales, un frame despues
       // del clic, dentro de los 500 ms que Chrome no cuenta como CLS: medido con clic real,
-      // tarifas a 1,5 s, pagina arriba, bajada 500 px, al fondo y monitor alto, el CLS no cambia.
+      // tarifas a 1,5 s y distintas posiciones de scroll. Ver las mediciones del layout actual
+      // en AGENTS.md.
       // Acceso opcional y en tiempo de llamada: no cambia el contrato de carga. Detalle en
       // reserveResultsSpace() y en afterNextPaint().
       await afterNextPaint();

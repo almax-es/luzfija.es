@@ -35,10 +35,11 @@ try {
 
   // Estado visual temprano del formulario de la home (usuario que vuelve). lf-inputs.js restaura lo
   // guardado DESPUES del primer pintado: con placas solares o bono social activados, esos bloques
-  // aparecian entonces y empujaban el footer visible en pantallas altas (CLS de carga 0,012 a 1920x1080
-  // y 0,077 a 1280x1440 con las opciones activadas, medido el 20/11/2026). Aqui, antes del CSS, se decide
-  // lo mismo que decidira loadInputs() y se marca <html>; styles.css muestra esos bloques desde el primer
-  // fotograma y updateSolarUI()/updateBonoSocialUI()/updateZonaFiscalUI() retiran la clase al tomar el control.
+  // aparecian entonces y empujaban el footer visible en pantallas altas. En la medicion historica de
+  // recarga (20/11/2026, antes de este arreglo), el CLS fue 0,012 a 1920x1080 y 0,077 a 1280x1440
+  // con las opciones activadas. Antes del CSS se decide lo mismo que loadInputs() y se marca <html>.
+  // styles.css muestra esos bloques desde el primer fotograma y updateSolarUI(),
+  // updateBonoSocialUI() y updateZonaFiscalUI() retiran la clase al tomar el control.
   // Mismas reglas que lf-inputs.js: un enlace con configuracion compartida (cualquier clave de DEFAULTS,
   // ver SHAREABLE_INPUT_KEYS en lf-state.js) manda sobre lo guardado; asBool() de lf-utils.js.
   // Solo por encima del ancho de un movil (>= 521 px, el corte del formulario a una columna): tablets,

@@ -59,7 +59,8 @@
   let __miTarifaObserver = null;
   let __miTarifaLastInfo = null; // para rehacer el chip al rotar o redimensionar
   let __miTarifaFlashTimer = 0;  // sin esto, dos clics seguidos se pisan el destello
-  let __lfScrollResultsTimer = 0; // cada render renueva los 5 s del aviso movil
+  let __lfScrollResultsTimer = 0; // cada render renueva los 5 s del atajo
+  let __lfScrollResultsObserver = null;
 
   function miTarifaChipEls() {
     const chip = document.getElementById('miTarifaChip');
@@ -859,8 +860,25 @@
   function retirarVerResultados() {
     if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
     __lfScrollResultsTimer = 0;
+    __lfScrollResultsObserver?.disconnect();
+    __lfScrollResultsObserver = null;
     const verResultados = $('scrollToResults');
     if (verResultados) verResultados.style.display = 'none';
+  }
+
+  function observarVisibilidadResultados(seccion) {
+    const boton = $('scrollToResults');
+    if (!boton || !seccion || typeof window.IntersectionObserver !== 'function') return;
+
+    // Observa toda la sección: el atajo también sobra sobre una tabla ya visible
+    // cuando su cabecera y sus cifras de resumen han quedado más arriba.
+    const observer = new window.IntersectionObserver(([entrada]) => {
+      if (__lfScrollResultsObserver !== observer || !entrada) return;
+      boton.style.display = entrada.isIntersecting ? 'none' : 'block';
+    });
+    __lfScrollResultsObserver = observer;
+    observer.observe(seccion);
+    __lfScrollResultsTimer = setTimeout(retirarVerResultados, 5000);
   }
 
   function renderConsumoLimitsNotice(info, opciones = {}) {
@@ -1137,9 +1155,9 @@
     // Abierta y con resultados pintados: recalculo normal, la tabla anterior sigue ocupando su
     // sitio hasta que llega la nueva. Abierta pero VACIADA por hideResultsToInitialState()
     // (aplicar factura, CSV/XLSX o Datadis): hay que reservar igual que la primera vez. Sin esto,
-    // el ranking nuevo crecia 1,5 s despues del clic y Chrome lo contaba: CLS 0,27 en 1280x1440
-    // y 0,37 en 2560x1440 con la pagina arriba, 0,76 al fondo (Chrome 157, clic real y tarifas a
-    // 1,5 s; senalado por una revision de ChatGPT el 19/11/2026).
+    // el ranking nuevo crecia 1,5 s despues del clic y Chrome lo contaba. Control historico con
+    // dos columnas (19/11/2026): CLS 0,27 en 1280x1440 y 0,37 en 2560x1440 con la pagina arriba,
+    // 0,76 al fondo (Chrome 157, clic real y tarifas a 1,5 s).
     if (seccion.classList.contains('visible')) {
       if (__lfResultadosPintados) return false;
       seccion.classList.add('is-reserving');
@@ -1150,8 +1168,8 @@
     seccion.classList.add('visible', 'is-reserving');
     const grid = document.querySelector('.grid');
     if (grid) grid.classList.add('has-results');
-    // Se mide DESPUES de abrirla: en escritorio queda en la columna derecha; en movil, debajo
-    // del formulario, y si ya cae fuera de la ventana no hace falta reservar nada.
+    // Se mide DESPUES de abrirla: hasta 1360 px queda debajo del formulario y, por encima, a
+    // su derecha. Si ya cae fuera de la ventana, puede no necesitar altura adicional.
     reservarAltura(seccion);
     colocarAviso(seccion);
     return true;
@@ -1293,21 +1311,10 @@
       }
     });
 
-    const scrollResultsButton = $('scrollToResults');
-    if (scrollResultsButton) {
-      if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
-      __lfScrollResultsTimer = 0;
-
-      // "Ver resultados" lleva al ranking: solo si es el de los datos actuales (revision de ChatGPT).
-      if (generacionVigente && window.innerWidth < 1100) {
-        scrollResultsButton.style.display = 'block';
-        __lfScrollResultsTimer = setTimeout(() => {
-          scrollResultsButton.style.display = 'none';
-          __lfScrollResultsTimer = 0;
-        }, 5000);
-      } else {
-        scrollResultsButton.style.display = 'none';
-      }
+    retirarVerResultados();
+    // Mismo ancho que el layout apilado de .grid.has-results en styles.css.
+    if (generacionVigente && window.innerWidth <= 1360) {
+      observarVisibilidadResultados(seccionResultados);
     }
 
     return renderDone;

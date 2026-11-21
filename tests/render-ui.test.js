@@ -886,6 +886,11 @@ describe('Renderizado UI (lf-render.js)', () => {
   it('cada render movil renueva los cinco segundos del boton para ir a resultados', async () => {
     vi.useFakeTimers();
     Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true });
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(notificar) { this.notificar = notificar; }
+      observe(target) { this.notificar([{ target, isIntersecting: false }]); }
+      disconnect() {}
+    });
     const payload = {
       success: true,
       resumen: { mejor: 'Tarifa Barata', precio: '50,00 €' },
@@ -908,6 +913,7 @@ describe('Renderizado UI (lf-render.js)', () => {
       await vi.advanceTimersByTimeAsync(3000);
       expect(document.getElementById('scrollToResults').style.display).toBe('none');
     } finally {
+      vi.unstubAllGlobals();
       vi.useRealTimers();
     }
   });
