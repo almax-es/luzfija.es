@@ -7878,6 +7878,15 @@ renderizado de todas las paginas (`/`, aplicaciones, legales, 404 y las 25 guias
 casos. `maskVolatileSeoChanges` ignora ese envoltorio exacto para no fechar las paginas como
 actualizadas; cambiar el emoji o el texto sigue contando (`tests/seo-date-logic.test.js`).
 
+**Boton "Web" del ranking con aspecto de deshabilitado en tema claro (21/11/2026).** Era solo el emoji
+del eslabon, que en Windows es gris lavanda y sobre el lila palido del boton apenas se veia (en el
+movil, igual en "Ver oferta"). Un emoji no se recolorea con CSS: `lf-render.js` pinta un SVG (icono
+"link" de Feather, MIT) con `stroke="currentColor"`, que toma `--text` (azul marino en claro, casi
+blanco en oscuro) y se ve igual en todos los sistemas. Verificado en Chrome y WebKit, escritorio y
+movil, ambos temas; test en `tests/render-ui.test.js` que falla con el emoji. Los botones con texto
+que tambien llevan el eslabon ("Compartir", "Informacion de la tarifa" del solar) se leen bien y se
+dejan como estan.
+
 **Revision de ChatGPT de esa QA (lectura estatica de `1bd79d6`, 19/11/2026).** A, B y E sin hallazgo. Dos bugs
 confirmados en codigo y en Chrome, y un hueco de tests, corregidos:
 - **C. Error tardio mas ancho que la reserva del estado.** El `catch` de `calculate()` ponia "No se ha podido

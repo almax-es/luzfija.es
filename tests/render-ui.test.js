@@ -731,6 +731,31 @@ describe('Renderizado UI (lf-render.js)', () => {
   });
 
 
+  // 21/11/2026: el emoji del eslabon es gris lavanda en Windows y en tema claro el boton parecia
+  // deshabilitado. El icono es un SVG que toma el color del texto del boton.
+  it('El boton Web usa un icono SVG con el color del texto, no el emoji', async () => {
+    window.LF.state.rows = [
+      { nombre: 'Tarifa Web', tipo: '1P', totalNum: 50, total: '50,00 €', potencia: '10 €', consumo: '30 €', impuestos: '10 €', webUrl: 'https://example.com/web' }
+    ];
+    // El mock de LF no trae safeUrl (lf-utils.js) y sin ella el enlace se omite a proposito.
+    window.LF.safeUrl = (u) => u;
+    try {
+      await window.LF.renderTable();
+      const link = document.querySelector('#tbody a.web');
+      expect(link).not.toBeNull();
+      const icon = link.querySelector('.web-icon');
+      expect(icon.getAttribute('aria-hidden')).toBe('true');
+      expect(icon.textContent).not.toContain('🔗');
+      const svg = icon.querySelector('svg');
+      expect(svg).not.toBeNull();
+      expect(svg.getAttribute('stroke')).toBe('currentColor');
+      expect(svg.getAttribute('focusable')).toBe('false');
+      expect(link.getAttribute('aria-label')).toBe('Abrir oferta de Tarifa Web');
+    } finally {
+      delete window.LF.safeUrl;
+    }
+  });
+
   it('Marca una tarifa con SSAA no disponible como no comparable y explica el motivo', async () => {
     window.LF.state.rows = [
       {

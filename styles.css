@@ -2712,7 +2712,8 @@ body:has(#seccionResultados.is-reserving) {
 /* Link web: icono + texto (texto solo en móvil) */
 .web{ gap: 4px; }
 .web .web-text{ display:none; font-weight: 900; font-size: 12px; }
-.web .web-icon{ line-height: 1; }
+.web .web-icon{ line-height: 1; display: inline-flex; }
+.web .web-icon svg{ display: block; width: 16px; height: 16px; }
 
 @media (max-width: 768px){
   /* Quitamos filas redundantes: Ranking y Tipo pasan a la cabecera */
