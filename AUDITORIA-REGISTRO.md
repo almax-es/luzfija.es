@@ -7844,6 +7844,18 @@ mediante scroll, con unos 399 px de footer visibles antes del clic. Descartando
 como en el candidato. El footer figura entre las fuentes del salto cuando llegan
 los resultados. La investigacion del solar se trata en una tarea independiente.
 
+**Banner AECC sobre el ranking apilado (detectado por el promotor tras el despliegue, 21/11/2026).**
+El banner es fijo abajo a la izquierda (20-392 px) y se pensaba para dos columnas, donde cae sobre la
+columna del formulario. Con el corte del apilado subido a 1.360 px, o con la ventana encogida, la tarjeta
+del ranking ocupa todo el ancho y el banner tapaba 4-5 filas (produccion: 1100x800, 1280x800 y 1360x900;
+0 filas a 1361 y 1920). `js/aecc-banner.js` lo aparta, sin contar como cierre, si su zona con 24 px de
+margen toca `#seccionResultados`. Ademas escucha `scroll` en captura sobre `document`: en la home el
+scroll vive en BODY y su evento no llega a `window`, asi que la regla de campos bajo la zona solo se
+reevaluaba con el IntersectionObserver o al redimensionar. Verificado en Chrome y WebKit: apartado a
+1100, 1280 y 1360; visible y sin filas tapadas a 1361, 1600 y 1920; al encoger la ventana con el
+banner visible se aparta al apilarse y vuelve al ensanchar. Tests en `tests/aecc-banner.test.js`,
+validados por mutacion (sin la regla fallan 2; sin el oyente de BODY, 1).
+
 **Revision de ChatGPT de esa QA (lectura estatica de `1bd79d6`, 19/11/2026).** A, B y E sin hallazgo. Dos bugs
 confirmados en codigo y en Chrome, y un hueco de tests, corregidos:
 - **C. Error tardio mas ancho que la reserva del estado.** El `catch` de `calculate()` ponia "No se ha podido

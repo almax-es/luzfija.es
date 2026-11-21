@@ -257,4 +257,76 @@ describe('AECC donation banner', () => {
     expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
   });
 
+  // 21/11/2026: con el ranking apilado (hasta 1.360 px o ventana encogida) el banner tapaba
+  // 4-5 filas. Se aparta si su zona, con 24 px de margen, toca la tarjeta de resultados.
+  it('se aparta si la tarjeta del ranking entra en su zona y vuelve en dos columnas', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+
+    // Dos columnas: la tarjeta empieza a la derecha del formulario de 440 px
+    let seccionRect = { left: 545, right: 1260, top: 0, bottom: 800, width: 715, height: 800 };
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('seccionResultados').getBoundingClientRect = () => seccionRect;
+
+    loadAeccBanner();
+    const banner = document.getElementById('aecc-banner');
+    banner.style.width = '372px';
+    banner.style.height = '280px';
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(2800);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+
+    // Apilado: la tarjeta ocupa todo el ancho por debajo del formulario
+    seccionRect = { left: 59, right: 1221, top: 0, bottom: 800, width: 1162, height: 800 };
+    document.body.dispatchEvent(new Event('scroll')); // el scroll de BODY no burbujea a window
+    vi.advanceTimersByTime(0);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+    expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
+
+    // Dentro del margen de 24 px tambien se aparta: 20 + 372 + 24 = 416
+    seccionRect = { left: 410, right: 1260, top: 0, bottom: 800, width: 850, height: 800 };
+    window.dispatchEvent(new Event('resize'));
+    vi.advanceTimersByTime(0);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+
+    seccionRect = { left: 420, right: 1260, top: 0, bottom: 800, width: 840, height: 800 };
+    window.dispatchEvent(new Event('resize'));
+    vi.advanceTimersByTime(0);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+  });
+
+  it('no llega a mostrarse si, al tocar mostrarlo, el ranking ya ocupa su zona', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('seccionResultados').getBoundingClientRect = () =>
+      ({ left: 59, right: 1221, top: 0, bottom: 800, width: 1162, height: 800 });
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(30000);
+
+    const banner = document.getElementById('aecc-banner');
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+    expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-mostrado', expect.anything());
+  });
+
 });

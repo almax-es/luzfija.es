@@ -398,6 +398,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~15 minutos.
 - Banner de donacion a la AECC (`js/aecc-banner.js`, solo home y solo escritorio >=1024px):
 - Aparece tras un calculo iniciado por el usuario con resultados visibles (eventos `lf:results-requested`/`lf:results-ready`); el auto-refresh no lo dispara.
+- Se aparta (sin contar como cierre) mientras el formulario esta a la vista, si un campo numerico cae bajo su zona o si la tarjeta del ranking entra en su zona con 24 px de margen. En la practica solo se ve con el ranking en dos columnas (>= 1.361 px); con el ranking apilado o la ventana encogida no tapa ninguna fila.
 - Muestra el logo oficial de la AECC (`img/aecc-logo.svg`, autoalojado) y el codigo Bizum de donacion `11244`. No incluye boton de copia: se retiro por decision de producto al no resultar necesario.
 - Se aparta solo cuando el formulario entra en viewport, los resultados salen, o un campo/panel protegido cae bajo su zona (inputs numericos y el panel "Mi tarifa" `miTarifaForm`); se reevalua en scroll/resize y en eventos `change` (paneles que se despliegan sin scroll). No cuenta como cierre.
 - Cooldown de 7 dias en `lf_aecc_banner_dismissed_at` (se activa al cerrar); la clave se preserva en el "Limpiar cache" del menu.
@@ -597,7 +598,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 39.640.
+- Lineas JS aproximadas: 39.664.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (123 tarifas).
@@ -698,7 +699,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 157 archivos de test (`tests/*.test.js`).
-- 3003 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 3005 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

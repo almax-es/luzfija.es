@@ -209,8 +209,28 @@
     return false;
   }
 
+  // Con el ranking apilado bajo el formulario (hasta 1.360 px, o una ventana encogida) la tarjeta
+  // de resultados ocupa todo el ancho y el banner tapaba 4-5 filas del ranking (21/11/2026). Se
+  // aparta si su zona, con un margen para que no parezca un solape, toca la tarjeta de resultados.
+  // En dos columnas el banner queda sobre la columna del formulario y no la toca.
+  var RESULTS_MARGIN_PX = 24;
+
+  function isResultsInBannerZone() {
+    var footprint = getBannerFootprint();
+    var seccion = document.getElementById('seccionResultados');
+    if (!footprint || !seccion || typeof seccion.getBoundingClientRect !== 'function') return false;
+    var rect = seccion.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return false;
+    return rectIntersects(rect, {
+      left: footprint.left - RESULTS_MARGIN_PX,
+      right: footprint.right + RESULTS_MARGIN_PX,
+      top: footprint.top - RESULTS_MARGIN_PX,
+      bottom: footprint.bottom
+    });
+  }
+
   function shouldKeepBannerHidden() {
-    return Boolean(formInView || !resultsInView || isProtectedInputInBannerZone());
+    return Boolean(formInView || !resultsInView || isProtectedInputInBannerZone() || isResultsInBannerZone());
   }
 
   function updateBannerVisibility() {
@@ -236,6 +256,9 @@
     if (visibilityWatchBound) return;
     visibilityWatchBound = true;
     window.addEventListener('scroll', requestBannerVisibilityUpdate, { passive: true });
+    // En la home el scroll vive en BODY (AGENTS.md) y su evento no llega a window: en captura,
+    // document lo recibe venga de BODY o del viewport.
+    document.addEventListener('scroll', requestBannerVisibilityUpdate, { passive: true, capture: true });
     window.addEventListener('resize', requestBannerVisibilityUpdate);
     // Paneles que se despliegan sin scroll (p. ej. "Mi tarifa"): reevaluar al vuelo
     document.addEventListener('change', requestBannerVisibilityUpdate, true);
@@ -245,6 +268,7 @@
     if (!visibilityWatchBound) return;
     visibilityWatchBound = false;
     window.removeEventListener('scroll', requestBannerVisibilityUpdate);
+    document.removeEventListener('scroll', requestBannerVisibilityUpdate, { capture: true });
     window.removeEventListener('resize', requestBannerVisibilityUpdate);
     document.removeEventListener('change', requestBannerVisibilityUpdate, true);
   }
