@@ -1229,6 +1229,9 @@
     if (mesesConFallo.length) {
       resultado.warnings.push(`Datadis ha indicado un fallo de tu distribuidora al descargar ${listaMeses(mesesConFallo)}. El cálculo no incluye los días que faltan.`);
     }
+    if (resultado.tieneExcedentes && ev.horasSinDato > 0) {
+      resultado.warnings.push(textoHorasExcedentesSinDato(ev.horasSinDato));
+    }
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
     if (ev.hayPositivos && ev.mesesSinDato.length) {
@@ -1494,6 +1497,10 @@
       'Si sí viertes, no importes: el simulador calcularía como si no vertieras nada. Usa el CSV o rellena los excedentes a mano.';
   }
 
+  function textoHorasExcedentesSinDato(horas) {
+    return `En ${horas === 1 ? '1 hora' : `${horas} horas`} Datadis no envió el dato de excedentes y se han tomado como 0 kWh (algunas distribuidoras no lo envían cuando no hay vertido).`;
+  }
+
   function avisosSolar(decision, ev, rango, cob, mesesSinPublicar) {
     const avisos = [`Datos de Datadis: ${etiquetaMes(rango.iniMes)} a ${etiquetaMes(rango.finMes)}.`];
     if (mesesSinPublicar && mesesSinPublicar.length) {
@@ -1508,7 +1515,7 @@
     }
     if (decision.excedentes === 'con') {
       if (ev.horasSinDato > 0) {
-        avisos.push(`En ${ev.horasSinDato === 1 ? '1 hora' : `${ev.horasSinDato} horas`} Datadis no envió el dato de excedentes y se han tomado como 0 kWh (algunas distribuidoras no lo envían cuando no hay vertido).`);
+        avisos.push(textoHorasExcedentesSinDato(ev.horasSinDato));
       }
       const aCero = ev.mesesSinDato.concat(ev.mesesACero).sort();
       if (aCero.length) {

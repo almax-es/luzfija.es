@@ -1664,8 +1664,9 @@ describe('importar (fetch simulado)', () => {
       filas.push(...diaDatadis(f, { tipo: tipoDia(f), surplus: f <= '2026/09/14' ? 0.4 : null }));
     }
     respuestas.consumo = () => json(200, { timeCurve: filas });
-    await ejecutar({ rango, conPotencia: false });
+    const r = await ejecutar({ rango, conPotencia: false });
     expect(textoCsv.split('\r\n')[0]).not.toContain('Energia_vertida_kWh');
+    expect(r.warnings.join(' ')).not.toContain('Datadis no envió el dato de excedentes');
   });
 
   /** Meses entre dos 'YYYY/MM', ambos incluidos. */
@@ -1720,6 +1721,23 @@ describe('importar (fetch simulado)', () => {
     respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango).map((f) => ({ ...f, surplusEnergyKWh: f.date.slice(5, 7) === '07' ? null : 0.2 })) });
     const r = await ejecutar({ conPotencia: false });
     expect(r.warnings.join('\n')).toMatch(/todavía no ha publicado \(o no ha enviado\) los excedentes de julio de \d{4}/);
+  });
+
+  it.each([[1, 'hora'], [2, 'horas']])('home: avisa de %s %s de excedentes sin dato dentro del periodo', async (nulos, unidad) => {
+    const rango = { iniYmd: '2026/09/30', finYmd: '2026/10/02', iniMes: '2026/09', finMes: '2026/10' };
+    const diaConVertido = diaDatadis('2026/10/01', { kwh: 0, surplus: 0.2 }).map((f, i) =>
+      i < nulos ? { ...f, surplusEnergyKWh: null } : f);
+    const timeCurve = [
+      ...diaDatadis(rango.iniYmd), // Septiembre está entero sin dato dentro de la selección: tiene su propio aviso.
+      ...diaConVertido,
+      ...diaDatadis(rango.finYmd, { surplus: 0 }),
+      ...diaDatadis('2026/10/03') // Este día queda fuera del periodo elegido.
+    ];
+    respuestas.consumo = () => json(200, { timeCurve });
+    const r = await ejecutar({ rango, conPotencia: false });
+    expect(r.tieneExcedentes).toBe(true);
+    expect(r.warnings.join(' ')).toContain(`En ${nulos} ${unidad} Datadis no envió el dato de excedentes y se han tomado como 0 kWh`);
+    expect(r.warnings.join(' ')).toContain('excedentes de septiembre de 2026');
   });
 
   // ---- Simulador solar ----
