@@ -7856,6 +7856,28 @@ reevaluaba con el IntersectionObserver o al redimensionar. Verificado en Chrome 
 banner visible se aparta al apilarse y vuelve al ensanchar. Tests en `tests/aecc-banner.test.js`,
 validados por mutacion (sin la regla fallan 2; sin el oyente de BODY, 1).
 
+**Revision acotada de ChatGPT de `9dcaff8` y ampliacion (21/11/2026).** Tres puntos aceptados:
+(1) los 8 reintentos se agotaban en ~10 s y, si despues el usuario llegaba a un sitio libre, el banner
+ya no salia: ahora reintenta mientras dure `REQUEST_WINDOW_MS` (2 min); (2) un `lf:results-ready` con
+el banner ya mostrado no reevaluaba su zona, y un ranking mas alto podia quedar debajo sin scroll ni
+resize: ahora pide `requestBannerVisibilityUpdate()`; (3) el test de dos columnas usaba 1280 px, que
+esta apilado: pasa a 1440. Al verificar (1) en Chrome aparecieron dos defectos anteriores: el fondo en
+oscuro era `var(--card)` (6 % de opacidad) y se leia el ranking o el pie a traves del banner, y al
+final de la pagina tapaba las preguntas plegables y el pie. El fondo superpone `--card` a `--bg1`
+(opaco, mismo tono) y la regla de zona cubre tambien `#info` y `footer.footer-container`. Verificado en
+Chrome (1280, 1361, 1440 y 1920, oscuro y claro) y WebKit (1280 y 1920): visible sin tapar nada con el
+ranking a la vista en dos columnas, apartado al final de la pagina y de vuelta al subir; apartado
+siempre a 1280. Cada pieza tiene un test que falla sin ella.
+
+**Emoji del titulo de `guias.html` y del logo de `comparar-pvpc-tarifa-fija.html` en morado
+(detectado por el promotor, 21/11/2026).** El texto en degradado (`background-clip: text` y
+`-webkit-text-fill-color: transparent`) pintaba tambien el emoji como silueta con el degradado. Ni
+`::first-letter` (Chrome no lo aplica al emoji) ni `color: transparent` lo resuelven: el emoji va en
+`<span class="lf-emoji" aria-hidden="true">` con `-webkit-text-fill-color: initial`. Escaneo
+renderizado de todas las paginas (`/`, aplicaciones, legales, 404 y las 25 guias): eran los dos unicos
+casos. `maskVolatileSeoChanges` ignora ese envoltorio exacto para no fechar las paginas como
+actualizadas; cambiar el emoji o el texto sigue contando (`tests/seo-date-logic.test.js`).
+
 **Revision de ChatGPT de esa QA (lectura estatica de `1bd79d6`, 19/11/2026).** A, B y E sin hallazgo. Dos bugs
 confirmados en codigo y en Chrome, y un hueco de tests, corregidos:
 - **C. Error tardio mas ancho que la reserva del estado.** El `catch` de `calculate()` ponia "No se ha podido

@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/frame-guard.js?v=20261121-210739"></script>
-<script src="/js/config.js?v=20261121-210739"></script>
-<script src="/js/theme.js?v=20261121-210739"></script>
+<script src="/js/frame-guard.js?v=20261121-213131"></script>
+<script src="/js/config.js?v=20261121-213131"></script>
+<script src="/js/theme.js?v=20261121-213131"></script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" name="robots"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
@@ -174,6 +174,11 @@ body::before {
   -webkit-text-fill-color: transparent;
   margin-bottom: 16px;
   line-height: 1.1;
+}
+
+/* El relleno transparente del degradado pintaba el emoji como silueta morada. */
+.hero h1 .lf-emoji {
+  -webkit-text-fill-color: initial;
 }
 
 .hero p {
@@ -724,7 +729,7 @@ html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--da
 </style>
   <meta name="color-scheme" content="dark light"/>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20261121-210739">
+  <link rel="stylesheet" href="/fonts.css?v=20261121-213131">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -736,7 +741,7 @@ html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--da
 
   <!-- HERO -->
   <div class="hero">
-    <h1>📚 Guías sobre Tarifas de Luz</h1>
+    <h1><span class="lf-emoji" aria-hidden="true">📚</span> Guías sobre Tarifas de Luz</h1>
     <p>Todo lo que necesitas saber sobre la luz en España. Sin tecnicismos, sin rollos.</p>
     <div class="hero-update">Revisión normativa: 25 guías verificadas a 15 oct 2026</div>
 
@@ -1155,7 +1160,7 @@ html.light-mode{--accent-text:#5B21B6;--ok-text:#166534;--warn-text:#92400E;--da
   <a href="/privacidad.html">Política de privacidad</a>
 </footer>
 
-<script src="/js/guides-search.js?v=20261121-210739"></script>
+<script src="/js/guides-search.js?v=20261121-213131"></script>
 <script>
 if (window.LFGuideSearch) {
   window.LFGuideSearch.init({
@@ -1227,6 +1232,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-  <script src="/js/tracking.js?v=20261121-210739" defer></script>
+  <script src="/js/tracking.js?v=20261121-213131" defer></script>
 </body>
 </html>

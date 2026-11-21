@@ -264,11 +264,12 @@ describe('AECC donation banner', () => {
       this.observe = vi.fn();
       this.disconnect = vi.fn();
     };
-    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    // 1.440 px: dos columnas reales (por encima de 1.360 px)
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
     Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
 
     // Dos columnas: la tarjeta empieza a la derecha del formulario de 440 px
-    let seccionRect = { left: 545, right: 1260, top: 0, bottom: 800, width: 715, height: 800 };
+    let seccionRect = { left: 545, right: 1420, top: 0, bottom: 800, width: 875, height: 800 };
     document.body.innerHTML = `
       <button id="btnCalc"></button>
       <section id="seccionResultados" class="visible"></section>
@@ -285,7 +286,8 @@ describe('AECC donation banner', () => {
     vi.advanceTimersByTime(2800);
     expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
 
-    // Apilado: la tarjeta ocupa todo el ancho por debajo del formulario
+    // Ventana encogida a 1.280 px: la tarjeta pasa a ocupar todo el ancho bajo el formulario
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
     seccionRect = { left: 59, right: 1221, top: 0, bottom: 800, width: 1162, height: 800 };
     document.body.dispatchEvent(new Event('scroll')); // el scroll de BODY no burbujea a window
     vi.advanceTimersByTime(0);
@@ -327,6 +329,132 @@ describe('AECC donation banner', () => {
     const banner = document.getElementById('aecc-banner');
     expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
     expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-mostrado', expect.anything());
+  });
+
+  // Revision de ChatGPT (21/11/2026): los 8 reintentos se agotaban en ~10 s y, si despues el usuario
+  // llegaba a un sitio libre dentro de la ventana del calculo, el banner ya no aparecia.
+  it('sigue reintentando mientras dure la ventana del calculo y aparece al quedar libre', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+    let seccionRect = { left: 59, right: 1221, top: 0, bottom: 800, width: 1162, height: 800 };
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('seccionResultados').getBoundingClientRect = () => seccionRect;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(20000); // mas que 2,8 s + 8 x 0,9 s
+    const banner = document.getElementById('aecc-banner');
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+
+    // El usuario baja hasta el final del ranking: la tarjeta queda por encima de la zona del banner
+    seccionRect = { left: 59, right: 1221, top: -900, bottom: 300, width: 1162, height: 1200 };
+    vi.advanceTimersByTime(900);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+    // (Sin contar llamadas: cada test recarga el script y los oyentes de los anteriores siguen en document.)
+    expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-mostrado', { title: 'origen:home' });
+  });
+
+  it('tampoco tapa las preguntas plegables ni el pie al llegar al final de la pagina', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 1000, configurable: true });
+    const fuera = { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 };
+    let footerRect = { left: 60, right: 1860, top: 1400, bottom: 1900, width: 1800, height: 500 };
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <section class="seoFold" id="info"></section>
+      <footer class="footer-container"></footer>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    // Dos columnas: el ranking a la derecha del formulario
+    document.getElementById('seccionResultados').getBoundingClientRect = () =>
+      ({ left: 545, right: 1860, top: 0, bottom: 1000, width: 1315, height: 1000 });
+    document.getElementById('info').getBoundingClientRect = () => fuera;
+    document.querySelector('footer').getBoundingClientRect = () => footerRect;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(2800);
+    const banner = document.getElementById('aecc-banner');
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+
+    // Final de la pagina: el pie sube hasta la zona del banner
+    footerRect = { left: 60, right: 1860, top: 600, bottom: 1100, width: 1800, height: 500 };
+    document.body.dispatchEvent(new Event('scroll'));
+    vi.advanceTimersByTime(0);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+    expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
+  });
+
+  it('pasada la ventana del calculo deja de reintentar', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1280, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+    let seccionRect = { left: 59, right: 1221, top: 0, bottom: 800, width: 1162, height: 800 };
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('seccionResultados').getBoundingClientRect = () => seccionRect;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(3 * 60 * 1000);
+    seccionRect = { left: 59, right: 1221, top: -900, bottom: 300, width: 1162, height: 1200 };
+    vi.advanceTimersByTime(10000);
+    expect(document.getElementById('aecc-banner').classList.contains('aecc-banner--visible')).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('reevalua su zona cuando llega un ranking nuevo sin scroll ni resize', () => {
+    window.IntersectionObserver = function () {
+      this.observe = vi.fn();
+      this.disconnect = vi.fn();
+    };
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+    // Visible: la tarjeta termina por encima de la zona del banner
+    let seccionRect = { left: 59, right: 1381, top: -900, bottom: 300, width: 1322, height: 1200 };
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('seccionResultados').getBoundingClientRect = () => seccionRect;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(2800);
+    const banner = document.getElementById('aecc-banner');
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+
+    // Un ranking nuevo alarga la tarjeta hasta la zona del banner, sin scroll ni resize
+    seccionRect = { left: 59, right: 1381, top: -900, bottom: 800, width: 1322, height: 1700 };
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(0);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+    expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
   });
 
 });

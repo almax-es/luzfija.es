@@ -3914,7 +3914,9 @@ html {
   z-index: 9997;
   width: 372px;
   max-width: calc(100vw - 24px);
-  background: var(--card, #161b2e);
+  /* --card es translucida (6 % en oscuro): sola dejaba leer a traves del banner el ranking o el
+     pie. Se superpone a un color solido para que sea opaco con el mismo tono. */
+  background: linear-gradient(var(--card, transparent), var(--card, transparent)), var(--bg1, #161b2e);
   border: 1px solid rgba(0, 143, 116, .5);
   border-radius: 18px;
   padding: 18px 18px 16px;

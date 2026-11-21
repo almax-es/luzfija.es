@@ -147,6 +147,10 @@ export function maskVolatileSeoChanges(text) {
     // pasada axe del 24/09/2026 los toco en 25 guias y 3 aplicaciones y, sin esto, las habria
     // fechado todas como actualizadas. Un texto nuevo (p. ej. un rotulo de tabla) sigue contando.
     .replace(/\s(?:aria-label|role)="[^"]*"/g, '')
+    // Envoltorio de presentacion de un emoji dentro de un titulo con texto en degradado
+    // (21/11/2026): sin el, el relleno transparente pintaba el emoji como una silueta morada.
+    // Solo se quita la etiqueta exacta; el emoji queda, asi que cambiarlo sigue contando.
+    .replace(/<span class="lf-emoji" aria-hidden="true">([^<]*)<\/span>/g, '$1')
     .replace(/<(\/?)h[1-6](?=[\s>])/g, '<$1hX')
     .trim();
 }

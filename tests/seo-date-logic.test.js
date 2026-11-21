@@ -201,6 +201,19 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
+  // 21/11/2026: el emoji de un titulo con texto en degradado salia como silueta morada y se
+  // envolvio en un span de presentacion. Envolverlo no es una revision editorial.
+  it('ignora el envoltorio lf-emoji, pero no un cambio del emoji ni del texto', () => {
+    const committed = '<h1>📚 Guías sobre Tarifas de Luz</h1>\n<p>Texto.</p>';
+    const envuelto = '<h1><span class="lf-emoji" aria-hidden="true">📚</span> Guías sobre Tarifas de Luz</h1>\n<p>Texto.</p>';
+    const dirty = (current) => isSignificantlyDirty({ status: ' M guias.html', currentContent: current, committedContent: committed });
+    expect(dirty(envuelto)).toBe(false);
+    expect(dirty(envuelto.replace('📚', '📘'))).toBe(true);
+    expect(dirty(envuelto.replace('Tarifas de Luz', 'tarifas de luz'))).toBe(true);
+    // Otra clase u otro span con texto siguen contando.
+    expect(dirty(envuelto.replace('lf-emoji', 'badge'))).toBe(true);
+  });
+
   it('treats page CSS (<style> blocks and style attributes) as presentation, not content', () => {
     const committed = [
       '<style>',

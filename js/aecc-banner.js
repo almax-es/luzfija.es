@@ -112,7 +112,12 @@
         return;
       }
 
-      if (!shownThisSession && !isDismissedRecently() && retryCount < MAX_RETRIES) {
+      // Los reintentos duran lo que la ventana del calculo (REQUEST_WINDOW_MS), no solo MAX_RETRIES:
+      // con el ranking en su zona (apilado) o el formulario a la vista se agotaban en ~10 s y, si
+      // despues el usuario llegaba a un sitio libre, el banner ya no salia (revision de ChatGPT,
+      // 21/11/2026). Cada intento solo mide unos pocos rectangulos.
+      if (!shownThisSession && !isDismissedRecently() &&
+          (retryCount < MAX_RETRIES || Date.now() - requestedAt <= REQUEST_WINDOW_MS)) {
         retryCount += 1;
         showTimer = setTimeout(tryShow, RETRY_DELAY_MS);
       }
@@ -209,28 +214,35 @@
     return false;
   }
 
-  // Con el ranking apilado bajo el formulario (hasta 1.360 px, o una ventana encogida) la tarjeta
-  // de resultados ocupa todo el ancho y el banner tapaba 4-5 filas del ranking (21/11/2026). Se
-  // aparta si su zona, con un margen para que no parezca un solape, toca la tarjeta de resultados.
-  // En dos columnas el banner queda sobre la columna del formulario y no la toca.
-  var RESULTS_MARGIN_PX = 24;
+  // El banner no tapa texto (21/11/2026). Con el ranking apilado bajo el formulario (hasta 1.360 px,
+  // o una ventana encogida) la tarjeta de resultados ocupa todo el ancho y el banner tapaba 4-5 filas
+  // del ranking; al final de la pagina tapaba las preguntas plegables y el pie. Se aparta si su zona,
+  // con un margen para que no parezca un solape, toca cualquiera de esos bloques. En dos columnas,
+  // con el ranking a la vista, queda sobre el hueco bajo el formulario y no toca ninguno.
+  var CONTENT_MARGIN_PX = 24;
+  var CONTENT_SELECTORS = ['#seccionResultados', '#info', 'footer.footer-container'];
 
-  function isResultsInBannerZone() {
+  function isContentInBannerZone() {
     var footprint = getBannerFootprint();
-    var seccion = document.getElementById('seccionResultados');
-    if (!footprint || !seccion || typeof seccion.getBoundingClientRect !== 'function') return false;
-    var rect = seccion.getBoundingClientRect();
-    if (!rect || rect.width <= 0 || rect.height <= 0) return false;
-    return rectIntersects(rect, {
-      left: footprint.left - RESULTS_MARGIN_PX,
-      right: footprint.right + RESULTS_MARGIN_PX,
-      top: footprint.top - RESULTS_MARGIN_PX,
+    if (!footprint) return false;
+    var zone = {
+      left: footprint.left - CONTENT_MARGIN_PX,
+      right: footprint.right + CONTENT_MARGIN_PX,
+      top: footprint.top - CONTENT_MARGIN_PX,
       bottom: footprint.bottom
-    });
+    };
+    for (var i = 0; i < CONTENT_SELECTORS.length; i++) {
+      var block = document.querySelector(CONTENT_SELECTORS[i]);
+      if (!block || typeof block.getBoundingClientRect !== 'function') continue;
+      var rect = block.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) continue;
+      if (rectIntersects(rect, zone)) return true;
+    }
+    return false;
   }
 
   function shouldKeepBannerHidden() {
-    return Boolean(formInView || !resultsInView || isProtectedInputInBannerZone() || isResultsInBannerZone());
+    return Boolean(formInView || !resultsInView || isProtectedInputInBannerZone() || isContentInBannerZone());
   }
 
   function updateBannerVisibility() {
@@ -352,6 +364,9 @@
   function onResultsReady(event) {
     var detail = event && event.detail ? event.detail : {};
     if (detail.origin !== pageOrigin) return;
+    // Ya mostrado: el ranking nuevo puede haber cambiado de altura sin scroll ni resize, y el
+    // IntersectionObserver no avisa si la tarjeta sigue a la vista (revision de ChatGPT, 21/11/2026).
+    if (shownThisSession) requestBannerVisibilityUpdate();
     // Ranking pintado pero de datos que el usuario ya cambio (lf-render.js): no es un resultado util.
     if (detail.vigente === false) return;
     if (Date.now() - requestedAt > REQUEST_WINDOW_MS) return;
