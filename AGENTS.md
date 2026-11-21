@@ -170,14 +170,14 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   BLANCA (visible en Android al scrollear rapido, junto a los botones del sistema). No
   sustituyas `html{background-color: var(--bg0)}` por un degradado ni lo elimines al
   refactorizar fondos; lo vigila `tests/canvas-background.test.js`.
-- **En tema web OSCURO, `color-scheme` computa `dark light`, no `dark`.** El
-  `<meta name="color-scheme" content="dark light">` de `index.html` gana a
-  `html{color-scheme:dark}` de `styles.css`. Consecuencia: al declarar soporte para ambos
-  esquemas, el navegador elige los defaults de UA (lienzo, controles de formulario,
-  barras de scroll) segun el tema del **SISTEMA**, no segun el tema elegido en la web. Es
-  la causa raiz de la clase de bugs "SO != tema web" ya vista en la auditoria del
-  28/07/2026. Medido en las cuatro combinaciones el 07/08/2026. En tema web claro si
-  computa `light` limpio; la asimetria es solo del modo oscuro.
+- **En tema web oscuro, `color-scheme` computa `dark light`.** La regla
+  `:root{color-scheme:dark light}` de `pro.css` tiene mayor especificidad que
+  `html{color-scheme:dark}` de `styles.css`. En tema web claro prevalece
+  `html.light-mode{color-scheme:light}`. Con ambos esquemas admitidos, el navegador
+  puede usar el tema del sistema para el lienzo, los controles nativos y las barras de scroll.
+  El 21/11/2026 se aisló la causa en Chromium con las hojas de las tres aplicaciones.
+  Al retirar el `<meta name="color-scheme">` en la prueba, el valor computado siguió siendo
+  `dark light`. Al retirar solo la declaración de `pro.css`, pasó a `dark`.
 - **Los resultados de la home se abren justo despues del primer pintado tras el clic en
   Calcular, con espacio reservado.** `calculate()` (`js/lf-app.js`) pinta "Calculando..." y,
   tras `afterNextPaint()` (siguiente frame; respaldo programado a 100 ms), llama a `reserveResultsSpace()`
