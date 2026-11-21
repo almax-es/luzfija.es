@@ -789,6 +789,101 @@ describe('importar (fetch simulado)', () => {
     expect(new Set(horas).size).toBe(23);
   });
 
+  describe.each(['home', 'solar'])('curva con fecha repetida en %s', (destino) => {
+    const octubre = { iniYmd: '2026/10/01', finYmd: '2026/10/31', iniMes: '2026/10', finMes: '2026/10' };
+
+    it('bloquea las 744 filas de UFD y ofrece el informe sin volver a pedir el periodo', async () => {
+      const dia = diaDatadis('2026/10/01', { kwh: 19.274 });
+      const timeCurve = Array.from({ length: 31 }, () => dia).flat();
+      respuestas.consumo = () => json(200, { timeCurve, distributorError: [] });
+      const diagnostico = {};
+      const e = await ejecutar({ destino, rango: octubre, diagnostico }).catch((err) => err);
+      expect(e).toMatchObject({ code: 'curva-invalida', detalle: ['2026/10'] });
+      expect(D.codigoInforme(e)).toBe('curva-invalida');
+      const aviso = D.textoError(e);
+      expect(aviso).toMatch(/misma fecha en octubre de 2026/);
+      const informe = D.construirInforme(diagnostico, e, aviso);
+      expect(informe).toContain('744 filas recibidas, 24 procesadas');
+      expect(informe).toContain('repetidas descartadas: 720');
+      expect(informe).not.toMatch(/ES0000000000000000AB|19[.,]274/);
+      expect(textoCsv).toBeNull();
+      expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(1);
+    });
+
+    it.each(['01', '02'])('bloquea con 48 filas aunque el periodo solo pida el dia %s', async (dia) => {
+      const timeCurve = [...diaDatadis('2026-10-01'), ...diaDatadis('2026/10/01', { kwh: 0.7 })];
+      respuestas.consumo = () => json(200, { timeCurve });
+      const fecha = `2026/10/${dia}`;
+      const rango = { ...octubre, iniYmd: fecha, finYmd: fecha };
+      await expect(ejecutar({ destino, rango, confirmar: async () => true })).rejects.toMatchObject({ code: 'curva-invalida' });
+    });
+
+    it('bloquea un primer mes corrupto aunque el siguiente tenga buena cobertura', async () => {
+      const noviembre = { iniYmd: '2026/11/01', finYmd: '2026/11/30', iniMes: '2026/11', finMes: '2026/11' };
+      const dia = diaDatadis(octubre.iniYmd);
+      respuestas.consumo = () => json(200, { timeCurve: [...dia, ...dia, ...añoCompleto(noviembre)] });
+      const rango = { ...octubre, finYmd: noviembre.finYmd, finMes: noviembre.finMes };
+      await expect(ejecutar({ destino, rango, confirmar: async () => true })).rejects.toMatchObject({ code: 'curva-invalida' });
+    });
+
+    it('deja las 72 filas de bloques desordenados para la validacion existente', async () => {
+      const bloque = diaDatadis(octubre.iniYmd).reverse();
+      respuestas.consumo = () => json(200, { timeCurve: [...bloque, ...bloque, ...bloque] });
+      const rango = { ...octubre, finYmd: octubre.iniYmd };
+      const r = await ejecutar({ destino, rango, confirmar: async () => true });
+      if (destino === 'home') expect(r.horasTotales).toBe(24);
+      else expect((await r.fichero.text()).trim().split('\r\n')).toHaveLength(25);
+    });
+
+    it('acepta dos dias con valores iguales y una copia aislada', async () => {
+      const dia = diaDatadis(octubre.iniYmd);
+      const final = '2026/10/02';
+      respuestas.consumo = () => json(200, { timeCurve: [...dia, dia.at(-1), ...diaDatadis(final)] });
+      const r = await ejecutar({ destino, rango: { ...octubre, finYmd: final }, confirmar: async () => true });
+      if (destino === 'home') expect(r.horasTotales).toBe(48);
+      else expect((await r.fichero.text()).trim().split('\r\n')).toHaveLength(49);
+    });
+
+    it.each([
+      ['2026/03/29', 'primavera', 23],
+      ['2026/10/25', 'otono', 25]
+    ])('acepta el cambio de hora del %s', async (fecha, tipo, horas) => {
+      respuestas.consumo = () => json(200, { timeCurve: diaDatadis(fecha, { tipo }) });
+      const mes = fecha.slice(0, 7);
+      const rango = { iniYmd: fecha, finYmd: fecha, iniMes: mes, finMes: mes };
+      const r = await ejecutar({ destino, rango, confirmar: async () => true });
+      if (destino === 'home') expect(r.horasTotales).toBe(horas);
+      else expect((await r.fichero.text()).trim().split('\r\n')).toHaveLength(horas + 1);
+    });
+
+    it.each([
+      ['mes de margen fuera del periodo final', false, false],
+      ['mes de margen incluido al desplazar el periodo', true, false],
+      ['mes reciente excluido al desplazar el periodo', true, true]
+    ])('comprueba la curva tras resolver el desplazamiento: %s', async (_caso, desplazar, anomaliaReciente) => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 10, 21, 12));
+      try {
+        const rango = destino === 'solar' ? D.rangoMesesCompletos(new Date()) : D.rangoUltimosDias(new Date());
+        const margen = mesAnterior(rango.iniMes);
+        const fecha = `${anomaliaReciente ? rango.finMes : margen}/01`;
+        const filas = mesesConGeneracion(margen, mesesEntreTop(margen, rango.finMes), desplazar)
+          .map((f) => desplazar && destino === 'home' && f.date >= '2026/10/21'
+            ? { ...f, surplusEnergyKWh: 0, generationEnergyKWh: null, selfConsumptionEnergyKWh: null }
+            : f);
+        const inicioDia = filas.findIndex((f) => f.date === fecha);
+        const dia = filas.slice(inicioDia, inicioDia + 24);
+        respuestas.consumo = () => json(200, { timeCurve: [...filas.slice(0, inicioDia), ...dia, ...filas.slice(inicioDia)] });
+        const promesa = ejecutar({ destino, confirmar: async () => true });
+        if (desplazar && !anomaliaReciente) await expect(promesa).rejects.toMatchObject({ code: 'curva-invalida', detalle: [margen] });
+        else if (destino === 'solar') await expect(promesa).resolves.toMatchObject({ fichero: { name: 'datadis-12-meses.csv' } });
+        else await expect(promesa).resolves.toMatchObject({ ok: true, dias: 365 });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   it('el reintento mes a mes tiene un tope total: no pide mas meses al agotarse y sigue con lo recibido', async () => {
     let reloj = Date.now();
     const espia = vi.spyOn(Date, 'now').mockImplementation(() => reloj);

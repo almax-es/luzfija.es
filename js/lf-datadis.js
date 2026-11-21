@@ -178,6 +178,24 @@
     return d === dias - new Date(y, 9, dias).getDay();
   }
 
+  /** UFD puede devolver dos o más bloques 01..24 seguidos bajo una misma fecha. */
+  function mesesConBloquesRepetidos(filas) {
+    const meses = new Set();
+    let fechaAnterior;
+    let seguidas = 0;
+    for (const f of filas) {
+      const fecha = f?.date;
+      const hora = horaEtiqueta(f);
+      // Solo dos secuencias completas en el orden recibido. Los duplicados aislados y los
+      // bloques desordenados siguen por la deduplicación y las comprobaciones de cobertura.
+      if (fecha === fechaAnterior && hora === (seguidas % 24) + 1) seguidas++;
+      else seguidas = hora === 1 ? 1 : 0;
+      if (seguidas === 48 && filaUtil(f)) meses.add(fecha.slice(0, 7));
+      fechaAnterior = fecha;
+    }
+    return meses;
+  }
+
   /**
    * Quita horas repetidas: solo el dia del cambio de hora de octubre puede traer UNA etiqueta
    * repetida (la hora que se vive dos veces). En otro dia, una repetida hacia que el dia sumara
@@ -224,6 +242,16 @@
       if (++m > 12) { m = 1; y++; }
     }
     return meses;
+  }
+
+  function comprobarCurvaDelPeriodo(mesesAfectados, rango) {
+    if (!mesesAfectados.size) return;
+    const meses = mesesDelRango(rango).filter((mes) => mesesAfectados.has(mes));
+    if (meses.length) {
+      const err = new DatadisError('curva-invalida');
+      err.detalle = meses;
+      throw err;
+    }
   }
 
   /**
@@ -1005,6 +1033,7 @@
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     const recibidas = filas.length;
+    const mesesAfectados = mesesConBloquesRepetidos(filas);
     const sinRepetidas = quitarHorasRepetidas(filas);
     filas = sinRepetidas.filas;
     // El resumen del informe, con lo que de verdad se procesa (ya sin repetidas).
@@ -1033,6 +1062,8 @@
           else mesesSinPublicar = [];
         }
       }
+      // Antes de que la cobertura pueda omitir el primer mes parcial como falta de historial.
+      comprobarCurvaDelPeriodo(mesesAfectados, rangoSolar);
       // 0b) Meses del ano a simular que no se llegaron a pedir por tiempo agotado: no se simula un
       //     ano incompleto por un retraso de Datadis ni se presenta como suministro reciente.
       const sinPedirSolar = mesesSinPedir.filter((m) => m >= rangoSolar.iniMes && m <= rangoSolar.finMes);
@@ -1083,6 +1114,7 @@
       const desplazado = anoHastaUltimoPublicado(filas, rango, rangoPedido);
       if (desplazado) { rango = desplazado; excedentesHasta = desplazado.finYmd; }
     }
+    comprobarCurvaDelPeriodo(mesesAfectados, rango);
     const ev = evaluarExcedentes(filas, rango);
 
     const { csv, filasUsadas } = construirCsv(filas, rango);
@@ -1164,7 +1196,7 @@
   const INFORME_MAILTO_MAX = 1900;
   // Errores en los que el informe puede descubrir una rareza de la distribuidora o un fallo
   // nuestro. Los de contrasena, bloqueo, red, sesion o periodo no aportan nada.
-  const CODIGOS_INFORME = new Set(['http', 'parseo', 'sindatos', 'solar', 'distribuidora', 'timeout', 'sinsuministros', 'otro']);
+  const CODIGOS_INFORME = new Set(['http', 'parseo', 'sindatos', 'solar', 'distribuidora', 'timeout', 'sinsuministros', 'curva-invalida', 'otro']);
 
   function codigoInforme(err) {
     const code = err && err.code;
@@ -1499,6 +1531,9 @@
       }
       case 'sindatos':
         return 'Datadis no ha devuelto consumos para ese periodo. Puede ser un suministro nuevo o dado de baja, un periodo fuera de tu contrato o un retraso de tu distribuidora.';
+      case 'curva-invalida':
+        return `Datadis ha devuelto varios bloques de 24 horas con la misma fecha en ${listaMeses(err.detalle)}. No podemos usar esa curva para calcular. ` +
+          'Descarga la curva horaria desde tu distribuidora y comprueba que las fechas avanzan.';
       case 'periodo':
         return (TEXTO_PERIODO[err.detalle] || TEXTO_PERIODO.formato) + ' No hemos llamado a Datadis.';
       case 'solar':
