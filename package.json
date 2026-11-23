@@ -20,8 +20,8 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.15.0",
     "globals": "^17.14.0",
-    "jsdom": "^31.0.0",
-    "vitest": "^5.1.0"
+    "jsdom": "^31.0.1",
+    "vitest": "^5.1.1"
   },
   "dependencies": {
     "chart.js": "^4.6.1"
