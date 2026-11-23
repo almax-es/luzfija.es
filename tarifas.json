@@ -1764,7 +1764,7 @@
       "cLlano": 0.134087,
       "cValle": 0.09969,
       "p1": 0.108533,
-      "p2": 0.055196,
+      "p2": 0.055696,
       "web": "https://imaginaenergia.com/plan-base-imagina/",
       "tipo": "3P",
       "requisitos": "Consumo ≤ 4.000 kWh/año.",
@@ -1933,7 +1933,7 @@
       "cLlano": 0.144237,
       "cValle": 0.10984,
       "p1": 0.108533,
-      "p2": 0.055196,
+      "p2": 0.055696,
       "web": "https://imaginaenergia.com/plan-base-imagina/",
       "tipo": "3P",
       "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
@@ -2566,5 +2566,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-23T10:08:49.602Z"
+  "updatedAt": "2026-11-23T10:22:45.459Z"
 }
