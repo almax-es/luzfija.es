@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-19",
+    "syncedAt": "2026-11-23",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -1242,7 +1242,7 @@
     "R2-1141": {
       "name": "SONNEDIX ESPAÑA COMERCIALIZADORA",
       "phone": "900 601 560",
-      "website": "https://sonnedix.com/"
+      "website": "https://www.sonnedix.com/es/"
     },
     "R2-1142": {
       "name": "DESMA SOLUCIONES, S.L.U.",
@@ -1506,7 +1506,7 @@
     "R2-222": {
       "name": "ELECTRACOMERCIAL CENTELLES, S.L.",
       "phone": "900 10 11 78",
-      "website": "http://www.electradis.cat/"
+      "website": "https://www.electracentelles.cat/electracomercial-2/"
     },
     "R2-228": {
       "name": "REPSOL GENERACIÓN ELÉCTRICA S.A.U."
