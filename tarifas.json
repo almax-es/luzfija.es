@@ -14,7 +14,7 @@
       "p2": 0.112498,
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil-plus-36-meses",
       "tipo": "1P",
-      "requisitos": "Precio válido para potencia ≤ 5 kW. Precio de la energía fijo durante 36 meses.",
+      "requisitos": "Precio para consumo anual estimado ≤ 5.000 kWh/año (Plenitude lo consulta en el SIPS al contratar). Precio de la energía fijo durante 36 meses.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -25,7 +25,7 @@
         "precioBV": 0.0
       },
       "requiereFV": false,
-      "potenciaMaxKw": 5.0
+      "maxConsumoAnual": 5000.0
     },
     {
       "nombre": "Energya VM Fórmula Fija 24h",
@@ -199,7 +199,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Plenitude Fácil Plus 36 Meses +5kW",
+      "nombre": "Plenitude Fácil Plus 36 Meses +5000",
       "cPunta": 0.138437,
       "cLlano": 0.138437,
       "cValle": 0.138437,
@@ -207,7 +207,7 @@
       "p2": 0.112498,
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil-plus-36-meses",
       "tipo": "1P",
-      "requisitos": "Precio válido para potencia > 5 kW. Precio de la energía fijo durante 36 meses.",
+      "requisitos": "Precio para consumo anual estimado > 5.000 kWh/año (Plenitude lo consulta en el SIPS al contratar). Precio de la energía fijo durante 36 meses.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -218,7 +218,7 @@
         "precioBV": 0.0
       },
       "requiereFV": false,
-      "potenciaMinExclusivaKw": 5.0
+      "minConsumoAnualExclusivo": 5000.0
     },
     {
       "nombre": "CHC Plan Estrella Dúo",
@@ -2566,5 +2566,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-23T11:59:40.468Z"
+  "updatedAt": "2026-11-24T07:46:44.290Z"
 }
