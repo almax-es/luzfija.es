@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-23",
+    "syncedAt": "2026-11-24",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -459,7 +459,7 @@
     },
     "R2-009": {
       "name": "ELECTRA ENERGIA, S.A.",
-      "phone": "900 373 275 900 373 285",
+      "phone": "900 373 275",
       "website": "http://www.electraenergia.es/"
     },
     "R2-010": {
@@ -869,7 +869,7 @@
     },
     "R2-1066": {
       "name": "RDG COMERCIALIZADORA GALEGA DE ENERXÍA, S.A.",
-      "phone": "900 700 505",
+      "phone": "900 877 550",
       "website": "https://rdgcomercializadora.gal/"
     },
     "R2-1067": {
@@ -2872,7 +2872,7 @@
       "website": "https://www.electiaplus.es/"
     },
     "R2-573": {
-      "name": "ELECTROROUTE ENERGY TRADING LIMITED",
+      "name": "ELECTROROUTE ENERGY TRADING LIMITED [EXTINGUIDA]",
       "website": "http://www.electroroute.com/"
     },
     "R2-574": {
