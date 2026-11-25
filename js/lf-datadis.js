@@ -367,6 +367,19 @@
     return { iniYmd, finYmd: fmtYmd(fin), iniMes: fmtYm(ini), finMes: fmtYm(fin) };
   }
 
+  /**
+   * "Sin datos" en el periodo analizado. Si Datadis si trajo consumos, pero todos de antes (caso
+   * real del 25/11/2026: solo el primer mes de margen), se dice hasta cuando llegan: "no hay
+   * consumos" a secas hacia pensar en un fallo de la web.
+   */
+  function errorSinDatos(filas, rango) {
+    const err = new DatadisError('sindatos');
+    let hasta = '';
+    for (const f of filas) if (tieneConsumo(f) && f.date < rango.iniYmd && f.date > hasta) hasta = f.date;
+    if (hasta) err.detalle = { hasta };
+    return err;
+  }
+
   /** Rango de un mes completo ('2026/09'). */
   function rangoDeMes(mes) {
     const [y, m] = mes.split('/').map(Number);
@@ -1052,11 +1065,82 @@
         if (!filas.length && agotado) throw new DatadisError('timeout');
         if (!filas.length && errorDistribuidora) throw errorDistribuidora;
         if (!filas.length && errorPeriodo) throw errorPeriodo;
+      } else if (rangoPedido.iniMes !== rangoPedido.finMes) {
+        filas = await rescatarMesesFinales(filas);
       }
       // Los meses que NO se llegaron a pedir viajan aparte: un hueco por tiempo agotado no es lo
       // mismo que un suministro sin historial (la cobertura omitiria esos meses como "de antes
       // del alta" y el simulador daria un ano mas corto con una explicacion falsa).
-      return { filas, sinPedir: sinPedir.sort(), conErrorDistribuidora };
+      return { filas, sinPedir: sinPedir.sort(), conErrorDistribuidora: conErrorDistribuidora.sort() };
+
+      /**
+       * Respuesta CORTADA por el final (caso real del 25/11/2026, i-DE: se pidieron 15 meses de una
+       * vez y solo llegaron 551 horas del PRIMERO, con el suministro activo). No esta vacia, asi que
+       * el rescate mes a mes no salta, y el ano analizado se quedaba sin datos. Si faltan los
+       * ultimos meses y alguno ya deberia estar publicado (acabo hace mas de 7 dias, el mismo margen
+       * que el aviso de datos cortados), se pide solo el mas reciente: si trae consumos, la consulta
+       * larga venia incompleta y se piden los demas uno a uno; si llega vacio, el hueco es real y no
+       * se gasta ninguna consulta mas. Nunca empeora lo recibido: un fallo deja lo que habia.
+       */
+      async function rescatarMesesFinales(recibidas) {
+        const mesFecha = (f) => (f && typeof f.date === 'string' ? f.date.replace(/-/g, '/').slice(0, 7) : '');
+        const mesConConsumo = (f) => (f && typeof f.date === 'string'
+          && tieneConsumo(Object.assign({}, f, { date: f.date.replace(/-/g, '/') })) ? mesFecha(f) : '');
+        let ultimo = '';
+        for (const f of recibidas) { const m = mesConConsumo(f); if (m > ultimo) ultimo = m; }
+        const hoy = hoyLocal(new Date());
+        const publicadoHasta = fmtYmd(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 8));
+        const finales = mesesDelRango(rangoPedido).filter((m) => m > ultimo);
+        const publicados = finales.filter((m) => rangoDeMes(m).finYmd <= publicadoHasta);
+        if (!publicados.length) return recibidas;
+        progreso('consumos-final');
+        diag.mesesFinales = [];
+        const limite = Date.now() + T_MES_A_MES_TOTAL;
+        const rescatados = new Map();
+        // true si se puede seguir pidiendo; el mes queda en `rescatados` solo si trae consumos.
+        const pedirMes = async (mes) => {
+          const queda = limite - Date.now();
+          if (queda < 5000) {
+            sinPedir.push(mes);
+            diag.mesesFinales.push(`${mes} sin pedir (tiempo total agotado)`);
+            return false;
+          }
+          try {
+            const trozo = await pedir(mes, mes, Math.min(T_CONSUMO_MES, queda));
+            diag.mesesFinales.push(`${mes} ${trozo.length ? `${trozo.length} filas` : 'vacío'}`);
+            if (trozo.some((f) => mesConConsumo(f) === mes)) rescatados.set(mes, trozo);
+            return true;
+          } catch (e) {
+            diag.mesesFinales.push(`${mes} ${(e && e.code) || 'error'}${e && e.status ? ` ${e.status}` : ''}`);
+            if (e && e.code === 'distribuidora') { conErrorDistribuidora.push(mes); return true; }
+            // Sesion caducada, red caida o respuesta ilegible: no se pide nada mas (no se lanza:
+            // la consulta larga ya cuenta para Datadis y perderla obligaria a esperar 24 h).
+            const parar = Boolean(e && (e.code === 'sesion' || e.code === 'red' || e.code === 'parseo' || (e.code === 'http' && e.status < 500)));
+            // Un 500 o un vacio no: es el caso del mes que la distribuidora no sirve (como en el
+            // rescate mes a mes). Lo demas no se ha podido descargar.
+            if (parar || (e && (e.code === 'timeout' || e.code === 'repeticion'))) sinPedir.push(mes);
+            return !parar;
+          }
+        };
+        const sonda = publicados[publicados.length - 1];
+        await pedirMes(sonda);
+        if (rescatados.has(sonda)) {
+          const resto = finales.filter((m) => m !== sonda).reverse();
+          for (let i = 0; i < resto.length; i++) {
+            if (await pedirMes(resto[i])) continue;
+            // Cortado a medias: lo que falta existe (la sonda lo demuestra) pero no se ha descargado.
+            for (const m of resto.slice(i + 1)) {
+              sinPedir.push(m);
+              diag.mesesFinales.push(`${m} sin pedir`);
+            }
+            break;
+          }
+        }
+        if (!rescatados.size) return recibidas;
+        // Las filas de esos meses que trajo la consulta larga (sin consumo) se sustituyen.
+        return recibidas.filter((f) => !rescatados.has(mesFecha(f)))
+          .concat([...rescatados.keys()].sort().flatMap((m) => rescatados.get(m)));
+      }
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     const recibidas = filas.length;
@@ -1109,7 +1193,7 @@
       }
       // 1) Consumo: contra las horas que DEBERIAN llegar, no contra las que llegan.
       const cob = evaluarCobertura(filas, rangoSolar);
-      if (!cob.usados.length) throw new DatadisError('sindatos');
+      if (!cob.usados.length) throw errorSinDatos(filas, rangoSolar);
       if (cob.fallos.length) {
         const err = new DatadisError('solar');
         err.detalle = textoCoberturaSolar(cob);
@@ -1152,7 +1236,7 @@
     const ev = evaluarExcedentes(filas, rango);
 
     const { csv, filasUsadas } = construirCsv(filas, rango);
-    if (!filasUsadas) throw new DatadisError('sindatos');
+    if (!filasUsadas) throw errorSinDatos(filas, rango);
 
     const procesar = window.LF.procesarCSVConsumos;
     const fichero = new File([csv], 'datadis.csv', { type: 'text/csv' });
@@ -1407,6 +1491,7 @@
     if (d.erroresDistribuidora && d.erroresDistribuidora.length) lineas.push(`Errores de distribuidora: ${d.erroresDistribuidora.join(' | ')}`);
     if (d.periodoError) lineas.push(`Consulta del periodo: ${d.periodoError}`);
     if (d.mesAMes && d.mesAMes.length) lineas.push(`Mes a mes: ${d.mesAMes.join(' · ')}`);
+    if (d.mesesFinales && d.mesesFinales.length) lineas.push(`Últimos meses, uno a uno: ${d.mesesFinales.join(' · ')}`);
     if (r) {
       lineas.push(`Respuesta: ${r.recibidas != null && r.recibidas !== r.filas ? `${r.recibidas} filas recibidas, ${r.filas} procesadas` : `${r.filas} filas`} · ${r.desde || '-'} a ${r.hasta || '-'} · horas 00:00: ${r.ceros} · fechas no reconocidas: ${r.fechasRaras}` +
         `${r.fechasEjemplo.length ? ` (${r.fechasEjemplo.join(' | ')})` : ''} · métodos: ${r.metodos.join(', ') || '-'}` +
@@ -1593,6 +1678,11 @@
           'Prueba más tarde (si vuelve a fallar, mañana: Datadis puede contar la consulta) o usa el CSV descargado desde Datadis.';
       }
       case 'sindatos':
+        if (err.detalle && err.detalle.hasta) {
+          return `Datadis solo tiene consumos de este suministro hasta el ${fechaEs(err.detalle.hasta)}, antes del periodo que analizamos. ` +
+            'Si cambiaste de titular o de contador en esas fechas, es lo esperado. Si no, tu distribuidora no está enviando tus lecturas a Datadis: ' +
+            'descarga la curva horaria desde el área de clientes de tu distribuidora e impórtala como archivo CSV.';
+        }
         return 'Datadis no ha devuelto consumos para ese periodo. Puede ser un suministro nuevo o dado de baja, un periodo fuera de tu contrato o un retraso de tu distribuidora.';
       case 'curva-invalida':
         return `Datadis ha devuelto varios bloques de 24 horas con la misma fecha en ${listaMeses(err.detalle)}. No podemos usar esa curva para calcular. ` +
@@ -1629,7 +1719,8 @@
     suministros: 'Buscando tus suministros… Datadis puede tardar hasta un par de minutos.',
     contrato: 'Leyendo tu contrato…',
     consumos: 'Descargando tus consumos… Datadis puede tardar un poco.',
-    'consumos-mes': 'Datadis no ha devuelto el periodo de una vez: lo pedimos mes a mes. Puede tardar unos minutos (como mucho, seis).'
+    'consumos-mes': 'Datadis no ha devuelto el periodo de una vez: lo pedimos mes a mes. Puede tardar unos minutos (como mucho, seis).',
+    'consumos-final': 'Datadis no ha devuelto los últimos meses: los pedimos uno a uno. Puede tardar unos minutos (como mucho, seis).'
   };
 
   // ===== Interfaz =====

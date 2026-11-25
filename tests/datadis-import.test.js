@@ -1287,6 +1287,128 @@ describe('importar (fetch simulado)', () => {
     expect(r.dias).toBe(365);
   });
 
+  // Caso real del 25/11/2026 (i-DE): 15 meses pedidos de una vez y solo llegaron 551 horas del
+  // PRIMER mes de margen, con el suministro activo. La respuesta no estaba vacia, asi que no se
+  // pedia mes a mes y la home decia "sin datos".
+  describe('respuesta cortada por el final (solo llegan los primeros dias)', () => {
+    const consultasConsumo = () => llamadas.filter((l) => l.url.includes('get-consumption-data'))
+      .map((l) => { const q = new URL(l.url).searchParams; return `${q.get('startDate')}-${q.get('endDate')}`; });
+    const hoy = new Date();
+    const limite = ymd(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 8));
+    /** El mes mas reciente que ya deberia estar publicado (acabo hace mas de 7 dias). */
+    const sondaDe = (iniMes, finMes) => {
+      let m = finMes;
+      while (m >= iniMes) {
+        const [y, mm] = m.split('/').map(Number);
+        if (ymd(new Date(y, mm, 0)) <= limite) return m;
+        m = mesAnterior(m);
+      }
+      return null;
+    };
+    /** Datadis de verdad: la consulta larga trae solo 551 horas del primer mes; cada mes suelto, completo. */
+    const cortada = (todas, { mesSuelto } = {}) => (u) => {
+      const q = new URL(u).searchParams;
+      const ini = q.get('startDate');
+      if (ini !== q.get('endDate')) return json(200, { timeCurve: todas.filter((f) => f.date.startsWith(ini)).slice(0, 551) });
+      if (mesSuelto) { const r = mesSuelto(ini); if (r) return r; }
+      return json(200, { timeCurve: todas.filter((f) => f.date.startsWith(ini)) });
+    };
+
+    it('home: comprueba el ultimo mes publicado, pide los demas uno a uno e importa el año', async () => {
+      const rango = D.rangoUltimosDias(new Date());
+      const desde = mesAnterior(mesAnterior(rango.iniMes));
+      const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
+      respuestas.consumo = cortada(todas);
+      const pasos = [];
+      const diagnostico = {};
+      const r = await ejecutar({ conPotencia: false, diagnostico, onProgreso: (p) => pasos.push(p) });
+      expect(r.ok).toBe(true);
+      expect(r.dias).toBe(365);
+      expect(pasos).toContain('consumos-final');
+      const c = consultasConsumo();
+      const sonda = sondaDe(desde, rango.finMes);
+      expect(c[0]).toBe(`${desde}-${rango.finMes}`);
+      expect(c[1]).toBe(`${sonda}-${sonda}`); // primero solo el mes que ya deberia estar
+      // todos los meses salvo el que si llego en la consulta larga, cada uno una sola vez
+      expect(new Set(c.slice(1)).size).toBe(c.length - 1);
+      expect(c.length - 1).toBe(mesesEntreTop(desde, rango.finMes) - 1);
+      expect(c).not.toContain(`${desde}-${desde}`);
+      expect(diagnostico.mesesFinales.length).toBe(c.length - 1);
+      expect(D.construirInforme(diagnostico, new D.DatadisError('otro'), 'x')).toContain('Últimos meses, uno a uno:');
+    });
+
+    it('home: si el ultimo mes publicado llega vacio, el hueco es real: una sola consulta mas y dice hasta cuando hay datos', async () => {
+      const rango = D.rangoUltimosDias(new Date());
+      const desde = mesAnterior(mesAnterior(rango.iniMes));
+      const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
+      respuestas.consumo = cortada(todas, { mesSuelto: () => json(200, { timeCurve: [] }) });
+      const e = await ejecutar({ conPotencia: false }).catch((x) => x);
+      expect(e.code).toBe('sindatos');
+      expect(consultasConsumo().length).toBe(2);
+      const ultimo = todas.filter((f) => f.date.startsWith(desde)).slice(0, 551).at(-1).date;
+      expect(e.detalle).toEqual({ hasta: ultimo });
+      expect(D.textoError(e)).toContain(`solo tiene consumos de este suministro hasta el ${ultimo.split('/').reverse().join('/')}`);
+      expect(D.textoError(e)).toContain('impórtala como archivo CSV');
+      // sin consumos previos, el mensaje de siempre
+      expect(D.textoError(new D.DatadisError('sindatos'))).toContain('Puede ser un suministro nuevo');
+    });
+
+    it('home: un mes que Datadis no deja repetir en el rescate se avisa como no descargado', async () => {
+      const rango = D.rangoUltimosDias(new Date());
+      const desde = mesAnterior(mesAnterior(rango.iniMes));
+      const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
+      const sonda = sondaDe(desde, rango.finMes);
+      const roto = mesAnterior(sonda);
+      respuestas.consumo = cortada(todas, { mesSuelto: (m) => (m === roto ? json(429, '') : null) });
+      const r = await ejecutar({ conPotencia: false });
+      expect(r.ok).toBe(true);
+      expect(r.warnings.join(' ')).toContain(`No hemos podido descargar ${D.etiquetaMes(roto)}`);
+    });
+
+    it('home: la sesion caduca a mitad del rescate: no pierde lo descargado y marca el resto como no descargado', async () => {
+      const rango = D.rangoUltimosDias(new Date());
+      const desde = mesAnterior(mesAnterior(rango.iniMes));
+      const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
+      const sonda = sondaDe(desde, rango.finMes);
+      const roto = mesAnterior(mesAnterior(sonda));
+      respuestas.consumo = cortada(todas, { mesSuelto: (m) => (m === roto ? json(401, '') : null) });
+      const diagnostico = {};
+      const r = await ejecutar({ conPotencia: false, diagnostico });
+      expect(r.ok).toBe(true);
+      const c = consultasConsumo();
+      expect(c.at(-1)).toBe(`${roto}-${roto}`); // tras el fallo no se pide nada mas
+      const aviso = r.warnings.find((w) => w.startsWith('No hemos podido descargar')) || '';
+      expect(aviso).toContain(D.etiquetaMes(roto)); // el que fallo
+      expect(aviso).toContain(D.etiquetaMes(mesAnterior(roto))); // y los que ya no se pidieron
+      expect(aviso).not.toContain(D.etiquetaMes(sonda));
+      expect(diagnostico.mesesFinales.some((x) => x.endsWith('sin pedir'))).toBe(true);
+    });
+
+    it('home: datos completos o solo los ultimos dias sin publicar NO disparan consultas de mas', async () => {
+      await ejecutar({ conPotencia: false });
+      expect(consultasConsumo().length).toBe(1);
+      // faltan solo los ultimos 8 dias (retraso normal de la distribuidora): ningun mes entero por pedir
+      D = cargarModulo();
+      llamadas.length = 0;
+      const rango = D.rangoUltimosDias(new Date());
+      const reciente = añoCompleto(rango).filter((f) => f.date <= limite);
+      respuestas.consumo = () => json(200, { timeCurve: reciente });
+      await ejecutar({ conPotencia: false });
+      expect(consultasConsumo().length).toBe(1);
+    });
+
+    it('solar: la misma respuesta cortada se rescata y simula los 12 meses', async () => {
+      const r0 = D.rangoMesesCompletos(new Date());
+      const desde = mesAnterior(mesAnterior(r0.iniMes));
+      const finPrimerBloque = mesAnterior(mesAnterior(r0.finMes));
+      const todas = mesesSolar({ iniMes: desde }, 0.3).concat(mesesSolar(r0, 0.3).filter((f) => f.date.slice(0, 7) > finPrimerBloque));
+      respuestas.consumo = cortada(todas);
+      const r = await ejecutar({ destino: 'solar', conPotencia: false, confirmar: vi.fn(async () => true) });
+      expect(r.fichero.name).toBe('datadis-12-meses.csv');
+      expect(consultasConsumo().length).toBe(1 + 13); // los 14 meses pedidos, salvo el que si llego
+    });
+  });
+
   it.each(['home', 'solar'])('%s: el error explícito de un mes no se trata como falta de historial', async (destino) => {
     const rango = { iniYmd: '2026/09/01', finYmd: '2026/10/31', iniMes: '2026/09', finMes: '2026/10' };
     const octubre = añoCompleto({ ...rango, iniYmd: '2026/10/01' });

@@ -293,6 +293,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   - Fila "00:00" de mas (vacia) en dias que ya traen 01:00..24:00, sobre todo el primer dia de alta del contador (visto en i-DE): se descarta ANTES de contar las horas del dia; si no, el dia pareceria de 25 h y se desplazarian todas sus horas.
   - Horas sin lectura con el consumo vacio (""): son "sin dato", nunca 0 kWh. Numeros en texto con coma se aceptan.
   - Algunas distribuidoras devuelven error 500 o una respuesta vacia en cualquier consulta que incluya el primer mes de un contrato: se reintenta MES A MES (del mas reciente al mas antiguo) y el mes roto solo se pierde a si mismo (la cobertura lo trata como mes omitido o como hueco). No se reintenta ante 429, sesion caducada, red caida ni tiempo agotado.
+  - Respuesta CORTADA por el final (caso real del 25/11/2026, i-DE: 15 meses pedidos de una vez y solo llegaron 551 horas del primer mes de margen, con el suministro activo). No esta vacia, asi que el rescate mes a mes no salta. Si faltan los ultimos meses y alguno ya deberia estar publicado (acabo hace mas de 7 dias), `rescatarMesesFinales` pide SOLO el mas reciente de ellos: si llega vacio el hueco es real y no se gasta ninguna consulta mas; si trae consumos, la consulta larga venia incompleta y se piden los demas meses que faltan, uno a uno (mismo tope total de 6 minutos). Un fallo en el rescate nunca lanza ni pierde lo ya recibido: tiempo agotado, consulta repetida, sesion, red o respuesta ilegible marcan el mes (y, si se deja de pedir, los siguientes) como no descargado (`sinPedir`); un 500 o un vacio, no. El informe lo recoge en "Ultimos meses, uno a uno". Si al final el periodo analizado no tiene consumos pero Datadis si mando de antes, el error `sindatos` dice hasta que dia hay datos (`errorSinDatos`) y remite a la curva de la distribuidora.
   - Datadis rechaza (400) consultas cuyo mes de inicio empiece hace mas de 2 anos: el primer dia elegible es el primer mes cuyo dia 1 este dentro de ese plazo (`inicioMasAntiguo`).
   - Credenciales incorrectas: HTTP 500 con "Bad credentials" (medido), y tambien 401/403 por si cambia.
   - Usuario INEXISTENTE: tambien "Bad credentials" (NIF inventado con letra valida, 14/11/2026). Un 500 en el login con otro mensaje (visto "Data not found exception" el 14/11/2026, no documentado por Datadis ni reportado en ninguna integracion publica) CUENTA como intento fallido, porque no se sabe si Datadis lo cuenta para su bloqueo, y el aviso no culpa a la contrasena: pide comprobar el acceso en datadis.es antes de reintentar. Un 502 o 504 en el login (pasarela sin respuesta valida del servicio) SI cuenta, como el timeout (17/11/2026); un 503 o un 429 no. Un login cortado con la peticion ya enviada (timeout de 30 s o cancelacion del usuario) SI cuenta, porque Datadis pudo comprobar la contrasena (17/11/2026), igual que un error de red (fetch no distingue si el POST llego a salir). Si el navegador esta sin conexion (`navigator.onLine === false`) AL ENVIAR, el login no se envia y no cuenta; se mira antes y no al fallar, porque la conexion puede caerse despues de que Datadis reciba la contrasena. Al reabrir el modal con los intentos agotados el aviso es neutro: no afirma que la contrasena estuviera mal.
@@ -599,7 +600,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 39.742.
+- Lineas JS aproximadas: 39.833.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (124 tarifas).
@@ -700,7 +701,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 157 archivos de test (`tests/*.test.js`).
-- 3015 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 3021 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.
