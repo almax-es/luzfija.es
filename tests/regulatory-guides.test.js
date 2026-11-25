@@ -114,4 +114,41 @@ describe('Guide regulatory guardrails', () => {
     expect(complaintGuide).toContain('Si no obtengo resolución satisfactoria dentro del plazo legal aplicable');
     expect(complaintGuide).not.toContain('Las compañías tienen un plazo máximo de 15 días hábiles para responder');
   });
+  // DA 58.1.b LIRPF: el pago a cuenta vale "hasta el 31 de diciembre de 2026" (incluido);
+  // la matriculacion directa conserva el literal "antes de" del apartado 2.d.
+  it('distinguishes the two vehicle IRPF deadlines', () => {
+    const guide = readGuideText('guias/coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html');
+    expect(guide).toContain('matricular el coche antes del 31/12/2026');
+    expect(guide).toContain('pagar a cuenta al vendedor al menos el 25% del valor de adquisición hasta el 31/12/2026, incluido');
+    expect(guide).not.toContain('25% del precio antes de esa fecha');
+  });
+
+  // RD 609/2026 art. 5.4: agotar el credito abre lista de espera, sin derecho a la ayuda.
+  it('explains the Auto+ waiting list without promising an award', () => {
+    const guide = readGuideText('guias/coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html');
+    expect(guide).toContain('puedes seguir presentando solicitudes hasta el cierre del plazo');
+    expect(guide).toContain('lista de espera por orden de presentación');
+    expect(guide).toContain('Entrar en esa lista no da derecho a cobrar la ayuda');
+  });
+
+  // Circular 3/2020 CNMC art. 7.3: no todos los festivos nacionales son valle.
+  it('qualifies national holidays as valley periods in summaries and home', () => {
+    const periods = readGuideText('guias/que-es-p1-p2-y-p3-en-tu-factura.html');
+    const home = readGuideText('index.html');
+    const choosing = readGuideText('guias/como-elegir-tarifa-de-luz-con-tu-factura-o-consumo-real.html');
+    expect(periods).toContain('Fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles, todo valle');
+    expect(periods).toContain('fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles todo el día');
+    expect(home).toContain('fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles como valle');
+    expect(home).toContain('0–8 h + fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles');
+    expect(choosing).toContain('el 6 de enero y los festivos nacionales de fecha fija no sustituibles como valle');
+  });
+
+  // Ley 24/2013 art. 9.1, anadido por la DF 3a.Uno del RDL 41/2026: almacenamiento asociado.
+  it('qualifies the storage-based renewable self-consumption provision', () => {
+    const guide = readGuideText('guias/autoconsumo-y-placas-solares-lo-basico.html');
+    expect(guide).toContain('Qué es el autoconsumo solar');
+    expect(guide).toContain('instalaciones de almacenamiento próximas y asociadas a las de consumo, estén o no hibridadas');
+    expect(guide).toContain('en los términos que establezca el desarrollo reglamentario');
+    expect(guide).toContain('Esto no implica por sí solo que cualquier batería independiente tenga derecho a compensación de excedentes o a una deducción fiscal');
+  });
 });

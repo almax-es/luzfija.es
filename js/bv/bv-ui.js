@@ -1458,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="bv-manual-cell">
             <span class="bv-manual-cell-label">Valle</span>
-            <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="" inputmode="decimal" placeholder="Ej: 150" aria-label="${m}: consumo en valle (kWh)" title="Consumo en valle (0-8h + fines de semana y festivos)">
+            <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="" inputmode="decimal" placeholder="Ej: 150" aria-label="${m}: consumo en valle (kWh)" title="Consumo en valle (0-8h + fines de semana y festivos nacionales aplicables)">
           </div>
           <div class="bv-manual-cell">
             <span class="bv-manual-cell-label">Vertido</span>
