@@ -145,6 +145,18 @@ describe('Guide regulatory guardrails', () => {
     expect(choosing).toContain('el 6 de enero y los festivos nacionales de fecha fija no sustituibles como valle');
   });
 
+  // RD 88/2026 arts. 31 y 39 y RD 897/2017 art. 3.1: cambio de titular gratis, alquiler no es
+  // baja+alta, contratos de mas de 20 anos sin boletin nuevo y bono social intransferible.
+  it('grounds the moving guide on the supply regulation', () => {
+    const guide = readGuideText('guias/mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html');
+    expect(guide).toContain('gratis por ley');
+    expect(guide).toContain('nuevo contrato de acceso que sale del cambio de titular (art. 39.5 del');
+    expect(guide).toContain('no puede pedirte un boletín nuevo ni verificar la instalación por el cambio de titular (art. 39.6)');
+    expect(guide).toContain('prohíbe tratar como baja y alta nueva');
+    expect(guide).toContain('en ningún caso se traspasa el derecho a percibirlo (art. 31.1 del RD 88/2026)');
+    expect(guide).not.toContain('el 95% de los problemas');
+  });
+
   // Ley 24/2013 art. 9.1, anadido por la DF 3a.Uno del RDL 41/2026: almacenamiento asociado.
   it('qualifies the storage-based renewable self-consumption provision', () => {
     const guide = readGuideText('guias/autoconsumo-y-placas-solares-lo-basico.html');
