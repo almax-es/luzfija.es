@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-24",
+    "syncedAt": "2026-11-25",
     "count": 951,
     "sourceRows": 952,
     "duplicateCodes": [
@@ -2459,7 +2459,7 @@
     },
     "R2-488": {
       "name": "ELECTRICA SERRANIA DE RONDA ENERGIA SL",
-      "phone": "900 103 065",
+      "phone": "900 103 056",
       "website": "http://www.electricaenergia.com.es/"
     },
     "R2-489": {
@@ -3570,8 +3570,8 @@
     },
     "R2-714": {
       "name": "POWER WATT ENERGY ISLAND, SL",
-      "phone": "900 827 905",
-      "website": "http://www.sunairone.es/"
+      "phone": "900 377 042",
+      "website": "http://pwespain.es/"
     },
     "R2-715": {
       "name": "COMERCIALIZADORA DE ELECTRICIDAD EOSUN, S.L.",
