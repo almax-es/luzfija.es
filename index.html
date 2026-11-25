@@ -52,18 +52,18 @@
        especulativo y cada recurso del head se pediria en serie. frame-guard se
        adelanta porque se descarga igualmente dentro de un iframe ajeno; el resto
        va detras de frame-guard para no descargarlo alli. Ver ARRANQUE-CARGA.md 4.8. -->
-  <link rel="preload" href="/js/frame-guard.js?v=20261125-200856" as="script">
-  <script src="/js/error-bootstrap.js?v=20261125-200856"></script>
-  <script src="/js/frame-guard.js?v=20261125-200856"></script>
-  <link rel="preload" href="/js/config.js?v=20261125-200856" as="script">
-  <link rel="preload" href="/js/theme.js?v=20261125-200856" as="script">
-  <link rel="preload" href="/styles.css?v=20261125-200856" as="style">
-  <link rel="preload" href="/pro.css?v=20261125-200856" as="style">
-  <link rel="preload" href="/desglose-factura.css?v=20261125-200856" as="style">
-  <link rel="preload" href="/fonts.css?v=20261125-200856" as="style">
+  <link rel="preload" href="/js/frame-guard.js?v=20261125-201717" as="script">
+  <script src="/js/error-bootstrap.js?v=20261125-201717"></script>
+  <script src="/js/frame-guard.js?v=20261125-201717"></script>
+  <link rel="preload" href="/js/config.js?v=20261125-201717" as="script">
+  <link rel="preload" href="/js/theme.js?v=20261125-201717" as="script">
+  <link rel="preload" href="/styles.css?v=20261125-201717" as="style">
+  <link rel="preload" href="/pro.css?v=20261125-201717" as="style">
+  <link rel="preload" href="/desglose-factura.css?v=20261125-201717" as="style">
+  <link rel="preload" href="/fonts.css?v=20261125-201717" as="style">
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/outfit-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <script src="/js/config.js?v=20261125-200856"></script>
+  <script src="/js/config.js?v=20261125-201717"></script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz sin Registro ni Comisiones">
   <meta property="og:description" content="Compara precios de luz de las principales compañías, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario.">
@@ -274,16 +274,16 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20261125-200856"></script>
+  <script src="/js/theme.js?v=20261125-201717"></script>
 
-    <link rel="stylesheet" href="/styles.css?v=20261125-200856">
-    <link rel="stylesheet" href="/pro.css?v=20261125-200856">
+    <link rel="stylesheet" href="/styles.css?v=20261125-201717">
+    <link rel="stylesheet" href="/pro.css?v=20261125-201717">
   <!-- CSS del desglose (solo se usa al abrir el modal) -->
-  <link rel="stylesheet" href="/desglose-factura.css?v=20261125-200856" media="all">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20261125-201717" media="all">
 
 
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
-  <link rel="stylesheet" href="/fonts.css?v=20261125-200856">
+  <link rel="stylesheet" href="/fonts.css?v=20261125-201717">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -743,7 +743,7 @@
         <div class="seoContent">
           <p>El PVPC es la tarifa regulada de electricidad en España, con precios variables por horas y periodos según el mercado.</p>
 	          <p>Este comparador incluye una fila "PVPC (Regulada) ⚡" en el ranking, actualizada diariamente con los precios horarios oficiales de REE/ESIOS.</p>
-	          <p><strong>Metodología:</strong> usamos los <strong>precios horarios oficiales</strong> publicados por REE/ESIOS (indicador PVPC 1001) y calculamos un precio medio por periodo (punta/llano/valle) haciendo la media de las horas de cada periodo, respetando la periodificación 2.0TD (y fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles como valle).</p>
+	          <p><strong>Metodología:</strong> usamos los <strong>precios horarios oficiales</strong> publicados por REE/ESIOS (indicador PVPC 1001) y calculamos un precio medio por periodo (punta/llano/valle) haciendo la media de las horas de cada periodo, respetando la periodificación 2.0TD (y fines de semana + festivos nacionales aplicables como valle).</p>
 	          <p><strong>Nota:</strong> es una estimación orientativa basada en tus datos (P1/P2, días, consumos) y puede diferir ligeramente por perfiles de consumo y redondeos.</p>
         </div>
       </details>
@@ -771,7 +771,7 @@
           <ul class="u-list-muted-12">
             <li><strong style="color:var(--danger-text);">Punta:</strong> 10–14 h y 18–22 h laborables</li>
             <li><strong style="color:var(--warn-text);">Llano:</strong> 8–10 h, 14–18 h y 22–24 h laborables</li>
-            <li><strong style="color:var(--ok-text);">Valle:</strong> 0–8 h + fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles</li>
+            <li><strong style="color:var(--ok-text);">Valle:</strong> 0–8 h + fines de semana y festivos nacionales aplicables</li>
             <li><em>En Ceuta y Melilla, punta es 11–15 h y 19–23 h; llano, 8–11 h, 15–19 h y 23–24 h.</em></li>
           </ul>
         </div>
@@ -1024,43 +1024,43 @@
 
     <!-- LuzFija Modular Architecture -->
     <!-- Tracking primero para capturar errores de scripts posteriores -->
-    <script src="/js/tracking.js?v=20261125-200856" defer></script>
+    <script src="/js/tracking.js?v=20261125-201717" defer></script>
 
     <!-- 1. Módulos base (orden importante) -->
-    <script src="js/lf-config.js?v=20261125-200856" defer></script>
-    <script src="js/lf-utils.js?v=20261125-200856" defer></script>
-    <script src="js/lf-ssaa.js?v=20261125-200856" defer></script>
-    <script src="js/lf-csv-utils.js?v=20261125-200856" defer></script>
-    <script src="js/lf-csv-report.js?v=20261125-200856" defer></script>
-    <script src="js/lf-state.js?v=20261125-200856" defer></script>
-    <script src="js/lf-ui.js?v=20261125-200856" defer></script>
-    <script src="js/lf-tooltips.js?v=20261125-200856" defer></script>
-    <script src="js/lf-cache.js?v=20261125-200856" defer></script>
-    <script src="js/lf-inputs.js?v=20261125-200856" defer></script>
-    <script src="js/lf-calc.js?v=20261125-200856" defer></script>
-    <script src="js/lf-render.js?v=20261125-200856" defer></script>
-    <script src="js/lf-csv-import.js?v=20261125-200856" defer></script>
-    <script src="js/lf-datadis.js?v=20261125-200856" defer></script>
-    <script src="js/lf-tarifa-custom.js?v=20261125-200856" defer></script>
+    <script src="js/lf-config.js?v=20261125-201717" defer></script>
+    <script src="js/lf-utils.js?v=20261125-201717" defer></script>
+    <script src="js/lf-ssaa.js?v=20261125-201717" defer></script>
+    <script src="js/lf-csv-utils.js?v=20261125-201717" defer></script>
+    <script src="js/lf-csv-report.js?v=20261125-201717" defer></script>
+    <script src="js/lf-state.js?v=20261125-201717" defer></script>
+    <script src="js/lf-ui.js?v=20261125-201717" defer></script>
+    <script src="js/lf-tooltips.js?v=20261125-201717" defer></script>
+    <script src="js/lf-cache.js?v=20261125-201717" defer></script>
+    <script src="js/lf-inputs.js?v=20261125-201717" defer></script>
+    <script src="js/lf-calc.js?v=20261125-201717" defer></script>
+    <script src="js/lf-render.js?v=20261125-201717" defer></script>
+    <script src="js/lf-csv-import.js?v=20261125-201717" defer></script>
+    <script src="js/lf-datadis.js?v=20261125-201717" defer></script>
+    <script src="js/lf-tarifa-custom.js?v=20261125-201717" defer></script>
     
     <!-- 2. Módulos externos -->
-    <script src="js/pvpc.js?v=20261125-200856" defer></script>
-    <script src="js/factura-parsers.js?v=20261125-200856" defer></script>
-    <script src="js/factura.js?v=20261125-200856" defer></script>
+    <script src="js/pvpc.js?v=20261125-201717" defer></script>
+    <script src="js/factura-parsers.js?v=20261125-201717" defer></script>
+    <script src="js/factura.js?v=20261125-201717" defer></script>
     <!-- 2b. Sistema de desglose de factura -->
-    <script src="js/desglose-calculo.js?v=20261125-200856" defer></script>
-    <script src="js/desglose-render.js?v=20261125-200856" defer></script>
-    <script src="js/desglose-factura.js?v=20261125-200856" defer></script>
-    <script src="js/desglose-integration.js?v=20261125-200856" defer></script>
+    <script src="js/desglose-calculo.js?v=20261125-201717" defer></script>
+    <script src="js/desglose-render.js?v=20261125-201717" defer></script>
+    <script src="js/desglose-factura.js?v=20261125-201717" defer></script>
+    <script src="js/desglose-integration.js?v=20261125-201717" defer></script>
 
     <!-- 3. Coordinador principal -->
     <!-- XLSX se carga bajo demanda cuando se necesita -->
-    <script src="js/lf-sw-update.js?v=20261125-200856" defer></script>
-    <script src="js/lf-app.js?v=20261125-200856" defer></script>
+    <script src="js/lf-sw-update.js?v=20261125-201717" defer></script>
+    <script src="js/lf-app.js?v=20261125-201717" defer></script>
 
 
-    <script src="js/index-extra.js?v=20261125-200856" defer></script>
-    <script src="js/aecc-banner.js?v=20261125-200856" defer></script>
+    <script src="js/index-extra.js?v=20261125-201717" defer></script>
+    <script src="js/aecc-banner.js?v=20261125-201717" defer></script>
 
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">

@@ -138,8 +138,10 @@ describe('Guide regulatory guardrails', () => {
     const choosing = readGuideText('guias/como-elegir-tarifa-de-luz-con-tu-factura-o-consumo-real.html');
     expect(periods).toContain('Fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles, todo valle');
     expect(periods).toContain('fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles todo el día');
-    expect(home).toContain('fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles como valle');
-    expect(home).toContain('0–8 h + fines de semana, 6 de enero y festivos nacionales de fecha fija no sustituibles');
+    // En los resumenes de la home basta la formula corta de sus tooltips.
+    expect(home).toContain('fines de semana + festivos nacionales aplicables como valle');
+    expect(home).toContain('0–8 h + fines de semana y festivos nacionales aplicables');
+    expect(home).not.toMatch(/festivos nacionales(?! aplicables| de fecha fija)/);
     expect(choosing).toContain('el 6 de enero y los festivos nacionales de fecha fija no sustituibles como valle');
   });
 
