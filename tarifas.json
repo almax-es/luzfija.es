@@ -522,7 +522,7 @@
       "cValle": 0.149,
       "p1": 0.1334,
       "p2": 0.0595,
-      "web": "https://www.masmovilluzygas.es/tarifa-luz",
+      "web": "https://www.masmovilluzygas.es/tarifas-luz",
       "tipo": "1P",
       "requisitos": "Revisión de precios semestral.",
       "promo": "30€ de descuento (10€/mes durante 3 meses) desde la segunda factura, para nuevos clientes vía web.",
@@ -2586,5 +2586,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-25T16:38:28.348Z"
+  "updatedAt": "2026-11-25T16:58:53.274Z"
 }
