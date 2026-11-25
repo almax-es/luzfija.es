@@ -165,4 +165,17 @@ describe('Guide regulatory guardrails', () => {
     expect(guide).toContain('en los términos que establezca el desarrollo reglamentario');
     expect(guide).toContain('Esto no implica por sí solo que cualquier batería independiente tenga derecho a compensación de excedentes o a una deducción fiscal');
   });
+  // RD 88/2026 art. 34.8: los tramos de 0,1 kW exigen no pasar de 15 kW y contador con
+  // discriminacion horaria y telegestion (contador inteligente).
+  it('qualifies the 0.1 kW power increments', () => {
+    const cond = 'si no superas los 15 kW y tienes contador inteligente';
+    for (const [rel, count] of [
+      ['guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html', 3],
+      ['guias/coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html', 3],
+      ['guias/aerotermia-termo-electrico-y-bomba-de-calor-consumos-reales-y-tarifas.html', 1],
+    ]) {
+      expect(readGuideText(rel).split(cond).length - 1).toBe(count);
+    }
+    expect(readGuideText('guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html')).not.toContain('La potencia se ajusta en tramos de 0,1 kW');
+  });
 });

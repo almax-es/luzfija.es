@@ -19,7 +19,9 @@
  *   igual con el de octubre. Agosto de 2026: 9,2%.
  * - IVA: Ley 37/1992 + RDL 7/2026, RDL 10/2026, RDL 18/2026 y RDL 25/2026 (arts. 18-19: 10% en noviembre
  *   o diciembre para contratos <= 10 kW y vulnerables severos, con la misma condicion de IPC que el IEE)
- * - IGIC: Ley 4/2012 (0% vivienda ≤10kW: art. 52.r; 3% otros: art. 54; 7% contador: tipo general, art. 51)
+ * - IGIC: texto refundido del Decreto Legislativo canario 1/2025 (BOC-j-2025-90249; deroga los arts. 51, 52 y 54
+ *   de la Ley 4/2012): 0% vivienda ≤10kW (art. 33.Uno.22.º), 3% otros (art. 34.Uno.a), redaccion del
+ *   Decreto-ley 3/2026, BOE-A-2026-12302) y 7% contador (tipo general, art. 32.1).
  * - IPSI: Ley 8/1991 Art. 18 solo fija la horquilla 0,5-10%; el 1% electricidad y el 4% servicios/contador salen de las ordenanzas de Ceuta y Melilla
  * - Alquiler contador: Orden ITC/3860/2007 (0,81 €/mes)
  */
@@ -274,7 +276,7 @@
         codigoPostalAPI: '35001',
         impuestos: {
           tipo: 'IGIC',
-          energiaVivienda: 0,      // 0% vivienda ≤10kW (Ley 4/2012 Art. 52.r)
+          energiaVivienda: 0,      // 0% vivienda ≤10kW (DL canario 1/2025, art. 33.Uno.22.º)
           energiaOtros: 0.03,      // 3% resto
           contador: 0.07,          // 7% tipo general
         },
