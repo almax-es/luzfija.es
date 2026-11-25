@@ -1337,7 +1337,7 @@ describe('importar (fetch simulado)', () => {
       expect(D.construirInforme(diagnostico, new D.DatadisError('otro'), 'x')).toContain('Últimos meses, uno a uno:');
     });
 
-    it('home: si el ultimo mes publicado llega vacio, el hueco es real: una sola consulta mas y dice hasta cuando hay datos', async () => {
+    it('home: si la sonda llega vacia, no se confirma el corte: una sola consulta mas y dice que datos llegaron', async () => {
       const rango = D.rangoUltimosDias(new Date());
       const desde = mesAnterior(mesAnterior(rango.iniMes));
       const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
@@ -1347,7 +1347,8 @@ describe('importar (fetch simulado)', () => {
       expect(consultasConsumo().length).toBe(2);
       const ultimo = todas.filter((f) => f.date.startsWith(desde)).slice(0, 551).at(-1).date;
       expect(e.detalle).toEqual({ hasta: ultimo });
-      expect(D.textoError(e)).toContain(`solo tiene consumos de este suministro hasta el ${ultimo.split('/').reverse().join('/')}`);
+      expect(D.textoError(e)).toContain(`hasta el ${ultimo.split('/').reverse().join('/')}`);
+      expect(D.textoError(e)).toContain('No sabemos si faltan lecturas');
       expect(D.textoError(e)).toContain('impórtala como archivo CSV');
       // sin consumos previos, el mensaje de siempre
       expect(D.textoError(new D.DatadisError('sindatos'))).toContain('Puede ser un suministro nuevo');
@@ -1407,6 +1408,120 @@ describe('importar (fetch simulado)', () => {
       expect(r.fichero.name).toBe('datadis-12-meses.csv');
       expect(consultasConsumo().length).toBe(1 + 13); // los 14 meses pedidos, salvo el que si llego
     });
+
+    const conFecha = async (y, m, d, fn) => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(y, m - 1, d, 12));
+      try { await fn(); } finally { vi.useRealTimers(); }
+    };
+
+    it.each([401, 429])('home: sin filas en el periodo y sonda HTTP %s, conserva el fallo', async (status) => {
+      await conFecha(2026, 11, 25, async () => {
+        const rango = D.rangoUltimosDias(new Date());
+        const desde = mesAnterior(mesAnterior(rango.iniMes));
+        const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
+        respuestas.consumo = cortada(todas, { mesSuelto: () => json(status, '') });
+        const e = await ejecutar({ conPotencia: false }).catch((x) => x);
+        expect(e).toMatchObject({ code: 'sindatos', detalle: { sinPedir: ['2026/10'] } });
+        const msg = D.textoError(e);
+        expect(msg).toContain('No hemos podido descargar octubre de 2026');
+        expect(msg).not.toContain('solo tiene consumos');
+        expect(msg).not.toContain('Puede ser un suministro nuevo');
+        expect(consultasConsumo()).toHaveLength(2);
+      });
+    });
+
+    it('home: sin filas en el periodo y error explicito de distribuidora en la sonda', async () => {
+      await conFecha(2026, 11, 25, async () => {
+        const rango = D.rangoUltimosDias(new Date());
+        const desde = mesAnterior(mesAnterior(rango.iniMes));
+        const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
+        respuestas.consumo = cortada(todas, { mesSuelto: () => json(200, { timeCurve: [], distributorError: [{ distributorCode: SUM.distributorCode }] }) });
+        const e = await ejecutar({ conPotencia: false }).catch((x) => x);
+        expect(e).toMatchObject({ code: 'sindatos', detalle: { conErrorDistribuidora: ['2026/10'] } });
+        expect(D.textoError(e)).toContain('fallo de tu distribuidora al descargar octubre de 2026');
+        expect(consultasConsumo()).toHaveLength(2);
+      });
+    });
+
+    const rangoSepOct = { iniYmd: '2026/09/30', finYmd: '2026/10/31', iniMes: '2026/09', finMes: '2026/10' };
+    const rangoOct = { ...rangoSepOct, iniYmd: '2026/10/01', iniMes: '2026/10' };
+
+    it.each(['home', 'solar'])('%s: el mes rescatado no puede duplicar un dia ya recibido de otro mes', async (destino) => {
+      await conFecha(2026, 11, 25, async () => {
+        const sep = diaDatadis('2026/09/30');
+        const oct = añoCompleto(rangoOct);
+        // 48 horas consecutivas del mismo dia si se concatena el trozo sin recortarlo.
+        respuestas.consumo = (u) => json(200, { timeCurve: new URL(u).searchParams.get('startDate') === '2026/09' ? sep : [...sep, ...oct] });
+        const r = await ejecutar({ destino, rango: rangoSepOct, conPotencia: false, confirmar: async () => true });
+        expect(consultasConsumo()).toHaveLength(2);
+        if (destino === 'home') expect(r.dias).toBe(32);
+        else expect(r.fichero.name).toBe('datadis-2-meses.csv');
+      });
+    });
+
+    it('home: una lectura negativa del ultimo mes no impide rescatarlo', async () => {
+      await conFecha(2026, 11, 25, async () => {
+        const sep = diaDatadis('2026/09/30');
+        const oct = añoCompleto(rangoOct);
+        respuestas.consumo = (u) => json(200, { timeCurve: new URL(u).searchParams.get('startDate') === '2026/09'
+          ? [...sep, ...diaDatadis('2026/10/01', { kwh: -1 })] : oct });
+        const r = await ejecutar({ rango: rangoSepOct, conPotencia: false });
+        expect(r.dias).toBe(32);
+        expect(consultasConsumo()).toHaveLength(2);
+      });
+    });
+
+    it('cancelar en la sonda y reintentar: comparte descarga e informe de los meses rescatados', async () => {
+      await conFecha(2026, 11, 25, async () => {
+        const sep = diaDatadis('2026/09/30');
+        const oct = añoCompleto(rangoOct);
+        let soltar;
+        const pendiente = new Promise((r) => { soltar = r; });
+        let sonda;
+        const enSonda = new Promise((r) => { sonda = r; });
+        respuestas.consumo = async (u) => {
+          if (new URL(u).searchParams.get('startDate') === '2026/09') return json(200, { timeCurve: sep });
+          sonda();
+          await pendiente;
+          return json(200, { timeCurve: oct });
+        };
+        const ctrl = new AbortController();
+        const primero = ejecutar({ rango: rangoSepOct, conPotencia: false, senal: ctrl.signal });
+        await enSonda;
+        ctrl.abort();
+        const diagnostico = {};
+        let segundoEnConsumos;
+        const enConsumos = new Promise((r) => { segundoEnConsumos = r; });
+        const segundo = ejecutar({ rango: rangoSepOct, conPotencia: false, diagnostico,
+          onProgreso: (p) => { if (p === 'consumos') segundoEnConsumos(); } });
+        await enConsumos;
+        soltar();
+        await expect(primero).rejects.toMatchObject({ code: 'cancelado' });
+        expect((await segundo).dias).toBe(32);
+        expect(consultasConsumo()).toHaveLength(2);
+        expect(diagnostico.mesesFinales).toEqual(['2026/10 745 filas']);
+      });
+    });
+
+    it.each([[2026, 11, 1, '2026/09'], [2026, 11, 8, '2026/10'], [2026, 11, 9, '2026/10'], [2026, 12, 31, '2026/11'], [2026, 1, 1, '2025/11']])(
+      'fecha local %i/%i/%i: sonda %s y sin peticiones con ocho dias de retraso', async (y, m, d, sonda) => {
+        await conFecha(y, m, d, async () => {
+          const rango = D.rangoUltimosDias(new Date());
+          const desde = mesAnterior(mesAnterior(rango.iniMes));
+          const todas = añoCompleto({ ...rango, iniYmd: `${desde}/01` });
+          respuestas.consumo = cortada(todas);
+          expect((await ejecutar({ conPotencia: false })).dias).toBe(365);
+          expect(consultasConsumo()[1]).toBe(`${sonda}-${sonda}`);
+          expect(new Set(consultasConsumo()).size).toBe(consultasConsumo().length);
+          D = cargarModulo();
+          llamadas.length = 0;
+          const hasta = ymd(new Date(y, m - 1, d - 8));
+          respuestas.consumo = () => json(200, { timeCurve: todas.filter((f) => f.date <= hasta) });
+          expect((await ejecutar({ conPotencia: false })).ok).toBe(true);
+          expect(consultasConsumo()).toHaveLength(1);
+        });
+      });
   });
 
   it.each(['home', 'solar'])('%s: el error explícito de un mes no se trata como falta de historial', async (destino) => {

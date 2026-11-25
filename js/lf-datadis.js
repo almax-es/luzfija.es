@@ -231,6 +231,22 @@
     return filaUtil(f) && Number.isFinite(numero(f.consumptionKWh));
   }
 
+  function normalizarFechaFila(f) {
+    return f && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
+      ? Object.assign({}, f, { date: f.date.replace(/-/g, '/') }) : f;
+  }
+
+  // Para decidir si falta un mes, no basta una lectura que el parser descartaria (negativa o
+  // por encima del tope del importador). Sin el parser cargado, el criterio basico.
+  function tieneConsumoImportable(f) {
+    if (!tieneConsumo(f)) return false;
+    const cu = (window.LF && window.LF.csvUtils) || {};
+    const kwh = numero(f.consumptionKWh);
+    const tope = Number.isFinite(cu.MAX_KWH_HORARIOS) ? cu.MAX_KWH_HORARIOS : Infinity;
+    const fechaOk = typeof cu.parseDateFlexible === 'function' ? Boolean(cu.parseDateFlexible(f.date)) : true;
+    return kwh >= 0 && kwh <= tope && fechaOk;
+  }
+
   const UMBRAL_COBERTURA = 0.98;
 
   function mesesDelRango(rango) {
@@ -372,11 +388,15 @@
    * real del 25/11/2026: solo el primer mes de margen), se dice hasta cuando llegan: "no hay
    * consumos" a secas hacia pensar en un fallo de la web.
    */
-  function errorSinDatos(filas, rango) {
+  function errorSinDatos(filas, rango, sinPedir = [], conErrorDistribuidora = []) {
     const err = new DatadisError('sindatos');
     let hasta = '';
-    for (const f of filas) if (tieneConsumo(f) && f.date < rango.iniYmd && f.date > hasta) hasta = f.date;
-    if (hasta) err.detalle = { hasta };
+    for (const f of filas) if (tieneConsumoImportable(f) && f.date < rango.iniYmd && f.date > hasta) hasta = f.date;
+    if (hasta || sinPedir.length || conErrorDistribuidora.length) err.detalle = {
+      ...(hasta ? { hasta } : {}),
+      ...(sinPedir.length ? { sinPedir } : {}),
+      ...(conErrorDistribuidora.length ? { conErrorDistribuidora } : {})
+    };
     return err;
   }
 
@@ -974,8 +994,8 @@
     const descargado = await descarga;
     const mesesSinPedir = descargado.sinPedir || [];
     const mesesConErrorDistribuidora = descargado.conErrorDistribuidora;
-    let filas = descargado.filas.map((f) => (f && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
-      ? Object.assign({}, f, { date: f.date.replace(/-/g, '/') }) : f));
+    let filas = descargado.filas.map(normalizarFechaFila);
+    if (descargado.mesesFinales) diag.mesesFinales = descargado.mesesFinales;
 
     async function descargarConsumos() {
       let filas;
@@ -1071,7 +1091,7 @@
       // Los meses que NO se llegaron a pedir viajan aparte: un hueco por tiempo agotado no es lo
       // mismo que un suministro sin historial (la cobertura omitiria esos meses como "de antes
       // del alta" y el simulador daria un ano mas corto con una explicacion falsa).
-      return { filas, sinPedir: sinPedir.sort(), conErrorDistribuidora: conErrorDistribuidora.sort() };
+      return { filas, sinPedir: sinPedir.sort(), conErrorDistribuidora: conErrorDistribuidora.sort(), mesesFinales: diag.mesesFinales };
 
       /**
        * Respuesta CORTADA por el final (caso real del 25/11/2026, i-DE: se pidieron 15 meses de una
@@ -1079,15 +1099,17 @@
        * el rescate mes a mes no salta, y el ano analizado se quedaba sin datos. Si faltan los
        * ultimos meses y alguno ya deberia estar publicado (acabo hace mas de 7 dias, el mismo margen
        * que el aviso de datos cortados), se pide solo el mas reciente: si trae consumos, la consulta
-       * larga venia incompleta y se piden los demas uno a uno; si llega vacio, el hueco es real y no
-       * se gasta ninguna consulta mas. Nunca empeora lo recibido: un fallo deja lo que habia.
+       * larga venia incompleta y se piden los demas uno a uno; si llega vacio, no se confirma el
+       * corte y no se gasta ninguna consulta mas. Un fallo deja lo que habia.
        */
       async function rescatarMesesFinales(recibidas) {
-        const mesFecha = (f) => (f && typeof f.date === 'string' ? f.date.replace(/-/g, '/').slice(0, 7) : '');
-        const mesConConsumo = (f) => (f && typeof f.date === 'string'
-          && tieneConsumo(Object.assign({}, f, { date: f.date.replace(/-/g, '/') })) ? mesFecha(f) : '');
+        const mesFecha = (f) => (typeof f?.date === 'string' ? normalizarFechaFila(f).date.slice(0, 7) : '');
+        const mesConConsumo = (f) => tieneConsumoImportable(normalizarFechaFila(f)) ? mesFecha(f) : '';
         let ultimo = '';
-        for (const f of recibidas) { const m = mesConConsumo(f); if (m > ultimo) ultimo = m; }
+        for (const f of recibidas) {
+          const m = mesFecha(f);
+          if (m >= rangoPedido.iniMes && m <= rangoPedido.finMes && m > ultimo && mesConConsumo(f) === m) ultimo = m;
+        }
         const hoy = hoyLocal(new Date());
         const publicadoHasta = fmtYmd(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 8));
         const finales = mesesDelRango(rangoPedido).filter((m) => m > ultimo);
@@ -1108,7 +1130,10 @@
           try {
             const trozo = await pedir(mes, mes, Math.min(T_CONSUMO_MES, queda));
             diag.mesesFinales.push(`${mes} ${trozo.length ? `${trozo.length} filas` : 'vacío'}`);
-            if (trozo.some((f) => mesConConsumo(f) === mes)) rescatados.set(mes, trozo);
+            // No mezclar filas de otros meses con la curva que ya llego: hasta una
+            // repeticion de 24 h puede hacer que se rechace un mes que antes era valido.
+            const delMes = trozo.filter((f) => mesFecha(f) === mes);
+            if (delMes.some((f) => mesConConsumo(f) === mes)) rescatados.set(mes, delMes);
             return true;
           } catch (e) {
             diag.mesesFinales.push(`${mes} ${(e && e.code) || 'error'}${e && e.status ? ` ${e.status}` : ''}`);
@@ -1128,7 +1153,7 @@
           const resto = finales.filter((m) => m !== sonda).reverse();
           for (let i = 0; i < resto.length; i++) {
             if (await pedirMes(resto[i])) continue;
-            // Cortado a medias: lo que falta existe (la sonda lo demuestra) pero no se ha descargado.
+            // La sonda confirma que la consulta larga era incompleta, no que cada mes tenga datos.
             for (const m of resto.slice(i + 1)) {
               sinPedir.push(m);
               diag.mesesFinales.push(`${m} sin pedir`);
@@ -1187,8 +1212,8 @@
       const sinPedirSolar = mesesSinPedir.filter((m) => m >= rangoSolar.iniMes && m <= rangoSolar.finMes);
       if (sinPedirSolar.length) {
         const err = new DatadisError('solar');
-        err.detalle = `No hemos podido descargar ${listaMeses(sinPedirSolar)}: Datadis ha tardado demasiado en responder o no deja repetir hoy esa consulta. ` +
-          'No simulamos un año incompleto por un retraso de Datadis. Prueba mañana (Datadis no deja repetir hoy las mismas consultas) o descarga el CSV desde Datadis y usa «Seleccionar archivo CSV».';
+        err.detalle = `No hemos podido descargar ${listaMeses(sinPedirSolar)}: ha fallado la descarga, se ha agotado el tiempo de espera o Datadis no deja repetir hoy esa consulta. ` +
+          'No simulamos un año incompleto por un retraso de Datadis o un fallo de descarga. Prueba mañana (Datadis no deja repetir hoy las mismas consultas) o descarga el CSV desde Datadis y usa «Seleccionar archivo CSV».';
         throw err;
       }
       // 1) Consumo: contra las horas que DEBERIAN llegar, no contra las que llegan.
@@ -1235,8 +1260,10 @@
     comprobarCurvaDelPeriodo(mesesAfectados, rango);
     const ev = evaluarExcedentes(filas, rango);
 
+    const sinPedirHome = mesesSinPedir.filter((m) => m >= rango.iniMes && m <= rango.finMes);
+    const mesesConFallo = mesesConErrorDistribuidora.filter((m) => m >= rango.iniMes && m <= rango.finMes);
     const { csv, filasUsadas } = construirCsv(filas, rango);
-    if (!filasUsadas) throw errorSinDatos(filas, rango);
+    if (!filasUsadas) throw errorSinDatos(filas, rango, sinPedirHome, mesesConFallo);
 
     const procesar = window.LF.procesarCSVConsumos;
     const fichero = new File([csv], 'datadis.csv', { type: 'text/csv' });
@@ -1296,8 +1323,6 @@
     // DENTRO de lo recibido, asi que se dice aqui. 7 dias de margen: hay distribuidoras que
     // publican con unos dias de retraso y eso no merece aviso.
     const conConsumo = [...horasPorDia.keys()].sort();
-    const sinPedirHome = mesesSinPedir.filter((m) => m >= rango.iniMes && m <= rango.finMes);
-    const mesesConFallo = mesesConErrorDistribuidora.filter((m) => m >= rango.iniMes && m <= rango.finMes);
     if (conConsumo.length && !sinPedirHome.length && !mesesConFallo.length) {
       const dias = (a, b) => Math.round((new Date(b.replace(/\//g, '-')) - new Date(a.replace(/\//g, '-'))) / 86400000);
       const primero = conConsumo[0];
@@ -1308,7 +1333,7 @@
       }
     }
     if (sinPedirHome.length) {
-      resultado.warnings.push(`No hemos podido descargar ${listaMeses(sinPedirHome)} (Datadis ha tardado demasiado en responder o no deja repetir hoy esa consulta): esos días faltan en el análisis, no es que no tengas consumo. Si necesitas el periodo completo, prueba mañana o usa el CSV descargado desde Datadis.`);
+      resultado.warnings.push(`No hemos podido descargar ${listaMeses(sinPedirHome)} (fallo de descarga, tiempo de espera agotado o límite de consultas de Datadis): esos días faltan en el análisis, no es que no tengas consumo. Si necesitas el periodo completo, prueba mañana o usa el CSV descargado desde Datadis.`);
     }
     if (mesesConFallo.length) {
       resultado.warnings.push(`Datadis ha indicado un fallo de tu distribuidora al descargar ${listaMeses(mesesConFallo)}. El cálculo no incluye los días que faltan.`);
@@ -1677,13 +1702,17 @@
           `${d.descripcion ? `: «${d.descripcion}»` : ''}. Es un fallo de la distribuidora, no de tu cuenta ni de tu contraseña, y suele ser temporal. ` +
           'Prueba más tarde (si vuelve a fallar, mañana: Datadis puede contar la consulta) o usa el CSV descargado desde Datadis.';
       }
-      case 'sindatos':
-        if (err.detalle && err.detalle.hasta) {
-          return `Datadis solo tiene consumos de este suministro hasta el ${fechaEs(err.detalle.hasta)}, antes del periodo que analizamos. ` +
-            'Si cambiaste de titular o de contador en esas fechas, es lo esperado. Si no, tu distribuidora no está enviando tus lecturas a Datadis: ' +
-            'descarga la curva horaria desde el área de clientes de tu distribuidora e impórtala como archivo CSV.';
+      case 'sindatos': {
+        const d = err.detalle || {};
+        if (d.hasta || d.sinPedir?.length || d.conErrorDistribuidora?.length) {
+          const previo = d.hasta ? `Datadis ha devuelto consumos anteriores al periodo elegido, hasta el ${fechaEs(d.hasta)}. ` : '';
+          const fallo = d.sinPedir?.length ? `No hemos podido descargar ${listaMeses(d.sinPedir)}. ` : '';
+          const distribuidora = d.conErrorDistribuidora?.length ? `Datadis ha indicado un fallo de tu distribuidora al descargar ${listaMeses(d.conErrorDistribuidora)}. ` : '';
+          return previo + fallo + distribuidora + 'No hemos recibido consumos suficientes para importar ese periodo. ' +
+            'No sabemos si faltan lecturas o si Datadis no ha podido enviarlas. Descarga la curva horaria desde el área de clientes de tu distribuidora e impórtala como archivo CSV.';
         }
         return 'Datadis no ha devuelto consumos para ese periodo. Puede ser un suministro nuevo o dado de baja, un periodo fuera de tu contrato o un retraso de tu distribuidora.';
+      }
       case 'curva-invalida':
         return `Datadis ha devuelto varios bloques de 24 horas con la misma fecha en ${listaMeses(err.detalle)}. No podemos usar esa curva para calcular. ` +
           'Descarga la curva horaria desde tu distribuidora y comprueba que las fechas avanzan.';
