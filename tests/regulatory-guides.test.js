@@ -178,4 +178,30 @@ describe('Guide regulatory guardrails', () => {
     }
     expect(readGuideText('guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html')).not.toContain('La potencia se ajusta en tramos de 0,1 kW');
   });
+  // RD 88/2026 arts. 39.3, 39.6, 38.7, 18.3 y 28.3; RD 1955/2000 art. 103.2.C.
+  it('preserves the moving guide conditions and distinguishes optional charges', () => {
+    const guide = readGuideText('guias/mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html');
+    expect(guide).toContain('contrato de baja tensión tiene más de 20 años y no cambias las condiciones técnicas ni la modalidad de contratación del peaje de acceso');
+    expect(guide).toContain('debe verificar la instalación y puede cobrar los derechos de verificación');
+    expect(guide).toContain('estás al corriente de tus propios pagos, debes formalizar el cambio a tu nombre sin más trámites');
+    expect(guide).toContain('no hay tasa por el cambio, sin perjuicio de una posible penalización');
+    expect(guide).toContain('plazo máximo de 5 días hábiles desde la firma del contrato de suministro');
+    expect(guide).toContain('La solicitud de un nuevo contrato por el ocupante con justo título resuelve automáticamente el contrato de suministro anterior');
+    expect(guide).toContain('En el contrato de acceso, la resolución es automática si no existe deuda contraída');
+    expect(guide).toContain('solo cabe penalización por rescisión anticipada en un contrato a precio fijo antes de su primera prórroga anual y si la rescisión causa daños');
+    expect(guide).not.toContain('puede tener coste (pero no suele ser necesario)');
+    expect(guide).not.toContain('al mudarte heredas la tarifa');
+  });
+
+  it('does not suggest a fee for repeated access to consumption data', () => {
+    const guide = readGuideText('guias/lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html');
+    expect(guide).toContain('Puedes acceder gratuitamente a tus datos de consumo');
+    expect(guide).not.toContain('puede tener coste si pides muchas');
+  });
+
+  it('does not assert an unpublished tax criterion for retrofit batteries', () => {
+    const guide = readGuideText('guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html');
+    expect(guide).toContain('no regula expresamente la incorporación posterior de una batería a placas ya instaladas en años anteriores');
+    expect(guide).not.toContain('Hacienda no ha publicado criterio');
+  });
 });
