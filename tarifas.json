@@ -92,6 +92,26 @@
       "maxConsumoAnual": 4000.0
     },
     {
+      "nombre": "Lucera Luz a precio fijo",
+      "cPunta": 0.125,
+      "cLlano": 0.125,
+      "cValle": 0.125,
+      "p1": 0.088,
+      "p2": 0.088,
+      "web": "https://lucera.es/tarifas-luz/precio-fijo",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "OCU Tarifa 24 horas",
       "cPunta": 0.126,
       "cLlano": 0.126,
@@ -2566,5 +2586,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-11-24T09:09:38.052Z"
+  "updatedAt": "2026-11-25T09:18:18.962Z"
 }

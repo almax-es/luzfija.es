@@ -31,7 +31,7 @@ LuzFija.es es un proyecto `source-available`: el código está publicado para tr
 
 Las versiones anteriores del repositorio pudieron publicarse bajo otros términos. Esta licencia aplica desde la versión que introduce este cambio en adelante, sin revocar permisos concedidos válidamente para versiones previas.
 
-## Estado Actual (2026-11-24)
+## Estado Actual (2026-11-25)
 
 - 39 paginas HTML publicas:
   - 11 en raiz.
@@ -40,7 +40,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 1 en otras rutas de compatibilidad.
 - 45 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 39.742 lineas JS aproximadas.
-- 123 tarifas en `tarifas.json`.
+- 124 tarifas en `tarifas.json`.
 - Suite de tests Vitest con 157 archivos y 3015 casos.
 
 ## Que Incluye La Web (Inventario Completo)
