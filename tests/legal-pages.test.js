@@ -49,6 +49,14 @@ function getExpectedDate(relPath) {
 }
 
 describe('Legal pages', () => {
+  it('enlaza la política de privacidad y el aviso legal en el pie del observatorio', () => {
+    const html = fs.readFileSync(path.join(REPO_ROOT, 'estadisticas/index.html'), 'utf8');
+    const dom = new JSDOM(html);
+    const footer = dom.window.document.querySelector('footer.obs-footer');
+    expect(footer?.querySelector('a[href="/privacidad.html"]')?.textContent).toBe('Política de privacidad');
+    expect(footer.querySelector('a[href="/aviso-legal.html"]')?.textContent).toBe('Aviso legal');
+  });
+
   it('keeps privacy accordion sections flat and top-level', () => {
     const html = fs.readFileSync(PRIVACY_ABS_PATH, 'utf8');
     const dom = new JSDOM(html);

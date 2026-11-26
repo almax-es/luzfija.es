@@ -343,6 +343,13 @@ describe('showImportError (UI)', () => {
     expect(panel.textContent).toContain('<img src=x');
   });
 
+  it.each(['home', 'solar', 'estadisticas'])('enlaza la política de privacidad en el informe de %s', (context) => {
+    const panel = mostrar({ context });
+    const link = panel.querySelector('.lf-csv-report__ask a[href="/privacidad.html"]');
+    expect(link?.textContent).toBe('política de privacidad');
+    expect(link.target).toBe('_blank');
+  });
+
   it('no deja enviar sin elegir el origen y luego arma el correo con origen y muestra anonimizada', async () => {
     const panel = mostrar();
     const send = panel.querySelector('.lf-csv-report__send');

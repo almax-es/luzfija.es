@@ -677,6 +677,18 @@
       const copyBtn = el('button', { type: 'button', className: 'btn lf-csv-report__copy', text: '📋 Copiar texto' });
       const laterBtn = el('button', { type: 'button', className: 'btn lf-csv-report__later', text: 'Ahora no' });
       const status = el('p', { className: 'lf-csv-report__status', role: 'status', 'aria-live': 'polite' });
+      box.appendChild(el('p', { className: 'lf-csv-report__fine' }, [
+        document.createTextNode('Lo que nos envíes se trata según nuestra '),
+        el('a', {
+          href: '/privacidad.html',
+          className: 'u-link-accent',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          'aria-label': 'política de privacidad (se abre en otra pestaña)',
+          text: 'política de privacidad'
+        }),
+        document.createTextNode('.')
+      ]));
       box.appendChild(el('div', { className: 'lf-csv-report__actions' }, [sendLink, copyBtn, laterBtn]));
       box.appendChild(status);
       box.appendChild(el('p', {

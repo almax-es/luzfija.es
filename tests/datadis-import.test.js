@@ -1704,6 +1704,28 @@ describe('importar (fetch simulado)', () => {
     expect(new URL(consumo.url).searchParams.get('distributorCode')).toBe('3');
   });
 
+  it('enlaza la política de privacidad en el informe de Datadis', async () => {
+    respuestas.supplies = () => json(200, []);
+    const dom = new JSDOM('<button id="btnImportarDatadis">Datadis</button>');
+    const w = dom.window;
+    w.LF = { procesarCSVConsumos: global.window.LF.procesarCSVConsumos, mostrarPreviewCSV: vi.fn() };
+    try {
+      new Function('window', 'document', sourceDatadis)(w, w.document);
+      w.LF.initDatadisImport();
+      w.document.getElementById('btnImportarDatadis').click();
+      w.document.getElementById('lfDdNif').value = '12345678Z';
+      w.document.getElementById('lfDdClave').value = CLAVE;
+      w.document.getElementById('lfDdForm').dispatchEvent(new w.Event('submit', { cancelable: true }));
+      await vi.waitFor(() => expect(w.document.getElementById('lfDdInformeEnviar')).not.toBeNull());
+      const report = w.document.getElementById('lfDdInformeEnviar').closest('.lf-dd-informe');
+      const link = report.querySelector('a[href="/privacidad.html"]');
+      expect(link?.textContent).toBe('política de privacidad');
+      expect(link.target).toBe('_blank');
+    } finally {
+      w.close();
+    }
+  });
+
   it.each(['2', '5'])('el modal elige la segunda fila aunque el CUPS sea idéntico (distribuidora %s)', async (distributorCode) => {
     const otro = { ...SUM, distributorCode, pointType: 1, address: 'Segunda dirección' };
     respuestas.supplies = () => json(200, [SUM, otro]);

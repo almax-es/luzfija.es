@@ -1877,6 +1877,7 @@
             <summary>Revisa el informe (puedes editarlo)</summary>
             <textarea id="lfDdInforme" class="lf-dd-informe-texto" rows="8" spellcheck="false" aria-label="Informe que se enviará"></textarea>
           </details>
+          <p class="lf-dd-informe-nota">Lo que nos envíes se trata según nuestra <a href="/privacidad.html" target="_blank" rel="noopener noreferrer" aria-label="política de privacidad (se abre en otra pestaña)">política de privacidad</a>.</p>
           <div class="lf-dd-actions">
             <a id="lfDdInformeEnviar" class="btn lf-dd-informe-enviar" href="mailto:${INFORME_EMAIL}"><span>📧 Enviar a ${INFORME_EMAIL}</span></a>
             <button id="lfDdInformeCopiar" class="btn" type="button"><span>📋 Copiar texto</span></button>
