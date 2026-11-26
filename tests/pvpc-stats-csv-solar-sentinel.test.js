@@ -31,6 +31,11 @@ const FILAS = [
   ['01/04/2026', '2', '0,6', '0,3']
 ];
 
+const DATADIS_MENSUAL = [
+  ['CUPS', 'Fecha', 'Valle', 'Llano', 'Punta', 'Energia_vertida_kWh', 'Energia_generada_kWh', 'Energia_autoconsumida_kWh', 'Consumo_Anual'],
+  ['ES1', '2025/03', '1', '2', '3', '120', '120', '0', '']
+];
+
 describe('Observatorio: centinela solar en la ruta XLSX', () => {
   let parseCsvOrXlsx;
 
@@ -40,6 +45,15 @@ describe('Observatorio: centinela solar en la ruta XLSX', () => {
   });
 
   afterEach(() => { delete global.XLSX; });
+
+  it.each(['csv', 'xlsx'])('pide una curva horaria en vez de valorar un mensual Datadis (%s)', async (ext) => {
+    if (ext === 'xlsx') mockXLSX(DATADIS_MENSUAL);
+    const file = ext === 'xlsx' ? fakeXlsxFile() : {
+      name: 'datadis.csv',
+      text: async () => DATADIS_MENSUAL.map(fila => fila.join(';')).join('\n')
+    };
+    await expect(parseCsvOrXlsx(file)).rejects.toThrow(/totales mensuales.*curva horaria/i);
+  });
 
   it('acepta la columna que SI resuelve el parser alternativo', async () => {
     mockXLSX([['Fecha', 'Hora', 'Consumo (kWh)', 'Energía exportada total (kWh)'], ...FILAS]);

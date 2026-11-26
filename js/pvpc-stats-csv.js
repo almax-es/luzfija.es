@@ -84,6 +84,14 @@
     throw new Error(`El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es ${MAX_CSV_FILE_SIZE_MB} MB.`);
   }
 
+  function requireHourlyCurve(parsed) {
+    if (parsed.isDatadisMonthly) {
+      throw new Error('El archivo está agregado por periodo tarifario y contiene totales mensuales. ' +
+        'Para valorar los excedentes, importa una curva horaria de energía vertida.');
+    }
+    return parsed;
+  }
+
   async function parseCsvOrXlsx(file, zonaFiscal = 'Península') {
     assertCsvFileSize(file);
     const csvUtils = window.LF?.csvUtils;
@@ -94,7 +102,7 @@
       const content = await file.text();
       const { parseCSVToRows, parseEnergyTableRows, parseNumberFlexibleCSV } = csvUtils;
       const { rows, separator, headerRowIndex } = parseCSVToRows(content);
-      return parseEnergyTableRows(rows, {
+      return requireHourlyCurve(parseEnergyTableRows(rows, {
         parseNumber: parseNumberFlexibleCSV,
         separator,
         headerRowIndex,
@@ -103,7 +111,7 @@
         // alternativo, asi que una columna de excedentes sin reconocer debe fallar en vez
         // de agregar ceros. En la rama XLSX si hay fallback y alli la politica es 'warn'.
         unmappedSolarPolicy: 'error'
-      });
+      }));
     }
 
     if (ext === 'xlsx' || ext === 'xls') {
@@ -133,7 +141,7 @@
       const headerRowIndexRaw = guessEnergyHeaderRow ? guessEnergyHeaderRow(data) : 0;
       const headerRowIndex = headerRowIndexRaw >= 0 ? headerRowIndexRaw : 0;
       assertRelevantXlsxFormulasResolved(sheet, data, headerRowIndex);
-      const parsed = parseEnergyTableRows(data, {
+      const parsed = requireHourlyCurve(parseEnergyTableRows(data, {
         parseNumber: parseNumberFlexible,
         headerRowIndex,
         zonaFiscal,
@@ -145,7 +153,7 @@
         // normalización 0-23/DST/unidades/duplicados. Resolverlo dentro del parser común
         // conserva la semántica de excedente bruto y reutiliza todas las garantías canónicas.
         mapSafeFallbackSolarExport: true
-      });
+      }));
       const records = Array.isArray(parsed?.records) ? parsed.records : [];
       const hasExcedentes = records.some(r => Number.isFinite(r?.excedente) && r.excedente > 0);
 

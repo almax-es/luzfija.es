@@ -35,7 +35,7 @@ describe('Guide regulatory guardrails', () => {
     expect(facturaGuide).toContain('subió un 11,4%, por debajo del 15%, así que en noviembre siguen el IVA del 21%');
     expect(facturaGuide).toContain('subió un 11,1%, también por debajo del 15%, así que en diciembre siguen el IVA del 21%');
     expect(facturaGuide).toContain('En octubre, noviembre y diciembre de 2026 es del 5,11269632%');
-    expect(facturaGuide).toContain('21% de agosto a diciembre de 2026)');
+    expect(facturaGuide).toContain('De agosto a diciembre de 2026, el tipo es del 21%.');
     expect(facturaGuide).not.toContain('Diciembre depende del IPC de octubre');
     expect(facturaGuide).not.toContain('en diciembre solo bajaría al 0,5%');
     expect(facturaGuide).not.toContain('21% de agosto a noviembre de 2026; en diciembre');

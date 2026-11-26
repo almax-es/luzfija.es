@@ -223,6 +223,10 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   reconocida, una columna auxiliar de generacion/produccion no se considera otra medida
   de exportacion (caso Datadis `vertida + generada + autoconsumida`); sí se bloquean
   medidas alternativas de vertido que pudieran estar ocultando los valores reales.
+- El resumen mensual de Datadis admite un solo suministro y rechaza meses y cabeceras
+  de datos duplicados. Importa meses cerrados con valores en Valle, Llano y Punta.
+  Avisa de los meses omitidos o sin fila y excluye sus días, consumo, excedentes
+  y cargos diarios. El simulador solar también exige meses consecutivos.
 - Matriz horaria `Fecha` + `H01..H24` implementada una sola vez y compartida con el
   simulador solar. Politica de celdas: vacia o marcador conocido -> 0 con aviso
   (conserva la hora); texto, negativo o >10.000 kWh -> se descarta esa hora con
@@ -447,7 +451,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   va en hora local de la zona y `data/surplus/{geo}` se guarda en ese mismo reloj.
 
 - Seccion visible cuando el tipo seleccionado es `surplus`.
-- Importa CSV/XLSX local del usuario.
+- Importa curvas horarias de excedentes desde CSV/XLSX locales. Los resúmenes
+  mensuales se rechazan porque falta la hora a la que corresponde cada vertido.
 - Calcula:
 - Excedentes anuales (kWh).
 - Compensacion anual estimada (EUR).
@@ -600,7 +605,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 39.864.
+- Lineas JS aproximadas: 39.973.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (124 tarifas).
@@ -701,7 +706,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 157 archivos de test (`tests/*.test.js`).
-- 3042 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 3062 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

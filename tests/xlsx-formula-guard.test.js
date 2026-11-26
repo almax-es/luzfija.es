@@ -130,6 +130,15 @@ describe('XLSX: fórmulas sin valor cacheado en columnas relevantes', () => {
 
     expect(() => guard(sheet, rows, 0)).toThrow(/fórmula sin resultado calculado/i);
   });
+
+  it.each(['CUPS', 'AS_kWh'])('protege %s cuando el mensual de Datadis lo trae en una fórmula sin caché', (columna) => {
+    const rows = [[
+      'Fecha', 'Valle', 'Llano', 'Punta', 'Energia_vertida_kWh',
+      'Energia_generada_kWh', 'Energia_autoconsumida_kWh', columna
+    ], ['2025/01', '1', '2', '3']];
+    const sheet = { H2: { t: 'e', f: '1+1' } };
+    expect(() => guard(sheet, rows, 0)).toThrow(/fórmula sin resultado calculado/i);
+  });
 });
 
 describe('XLSX: el guard está cableado en los tres importadores productivos', () => {

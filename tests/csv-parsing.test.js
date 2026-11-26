@@ -590,6 +590,64 @@ function makeDatadisCSV12Months() {
   return lines.join('\n');
 }
 
+describe('Importación de Datadis mensual con huecos', () => {
+  it('importa la parte visible de la muestra y cobra días solo de los meses con los tres tramos', async () => {
+    const csvContent = [
+      DATADIS_HEADER,
+      'ES001;2026/01;;;;;;;;',
+      'ES001;2026/02;;;;;;;;',
+      'ES001;2026/03;5,7299999999999995;0,725;0,685;;;;;',
+      'ES001;2026/04;;;;;;;;',
+      'ES001;2026/05;13,032;0,618;0,852;;;;;',
+      'ES001;2026/06;1,6440000000000001;;;;;;;',
+      'ES001;2026/07;56,195;21,514;10,471;;;;;',
+      'ES001;2026/08;50,379;16,212;10,674;;;;;'
+    ].join('\n');
+    const file = new File([csvContent], 'datadis.csv', { type: 'text/csv' });
+    const resultado = await window.LF.procesarCSVConsumos(file);
+
+    expect(resultado).toMatchObject({
+      ok: true,
+      dias: 124,
+      spanStartYmd: '2026-03-01',
+      spanEndYmd: '2026-08-31',
+      isDatadisMonthly: true,
+      consumosHorarios: null,
+      tieneExcedentes: false
+    });
+    expect(resultado.valle).toBe('125,34');
+    expect(resultado.llano).toBe('39,07');
+    expect(resultado.punta).toBe('22,68');
+    expect(resultado.warnings).toEqual(expect.arrayContaining([
+      expect.stringMatching(/enero, febrero, abril y junio de 2026/),
+      window.LF.csvUtils.AVISO_VERTIDO_COLUMNA_VACIA
+    ]));
+
+    window.LF.mostrarPreviewCSV(resultado);
+    try {
+      const modal = document.querySelector('[aria-labelledby="lfCsvPreviewTitle"]');
+      expect(modal.textContent).toContain('124 días (CSV)');
+      expect(modal.textContent).not.toContain('lecturas reales');
+      expect(modal.querySelector('#csvImportNotices').textContent).toContain('enero, febrero, abril y junio de 2026');
+      expect(modal.querySelector('#csvPvpcPeriodo').disabled).toBe(true);
+    } finally {
+      document.getElementById('btnCerrarCSVX')?.click();
+    }
+  });
+
+  it.each(['Vertido_kWh', 'AS_kWh'])('avisa en la home y rechaza en solar si %s contiene vertido alternativo', async (columna) => {
+    const csv = `${DATADIS_HEADER};${columna}\n${datadisRow('2025/03', 1, 2, 3, '', '', '')};120`;
+    const file = new File([csv], 'datadis.csv', { type: 'text/csv' });
+    const home = await window.LF.procesarCSVConsumos(file);
+    expect(home).toMatchObject({ ok: true, totalExcedentes: '0,00' });
+    expect(home.warnings.join(' ')).toMatch(new RegExp(columna, 'i'));
+    expect(home.warnings.join(' ')).toContain('NO se ha usado en el cálculo');
+    expect(home.warnings).not.toContain(window.LF.csvUtils.AVISO_VERTIDO_COLUMNA_VACIA);
+    const solar = await window.BVSim.importFile(file);
+    expect(solar).toMatchObject({ ok: false, error: expect.stringMatching(/parece representar energía solar/i) });
+  });
+});
+
 describe('parseDateFlexible - formato YYYY/MM (Datadis)', () => {
   let csvUtils;
   beforeAll(() => { csvUtils = window.LF.csvUtils; });
@@ -755,6 +813,129 @@ describe('parseEnergyTableRows - Datadis mensual', () => {
   it('Lanza error si Valle/Llano/Punta no son numéricos', () => {
     const rows = makeRows([['ES001', '2025/01', 'N/A', '50', '30', '20', '80', '60', '']]);
     expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/valle/i);
+  });
+
+  it('valida un valor presente aunque falte otro tramo de consumo', () => {
+    const rows = makeRows([['ES001', '2025/01', '', '-1', '20', '', '', '', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/campo "Llano"/);
+  });
+
+  it('distingue los tres ceros explícitos de un mes sin datos de consumo', () => {
+    const rows = makeRows([
+      ['ES001', '2025/01', '', '', '', '', '', '', '100'],
+      ['ES001', '2025/02', '0', '0', '0', '0', '0', '0', '100']
+    ]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.records).toHaveLength(3);
+    expect(result.records.every(r => r.fecha.getMonth() === 1 && r.kwh === 0)).toBe(true);
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toContain('enero de 2025');
+  });
+
+  it('rechaza un mes duplicado aunque una de sus filas venga incompleta', () => {
+    // Fila incompleta con 99 kWh en Valle y 90 de vertido + fila completa del mismo mes:
+    // quedarse en silencio con la segunda cambiaria consumo y excedentes.
+    const rows = makeRows([
+      ['ES001', '2025/03', '99', '', '', '90', '90', '0', ''],
+      ['ES001', '2025/03', '3', '2', '1', '0', '0', '0', '']
+    ]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/mes duplicado.*2025-03/i);
+    const alReves = makeRows([
+      ['ES001', '2025/03', '3', '2', '1', '0', '0', '0', ''],
+      ['ES001', '2025/03', '99', '', '', '90', '90', '0', '']
+    ]);
+    expect(() => csvUtils.parseEnergyTableRows(alReves)).toThrow(/mes duplicado.*2025-03/i);
+  });
+
+  it('el aviso de un mes omitido menciona también sus excedentes', () => {
+    const rows = makeRows([
+      ['ES001', '2025/03', '99', '', '', '90', '90', '0', ''],
+      ['ES001', '2025/04', '3', '2', '1', '0', '0', '0', '']
+    ]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.warnings[0]).toMatch(/marzo de 2025/);
+    expect(result.warnings[0]).toMatch(/si los había, sus excedentes/);
+    expect(result.warnings[0]).toMatch(/Con los tramos vacíos/);
+  });
+
+  it('nombra los meses sin fila entre el primero y el último', () => {
+    const rows = makeRows([
+      ['ES001', '2025/11', '3', '2', '1', '', '', '', ''],
+      ['ES001', '2026/02', '3', '2', '1', '', '', '', '']
+    ]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    const aviso = result.warnings.find(w => w.startsWith('Faltan en el fichero'));
+    expect(aviso).toContain('diciembre de 2025');
+    expect(aviso).toContain('enero de 2026');
+    expect(result.warnings.some(w => /noviembre de 2025|febrero de 2026/.test(w) && w.startsWith('Faltan'))).toBe(false);
+  });
+
+  it('no dice que la columna de vertido está vacía si el vertido venía en un mes omitido', () => {
+    const rows = makeRows([
+      ['ES001', '2025/03', '99', '', '', '90', '90', '0', ''],
+      ['ES001', '2025/04', '3', '2', '1', '', '', '', '']
+    ]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.warnings).not.toContain(csvUtils.AVISO_VERTIDO_COLUMNA_VACIA);
+    expect(result.warnings).toContainEqual(expect.stringMatching(/solo la traen meses que se han omitido/));
+  });
+
+  it('no marca los tramos mensuales como lecturas reales', () => {
+    const rows = makeRows([['ES001', '2025/01', '3', '2', '1', '', '', '', '']]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.records.every(r => r.esReal === null)).toBe(true);
+  });
+
+  it('rechaza cabeceras económicas duplicadas, aunque la primera columna de vertido esté vacía', () => {
+    const rows = makeRows([['ES001', '2025/03', '1', '2', '3', '', '', '', '', '120']]);
+    rows[0].push('Energia_vertida_kWh');
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/energia_vertida_kwh.*ambigua/i);
+  });
+
+  it('rechaza dos CUPS distintos en meses consecutivos sin reproducir sus valores en el error', () => {
+    const rows = makeRows([
+      ['ES001', '2025/03', '1', '2', '3', '', '', '', ''],
+      ['ES002', '2025/04', '4', '5', '6', '', '', '', '']
+    ]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/varios suministros/i);
+    try {
+      csvUtils.parseEnergyTableRows(rows);
+    } catch (error) {
+      expect(error.message).not.toMatch(/ES001|ES002/);
+    }
+  });
+
+  it('usa solo meses cerrados y avisa si el fichero aporta el mes en curso u otro posterior', () => {
+    const rows = makeRows([
+      ['ES001', '2025/10', '1', '2', '3', '', '', '', ''],
+      ['es001', '2025/11', '4', '5', '6', '10', '10', '0', ''],
+      ['ES001', '2026/01', '0', '0', '0', '', '', '', '']
+    ]);
+    const today = new Date(2025, 10, 26);
+    const result = csvUtils.parseEnergyTableRows(rows, { today });
+    expect(result.records).toHaveLength(3);
+    expect(result.records.every(r => r.fecha.getMonth() === 9)).toBe(true);
+    expect(result.warnings).toContainEqual(expect.stringMatching(/aún no han terminado: noviembre de 2025 y enero de 2026/));
+    expect(result.warnings.some(warning => warning.startsWith('Faltan en el fichero'))).toBe(false);
+    expect(() => csvUtils.parseEnergyTableRows([rows[0], rows[2]], { today })).toThrow(/descarga meses completos/i);
+  });
+
+  it('rechaza una fecha con día distinto del primero en un resumen mensual', () => {
+    const rows = makeRows([['ES001', '2025/03/25', '1', '2', '3', '', '', '', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/fecha no reconocida/i);
+  });
+
+  it('falla si ningún mes trae los tres tramos de consumo', () => {
+    const rows = makeRows([['ES001', '2025/01', '10', '', '', '', '', '', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/no se encontraron filas de datos válidas/i);
+  });
+
+  it('no da por hecho un vertido cero en un mes si el fichero sí trae datos solares en otro', () => {
+    const rows = makeRows([
+      ['ES001', '2025/01', '100', '50', '30', '', '', '', ''],
+      ['ES001', '2025/02', '100', '50', '30', '20', '80', '60', '']
+    ]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/enero 2025.*generación solar/i);
   });
 
   it('Lanza error si falta alguna de las tres columnas de generación solar', () => {
