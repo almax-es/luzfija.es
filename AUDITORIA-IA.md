@@ -343,6 +343,7 @@ estes auditando; no hace falta leerlo entero.
 - [Importador De Datadis Y Aviso De Importacion Fallida (Ronda 87, 17/11/2026)](AUDITORIA-REGISTRO.md#datadis-y-aviso-csv-ronda-87-17-11-2026)
 - [Antiincrustacion: `frame-guard.js` Y Pagina De Aviso (Ronda 88, 19/11/2026)](AUDITORIA-REGISTRO.md#antiincrustacion-ronda-88-19-11-2026)
 - [Reserva De Resultados Tras Aplicar Factura, CSV/XLSX O Datadis (Ronda 89, 19/11/2026)](AUDITORIA-REGISTRO.md#cls-tras-importar-ronda-89-19-11-2026)
+- [Datadis Mensual, Avisos De OCR, "Mi Tarifa" Con BV Y Punto Del Toast (Ronda 90, 26/11/2026)](AUDITORIA-REGISTRO.md#datadis-mensual-ocr-mi-tarifa-ronda-90-26-11-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

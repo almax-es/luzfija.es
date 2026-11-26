@@ -1226,7 +1226,8 @@
       body:has(.lf-init-recovery:not([hidden])) .toast{ bottom: calc(126px + env(safe-area-inset-bottom, 0px)); }
     }
     @keyframes pop { from{opacity:0; transform: translateX(-50%) translateY(8px);} to{opacity:1; transform: translateX(-50%) translateY(0px);} }
-    .dot{width:10px; height:10px; border-radius:999px; background: var(--accent);}
+    /* flex-shrink:0: en un toast largo el texto le quitaba el ancho y quedaba en una raya de 2 px. */
+    .dot{width:10px; height:10px; flex-shrink:0; border-radius:999px; background: var(--accent);}
     .dot.ok{background: var(--accent2)}
     .dot.err{background: var(--danger)}
     .scroll-btn{ position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), #15803D) /* el verde claro del final dejaba el blanco en 2,3:1 */; color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: 9998; animation: none; transition: transform .2s ease, box-shadow .2s ease; }

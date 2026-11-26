@@ -8254,3 +8254,54 @@ la version vigente si decide); mutacion que quita la comparacion detectada.
   efecto es un recalculo redundante.
 - `tests/lf-app-tarifas-refresh.test.js` (arranque real y listener real de `online`): los dos casos y el de sin
   version previa. Contra `1239a0b` fallan los dos primeros.
+
+<a id="datadis-mensual-ocr-mi-tarifa-ronda-90-26-11-2026"></a>
+### Datadis Mensual, Avisos De OCR, "Mi Tarifa" Con BV Y Punto Del Toast (Ronda 90, 26/11/2026)
+
+Revisiones de Codex y Gemini sobre los despliegues del 26/11/2026, verificadas por Claude contra el codigo, con
+mutaciones y en Chromium y WebKit. **5 defectos reales, todos corregidos.** Impacto: el 1 podia cambiar los
+importes (cargos diarios de un mes aun abierto); el 4 dejaba "Mi tarifa" fuera de la comparacion sin avisar; el 2,
+el 3 y el 5 eran de texto o presentacion, sin efecto en el calculo.
+
+**Corregido:**
+- **1. Cierre del mes con la zona horaria del navegador (Datadis mensual y UFD mensual).** `parseDatadisMonthlyRows`
+  y `parseMonthlyPeriodColumnsRows` decidian el mes en curso con la hora local del navegador. Con el navegador por
+  delante de Espana (Tokio) y al final del mes, un mes aun abierto se daba por cerrado y se cobraba entero (30 dias
+  con Europe/Madrid frente a 61 con Asia/Tokyo). Severidad P3: exige navegador en otra zona, ventana de horas y el
+  mes en curso en el fichero. Ahora `currentMonthKeyForSupply` usa la zona del suministro (`Atlantic/Canary` en
+  Canarias, `Europe/Madrid` en el resto) y, si no se conoce, Canarias: es la mas occidental y nunca da por cerrado
+  un mes abierto en alguna zona espanola (en Peninsula solo puede retrasar el cierre una hora). Tests en
+  `tests/csv-parsing.test.js` y `tests/csv-ufd-mensual.test.js`, validados con TZ Asia/Tokyo y UTC.
+- **2. Aviso de vertido en meses omitidos (Datadis mensual).** "Solo la traen meses que se han omitido" se basaba en
+  cualquiera de las tres columnas solares, asi que generacion o autoconsumo contaban como vertido. Ahora solo cuenta
+  la columna de vertido con un valor finito > 0; con valores sin energia (0, o `1e999`, que JS lee como infinito)
+  el aviso dice que los meses importados no traen datos de vertido; con la columna vacia, el aviso generico.
+- **3. Avisos tras el OCR (`js/factura.js`).** `textContent = 'OCR aplicado. ' + textContent` borraba las negritas
+  y pegaba los avisos sin separacion. Ahora el prefijo se inserta con `prepend()` como texto y dos `<br>` del DOM
+  (sin reserializar HTML). Banco local de 16 facturas igual que produccion; ruta OCR con Tesseract real y un PDF
+  escaneado de 21 paginas. Nota: el aviso de limite de paginas aparece desde 21 paginas, no con 6.
+- **4. "Mi tarifa" del simulador solar con solo "Tiene bateria virtual".** Se omitia en silencio, aunque
+  `hasCustomTarifaData` guarda `bv: true` sin precios (quien vuelve la encuentra marcada). Ahora la casilla cuenta
+  como contenido; sin precios se piden primero los precios (no la cuota) y el aviso termina con "Si no quieres
+  incluirla, desmarca 'Tiene bateria virtual'". Ese consejo solo sale si no hay ningun precio: con un precio a
+  medias, desmarcar no resolveria nada. La cuota se pide despues, con precios completos, y admite un 0 explicito.
+- **5. Punto del toast aplastado (`styles.css`, `.dot`).** Sin `flex-shrink:0`, en un toast largo el punto media
+  2 px de ancho en lugar de 10 (4,6 px incluso a 1280), en home y solar, Chromium y WebKit. Venia de antes; los
+  mensajes nuevos, mas largos, lo hacian visible. Solo existe en los toasts (posicion fija: sin efecto en CLS).
+
+**No se cambia (NO REABRIR con este patron):**
+- **"Las otras casillas de Mi tarifa (indexada, sin SSAA, tope parcial) tambien deberian activar la validacion".**
+  Por si solas no activan la validacion de "Mi tarifa": sin precios, se omite y el ranking sigue. La indexada si
+  se conserva sin precios (va en el escenario manual y vuelve marcada al recargar; comprobado en Chrome), pero no
+  forma parte de `hasCustomTarifaData`, asi que no hay la contradiccion que motivo el arreglo 4 (la casilla de BV
+  si contaba como "Mi tarifa" guardada, con su boton de borrar, mientras el calculo la ignoraba).
+- **Registro inline del SW en paginas editoriales**: ya documentado en este registro.
+
+**Hipotesis abierta, sin evidencia:** el dia 1 o 2 Datadis podria no haber publicado completo el mes recien cerrado
+y su fila mensual vendria incompleta pero se cobraria entera. Solo se reabre con un CSV mensual descargado esos
+dias, contrastado con la curva horaria del mismo periodo.
+
+**QA visual:** 6 anchos (320-1920) x tema web claro/oscuro x tema del sistema claro/oscuro x Chromium y WebKit, sobre
+los avisos de Datadis (home y solar), el bloque de avisos del OCR y los dos toasts de "Mi tarifa". Trampa: con los dos
+motores en paralelo contra un solo `python -m http.server`, algunas cargas dan `ERR_CONNECTION_REFUSED` y la home
+muestra "La calculadora no termino de cargarse"; es el servidor local, no la web.
