@@ -3012,12 +3012,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // La cuota de BV se valida aparte, cuando ya hay precios para comparar la tarifa.
     const miTarifaIds = ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2']
       .concat(miTarifaIndexada ? [] : ['mtExc']);
-    const miTarifaHasContent = miTarifaBVActiva || miTarifaIds.some(function (id) {
+    const miTarifaHasPriceInput = miTarifaIds.some(function (id) {
       return String(document.getElementById(id)?.value || '').trim() !== '';
     });
 
     let miTarifaError = null;
-    if (miTarifaHasContent) {
+    if (miTarifaBVActiva || miTarifaHasPriceInput) {
       const mtFormatMessages = {
         mtPunta: 'Los precios de energía deben ser números válidos.',
         mtLlano: 'Los precios de energía deben ser números válidos.',
@@ -3068,7 +3068,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const customTarifa = miTarifaError ? null : getCustomTarifa();
       if (!miTarifaError && !customTarifa) {
         miTarifaError = "Los datos de 'Mi tarifa actual' están incompletos. Introduce al menos un precio de energía (Punta, Llano o Valle) y uno de potencia (P1 o P2) para incluirla en la comparación.";
-        if (miTarifaBVActiva) {
+        if (miTarifaBVActiva && !miTarifaHasPriceInput) {
           miTarifaError += ' Si no quieres incluirla, desmarca «Tiene batería virtual».';
         }
         // Marcar en rojo los grupos que no tengan ningún campo con contenido

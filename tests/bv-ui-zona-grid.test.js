@@ -2452,6 +2452,19 @@ describe('Simulador solar - "Mi tarifa": precioBV no bloquea el calculo con BV d
     expect(window.BVSim.loadTarifasBV).not.toHaveBeenCalled();
   });
 
+  it('Mi tarifa con BV y un precio parcial no sugiere desmarcar la batería virtual', () => {
+    localStorage.setItem('bv_custom_tarifa', JSON.stringify({ bv: true, p1: '0,08' }));
+    bootSolarUi();
+    editGrid(0, 'p1', '100');
+
+    document.getElementById('bv-simulate').click();
+
+    const aviso = document.getElementById('toastText').textContent;
+    expect(aviso).toContain("Los datos de 'Mi tarifa actual' están incompletos.");
+    expect(aviso).not.toContain('desmarca «Tiene batería virtual»');
+    expect(document.activeElement).toBe(document.getElementById('mtPunta'));
+  });
+
   it('Mi tarifa con precios completos y BV marcada sigue pidiendo la cuota si está vacía', () => {
     bootSolarUi();
     fillMiTarifaValida();
