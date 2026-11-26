@@ -583,6 +583,18 @@
 
   // ===== DATADIS MENSUAL =====
 
+  // Mes en curso en la hora civil del SUMINISTRO, no en la del navegador: con el navegador en
+  // otra zona (de viaje, mal configurado), al acabar el mes un resumen aun abierto en Espana se
+  // daba por cerrado y se cobraba entero (30 dias con Europe/Madrid frente a 61 con Asia/Tokyo,
+  // revision de Codex del 26/11/2026). Sin zona conocida se usa Canarias, la mas occidental:
+  // nunca da por cerrado un mes que siga abierto en alguna zona espanola.
+  function currentMonthKeyForSupply(today, zonaFiscal) {
+    const zona = zonaFiscal ||
+      (typeof window !== 'undefined' && window.LF?.getInputValues?.()?.zonaFiscal) || '';
+    const timeZone = !zona || isCanariasFiscalZone(zona) ? 'Atlantic/Canary' : 'Europe/Madrid';
+    return formatYmdInTimeZone(today.getTime() / 1000, timeZone).slice(0, 7);
+  }
+
   function isDatadisMonthlyFormat(headersNorm) {
     const set = new Set(headersNorm);
     return set.has('fecha')
@@ -596,7 +608,7 @@
     const parseNumber = options.parseNumber || parseNumberFlexible;
     const r2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
     const today = options.today instanceof Date && !isNaN(options.today.getTime()) ? options.today : new Date();
-    const currentMonthKey = ymdLocal(today).slice(0, 7);
+    const currentMonthKey = currentMonthKeyForSupply(today, options.zonaFiscal);
 
     const headerRow = rows[headerRowIndex];
     const headersNorm = normalizeHeaders(headerRow);
@@ -797,12 +809,16 @@
         'Sus datos y sus cargos diarios quedan fuera del cálculo.');
     }
     if (!tieneDatosSolares && !columnasSolaresAlternativas.length) {
-      // Si el vertido solo venía en meses omitidos, la columna no está vacía: decirlo así.
-      const vertidoSoloEnOmitidos = dataRows.some(row => Array.isArray(row) &&
-        indicesSolar.some(idx => stripOuterQuotes(row[idx]) !== ''));
-      warnings.push(vertidoSoloEnOmitidos
+      // Si la columna de vertido trae algo en meses omitidos, no está vacía: decirlo así.
+      // Generación o autoconsumo no son vertido, y un 0 explícito no es energía vertida.
+      const vertidoEnOmitidos = dataRows
+        .filter(row => Array.isArray(row) && stripOuterQuotes(row[vertidaIdx]) !== '')
+        .map(row => parseNumber(row[vertidaIdx]));
+      warnings.push(vertidoEnOmitidos.some(kwh => kwh > 0)
         ? 'Los meses que se importan no traen energía vertida; solo la traen meses que se han omitido. El resultado no incluye su compensación.'
-        : AVISO_VERTIDO_COLUMNA_VACIA);
+        : vertidoEnOmitidos.length > 0
+          ? 'Los meses que se importan no traen datos de energía vertida. El resultado no incluye su compensación.'
+          : AVISO_VERTIDO_COLUMNA_VACIA);
     }
 
     return {
@@ -852,7 +868,7 @@
     const parseNumber = options.parseNumber || parseNumberFlexible;
     const r2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
     const today = options.today instanceof Date && !isNaN(options.today.getTime()) ? options.today : new Date();
-    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthKey = currentMonthKeyForSupply(today, options.zonaFiscal);
 
     const headersNorm = normalizeHeaders(rows[headerRowIndex]);
     const fail = (message) => { throw buildHeaderError(message, headersNorm, { separator }); };

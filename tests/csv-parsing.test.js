@@ -880,6 +880,53 @@ describe('parseEnergyTableRows - Datadis mensual', () => {
     expect(result.warnings).toContainEqual(expect.stringMatching(/solo la traen meses que se han omitido/));
   });
 
+  it('generación y autoconsumo en un mes omitido no cuentan como vertido', () => {
+    const rows = makeRows([
+      ['ES001', '2025/03', '99', '', '', '', '40', '40', ''],
+      ['ES001', '2025/04', '3', '2', '1', '', '', '', '']
+    ]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.warnings.some(w => /solo la traen meses que se han omitido/.test(w))).toBe(false);
+    expect(result.warnings).toContain(csvUtils.AVISO_VERTIDO_COLUMNA_VACIA);
+  });
+
+  it('un 0 explícito de vertido en un mes omitido no se presenta como columna vacía', () => {
+    const rows = makeRows([
+      ['ES001', '2025/03', '99', '', '', '0', '0', '0', ''],
+      ['ES001', '2025/04', '3', '2', '1', '', '', '', '']
+    ]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.warnings).not.toContain(csvUtils.AVISO_VERTIDO_COLUMNA_VACIA);
+    expect(result.warnings.some(w => /solo la traen meses que se han omitido/.test(w))).toBe(false);
+    expect(result.warnings).toContain('Los meses que se importan no traen datos de energía vertida. El resultado no incluye su compensación.');
+  });
+
+  // Revision de Codex 26/11/2026: el cierre del mes dependia de la zona horaria del navegador.
+  describe('cierre del mes en la hora civil del suministro, no la del navegador', () => {
+    const filas = makeRows([
+      ['ES001', '2026/09', '3', '2', '1', '', '', '', ''],
+      ['ES001', '2026/10', '3', '2', '1', '', '', '', '']
+    ]);
+    const meses = r => [...new Set(r.records.map(x => x.fecha.getMonth() + 1))];
+
+    it('a las 21:00 del 31/10 en Madrid (ya 1/11 en Tokio) octubre sigue abierto', () => {
+      const r = csvUtils.parseEnergyTableRows(filas, { today: new Date('2026-10-31T20:00:00Z'), zonaFiscal: 'Península' });
+      expect(meses(r)).toEqual([9]);
+      expect(r.warnings).toContainEqual(expect.stringMatching(/aún no han terminado: octubre de 2026/));
+    });
+
+    it('a las 00:30 del 1/11 en Madrid octubre ya está cerrado en Península', () => {
+      const r = csvUtils.parseEnergyTableRows(filas, { today: new Date('2026-10-31T23:30:00Z'), zonaFiscal: 'Península' });
+      expect(meses(r)).toEqual([9, 10]);
+    });
+
+    it('en Canarias, y sin zona conocida, a esa hora octubre sigue abierto', () => {
+      const today = new Date('2026-10-31T23:30:00Z');
+      expect(meses(csvUtils.parseEnergyTableRows(filas, { today, zonaFiscal: '8742' }))).toEqual([9]);
+      expect(meses(csvUtils.parseEnergyTableRows(filas, { today }))).toEqual([9]);
+    });
+  });
+
   it('no marca los tramos mensuales como lecturas reales', () => {
     const rows = makeRows([['ES001', '2025/01', '3', '2', '1', '', '', '', '']]);
     const result = csvUtils.parseEnergyTableRows(rows);

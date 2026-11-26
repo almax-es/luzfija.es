@@ -147,3 +147,12 @@ describe('UFD mensual: parser', () => {
       .toThrow(/3\.0TD/);
   });
 });
+
+describe('UFD mensual: cierre del mes en la hora del suministro', () => {
+  it('a las 21:00 del 30/04 en Madrid (ya 1/05 en Tokio) abril sigue abierto', () => {
+    const r = parse(MUESTRA, { today: new Date('2026-04-30T19:00:00Z'), zonaFiscal: 'Península' });
+    expect(r.records.some(x => x.fecha.getMonth() === 3 && x.fecha.getFullYear() === 2026)).toBe(false);
+    const cerrado = parse(MUESTRA, { today: new Date('2026-04-30T22:30:00Z'), zonaFiscal: 'Península' });
+    expect(cerrado.records.some(x => x.fecha.getMonth() === 3 && x.fecha.getFullYear() === 2026)).toBe(true);
+  });
+});
