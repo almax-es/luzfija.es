@@ -3008,14 +3008,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // completa según el modelo flexible del simulador y quedar dentro de rango).
     const miTarifaBVActiva = Boolean(document.getElementById('mtBV')?.checked);
     const miTarifaIndexada = Boolean(document.getElementById('mtCompensacionIndexada')?.checked);
-    // mtPrecioBV no participa en la economia si BV esta desmarcada (getCustomTarifa() pone
-    // precioBV a 0 en ese caso), y mtExc queda oculto e ignorado (fv.exc se fuerza a -1) si
-    // la compensacion es indexada: en ninguno de los dos casos debe su contenido invalido
-    // bloquear el calculo de algo que nunca se va a aplicar.
+    // Si la compensacion es indexada, mtExc queda oculto y el motor usa fv.exc = -1.
+    // La cuota de BV se valida aparte, cuando ya hay precios para comparar la tarifa.
     const miTarifaIds = ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2']
-      .concat(miTarifaIndexada ? [] : ['mtExc'])
-      .concat(miTarifaBVActiva ? ['mtPrecioBV'] : []);
-    const miTarifaHasContent = miTarifaIds.some(function (id) {
+      .concat(miTarifaIndexada ? [] : ['mtExc']);
+    const miTarifaHasContent = miTarifaBVActiva || miTarifaIds.some(function (id) {
       return String(document.getElementById(id)?.value || '').trim() !== '';
     });
 
@@ -3027,8 +3024,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mtValle: 'Los precios de energía deben ser números válidos.',
         mtP1: 'Los precios de potencia deben ser números válidos.',
         mtP2: 'Los precios de potencia deben ser números válidos.',
-        mtExc: 'El precio de compensación debe ser un número válido.',
-        mtPrecioBV: 'La cuota de batería virtual debe ser un número válido.'
+        mtExc: 'El precio de compensación debe ser un número válido.'
       };
       const mtNegativeMessages = {
         mtPunta: 'Los precios de energía no pueden ser negativos.',
@@ -3036,8 +3032,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mtValle: 'Los precios de energía no pueden ser negativos.',
         mtP1: 'Los precios de potencia no pueden ser negativos.',
         mtP2: 'Los precios de potencia no pueden ser negativos.',
-        mtExc: 'El precio de compensación no puede ser negativo.',
-        mtPrecioBV: 'La cuota de batería virtual no puede ser negativa.'
+        mtExc: 'El precio de compensación no puede ser negativo.'
       };
       const mtRangeMessages = {
         mtPunta: 'Los precios de energía parecen muy altos (máximo: 1 €/kWh).',
@@ -3070,21 +3065,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      // Con BV activa, la cuota es obligatoria (puede ser 0): dejarla vacia significaria "BV
-      // gratuita" en silencio, que puede no serlo. Se comprueba aparte porque el resto de
-      // campos de esta lista son opcionales incluso con contenido en otros sitios del formulario.
-      if (!miTarifaError && miTarifaBVActiva) {
-        const precioBVRaw = String(document.getElementById('mtPrecioBV')?.value || '').trim();
-        if (!precioBVRaw) {
-          miTarifaError = 'Indica la cuota mensual de la batería virtual (escribe 0 si es gratuita).';
-          const precioBVEl = document.getElementById('mtPrecioBV');
-          if (precioBVEl) precioBVEl.classList.add('error');
-        }
-      }
-
       const customTarifa = miTarifaError ? null : getCustomTarifa();
       if (!miTarifaError && !customTarifa) {
         miTarifaError = "Los datos de 'Mi tarifa actual' están incompletos. Introduce al menos un precio de energía (Punta, Llano o Valle) y uno de potencia (P1 o P2) para incluirla en la comparación.";
+        if (miTarifaBVActiva) {
+          miTarifaError += ' Si no quieres incluirla, desmarca «Tiene batería virtual».';
+        }
         // Marcar en rojo los grupos que no tengan ningún campo con contenido
         const energyIds = ['mtPunta', 'mtLlano', 'mtValle'];
         const powerIds = ['mtP1', 'mtP2'];
@@ -3105,6 +3091,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById(id);
             if (el) el.classList.add('error');
           });
+        }
+      }
+
+      // Con precios completos y BV activa, la cuota es obligatoria. Un 0 explícito es válido.
+      if (!miTarifaError && miTarifaBVActiva) {
+        const precioBVEl = document.getElementById('mtPrecioBV');
+        const precioBVRaw = String(precioBVEl?.value || '').trim();
+        if (!precioBVRaw) {
+          miTarifaError = 'Indica la cuota mensual de la batería virtual (escribe 0 si es gratuita).';
+          precioBVEl?.classList.add('error');
+        } else if (!validateInputFormat(precioBVEl, MAX_DECIMALES_PRECIO)) {
+          const precioBV = parseInput(precioBVRaw);
+          miTarifaError = Number.isFinite(precioBV) && precioBV < 0
+            ? 'La cuota de batería virtual no puede ser negativa.'
+            : 'La cuota de batería virtual debe ser un número válido.';
         }
       }
     }

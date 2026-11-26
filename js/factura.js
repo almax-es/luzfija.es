@@ -2308,9 +2308,9 @@
           // Mostrar advertencias contextuales + nota de OCR
           __LF_showContextualWarnings(datos);
           __LF_restoreWarningHtml(avisosPreviosConservados);
-          
-          if (avisoOCR && avisoOCR.textContent){
-            avisoOCR.textContent = '🧠 OCR aplicado. ' + avisoOCR.textContent;
+
+          if (avisoOCR?.textContent){
+            avisoOCR.prepend('🧠 OCR aplicado.', document.createElement('br'), document.createElement('br'));
           } else {
             __LF_warn('🧠 OCR aplicado. Revisa con cuidado antes de aplicar.');
           }

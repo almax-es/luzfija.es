@@ -2437,6 +2437,36 @@ describe('Simulador solar - "Mi tarifa": precioBV no bloquea el calculo con BV d
     expect(document.getElementById('toastText').textContent).toContain('cuota de batería virtual');
   });
 
+  it.each(['', 'abc'])('Mi tarifa con BV guardada y sin precios pide primero los precios (cuota %j)', (precioBV) => {
+    localStorage.setItem('bv_custom_tarifa', JSON.stringify({ bv: true, precioBV }));
+    bootSolarUi();
+    editGrid(0, 'p1', '100');
+    expect(document.getElementById('mtBV').checked).toBe(true);
+
+    document.getElementById('bv-simulate').click();
+
+    const aviso = document.getElementById('toastText').textContent;
+    expect(aviso).toContain("Los datos de 'Mi tarifa actual' están incompletos.");
+    expect(aviso).toMatch(/Si no quieres incluirla, desmarca «Tiene batería virtual»\.$/);
+    expect(document.activeElement).toBe(document.getElementById('mtP1'));
+    expect(window.BVSim.loadTarifasBV).not.toHaveBeenCalled();
+  });
+
+  it('Mi tarifa con precios completos y BV marcada sigue pidiendo la cuota si está vacía', () => {
+    bootSolarUi();
+    fillMiTarifaValida();
+    editGrid(0, 'p1', '100');
+
+    const mtBVEl = document.getElementById('mtBV');
+    mtBVEl.checked = true;
+    mtBVEl.dispatchEvent(new window.Event('change'));
+    document.getElementById('bv-simulate').click();
+
+    expect(document.getElementById('toastText')?.textContent).toContain('Indica la cuota mensual de la batería virtual');
+    expect(document.activeElement).toBe(document.getElementById('mtPrecioBV'));
+    expect(window.BVSim.loadTarifasBV).not.toHaveBeenCalled();
+  });
+
   it('Borrar Mi tarifa elimina marcas de error que ya no bloquean ningun dato', () => {
     localStorage.setItem('bv_custom_tarifa', JSON.stringify({
       punta: '0,15', llano: '0,10', valle: '0,05', p1: '0,08', p2: '0,08',

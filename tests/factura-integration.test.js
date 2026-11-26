@@ -1895,9 +1895,9 @@ describe('Factura PDF Integration (Black Box)', () => {
   // Ronda 81: la confianza del parser mide CUANTOS campos se detectaron, no si Tesseract leyo bien cada
   // cifra. Un escaneo con los seis campos daba 100 % y "Aplicar" lanzaba el calculo solo, con una cifra
   // que podia estar mal leida. Los datos del OCR nunca se calculan solos: el usuario pulsa Calcular.
-  it('OCR con los seis campos (100 %) rellena el formulario pero NO calcula solo al aplicar', async () => {
+  it('OCR con los seis campos conserva el formato de los avisos y no calcula solo al aplicar', async () => {
     const ocrText = [
-      'Periodo de facturacion: del 01/01/2026 al 31/01/2026',
+      'Periodo de facturacion: del 01/01/2026 al 10/01/2026',
       'Potencia contratada P1: 3,45 kW',
       'Potencia contratada P2: 3,45 kW',
       'Consumo Punta: 100 kWh',
@@ -1909,7 +1909,7 @@ describe('Factura PDF Integration (Black Box)', () => {
       getViewport: ({ scale = 1 } = {}) => ({ width: 100 * scale, height: 100 * scale }), render: () => ({ promise: Promise.resolve() })
     });
     window.pdfjsLib.getDocument.mockImplementation(() => ({
-      promise: Promise.resolve({ numPages: 1, getPage: () => Promise.resolve(mockPage()), cleanup: () => {} }), destroy: () => Promise.resolve()
+      promise: Promise.resolve({ numPages: 21, getPage: () => Promise.resolve(mockPage()), cleanup: () => {} }), destroy: () => Promise.resolve()
     }));
     const recognize = vi.fn().mockResolvedValue({ data: { text: ocrText } });
     const terminate = vi.fn().mockResolvedValue();
@@ -1929,6 +1929,11 @@ describe('Factura PDF Integration (Black Box)', () => {
     const getVal = (field) => form.querySelector(`.input-validacion[data-field="${field}"] input`)?.value ?? null;
     expect(getVal('consumoPunta')).toBe('100');
     expect(document.getElementById('confianzaBadge').textContent).toContain('100%');
+    const aviso = document.getElementById('avisoFactura');
+    expect(aviso.innerHTML).toContain('🧠 OCR aplicado.<br><br>');
+    expect(aviso.querySelector('b')?.textContent).toBe('10 días');
+    expect(aviso.innerHTML).toContain('<br><br>⚠️ El PDF tiene 21 páginas.');
+    expect(aviso.textContent).not.toContain('No se ha detectado texto seleccionable');
     document.getElementById('btnAplicarFactura').click();
     expect(window.runCalculation).not.toHaveBeenCalled();
     expect(window.setStatus).toHaveBeenCalledWith(expect.stringContaining('OCR'), 'idle');
