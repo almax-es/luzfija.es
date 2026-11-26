@@ -901,6 +901,16 @@ describe('parseEnergyTableRows - Datadis mensual', () => {
     expect(result.warnings).toContain('Los meses que se importan no traen datos de energía vertida. El resultado no incluye su compensación.');
   });
 
+  it('un vertido no finito (1e999) en un mes omitido no cuenta como energía vertida', () => {
+    const rows = makeRows([
+      ['ES001', '2025/03', '99', '', '', '1e999', '', '', ''],
+      ['ES001', '2025/04', '3', '2', '1', '', '', '', '']
+    ]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.warnings.some(w => /solo la traen meses que se han omitido/.test(w))).toBe(false);
+    expect(result.warnings).toContain('Los meses que se importan no traen datos de energía vertida. El resultado no incluye su compensación.');
+  });
+
   // Revision de Codex 26/11/2026: el cierre del mes dependia de la zona horaria del navegador.
   describe('cierre del mes en la hora civil del suministro, no la del navegador', () => {
     const filas = makeRows([

@@ -814,7 +814,7 @@
       const vertidoEnOmitidos = dataRows
         .filter(row => Array.isArray(row) && stripOuterQuotes(row[vertidaIdx]) !== '')
         .map(row => parseNumber(row[vertidaIdx]));
-      warnings.push(vertidoEnOmitidos.some(kwh => kwh > 0)
+      warnings.push(vertidoEnOmitidos.some(kwh => Number.isFinite(kwh) && kwh > 0)
         ? 'Los meses que se importan no traen energía vertida; solo la traen meses que se han omitido. El resultado no incluye su compensación.'
         : vertidoEnOmitidos.length > 0
           ? 'Los meses que se importan no traen datos de energía vertida. El resultado no incluye su compensación.'
