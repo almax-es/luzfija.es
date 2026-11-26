@@ -1517,6 +1517,12 @@ html.light-mode select.input {
   .bv-data-status { min-block-size: 2lh; }
 }
 
+/* --- Barra Exportar / Importar / Borrar ---
+   Sin esto los botones iban en linea con solo el espacio en blanco del HTML entre ellos (3 px)
+   y, hasta 430 px, "Borrar" bajaba a otra fila pegado a "Exportar" (0 px; 26/11/2026). */
+.bv-controls-hint { margin-bottom: 8px; }
+.bv-controls-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+
 /* --- Botones de Control Mejorados --- */
 .bv-control-btn,
 .bv-reset-btn {

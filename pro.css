@@ -66,10 +66,15 @@ body, html{
   max-width: 100%;
 }
 
-/* Modales: prevenir desbordamiento en móvil */
+/* Modales: prevenir desbordamiento en móvil.
+   `dvh` y no solo `vh`: en movil `100vh` mide la pantalla con la barra del navegador
+   escondida. Con la barra visible, el modal (pegado abajo en <= 768 px) era mas alto que lo
+   visible y su parte de arriba, con la X de cerrar, quedaba fuera (Datadis, PVPC; 26/11/2026).
+   Esta regla gana a las de styles.css por ir despues: no quites la linea `dvh`. */
 .modal-content, .desglose-modal{
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
   overflow-y: auto;
 }
 

@@ -254,6 +254,8 @@
   .desglose-modal {
     width: 95%;
     max-height: 95vh;
+    /* Con la barra del navegador visible, 95vh supera lo visible y recorta la cabecera. */
+    max-height: 95dvh;
   }
 
   .desglose-header {
