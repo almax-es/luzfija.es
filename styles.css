@@ -808,7 +808,12 @@
     color: var(--text);
   }
 
-  /* Selector del modal PVPC/Excedentes */
+  /* Modal PVPC/Excedentes */
+  #modalPVPCInfo.is-changing-price-type #pvpcSummary > *,
+  #modalPVPCInfo.is-changing-price-type #pvpcDayControls > *{
+    visibility: hidden;
+    transition-property: none !important;
+  }
   .pvpc-type-select{
     background: var(--card);
     border: 1px solid var(--border);

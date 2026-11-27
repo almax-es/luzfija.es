@@ -306,6 +306,11 @@
       if (window.__LF_DEBUG) console.log('[PVPC] Faltan elementos del modal');
       return;
     }
+    const modalContent = modalPVPCInfo.querySelector('.modal-content');
+    const listaHoras = document.getElementById('modalPVPCHoursList');
+    const zonaPrecios = document.getElementById('pvpcPricesRegion') || listaHoras;
+    const bloquesSuperiores = ['pvpcSummary', 'pvpcDayControls']
+      .map(id => document.getElementById(id)).filter(Boolean);
 
 
       let pvpcHoy = null;
@@ -390,7 +395,15 @@
         });
       }
 
-      function resetModalData() {
+      function liberarAlturaModal() {
+        modalPVPCInfo.classList.remove('is-changing-price-type');
+        if (modalContent) modalContent.style.height = '';
+        if (zonaPrecios) zonaPrecios.style.minHeight = '';
+        for (const bloque of bloquesSuperiores) bloque.style.minHeight = '';
+      }
+
+      function resetModalData({ mantenerAltura = false } = {}) {
+        if (!mantenerAltura) liberarAlturaModal();
         pvpcHoy = null;
         pvpcHoyPendiente = false;
         pvpcManana = null;
@@ -679,7 +692,6 @@
       const forceScrollTop = () => {
         try {
           if (lista) lista.scrollTop = 0;
-          const modalContent = modalPVPCInfo.querySelector('.modal-content');
           if (modalContent) modalContent.scrollTop = 0;
           modalPVPCInfo.scrollTop = 0;
         } catch (_) {}
@@ -722,20 +734,35 @@
 
       if (pvpcTypeSelector) {
         pvpcTypeSelector.addEventListener('change', async () => {
+          // Mantén la caja y el espacio visible de los precios hasta cerrar,
+          // incluso si la respuesta solo trae un aviso de error.
+          if (modalContent && zonaPrecios && !modalContent.style.height) {
+            const altoModal = modalContent.offsetHeight;
+            const altoVisible = modalContent.getBoundingClientRect().bottom - zonaPrecios.getBoundingClientRect().top;
+            const altoReservado = Math.max(0, Math.min(altoVisible + btnCerrarPVPCInfo.offsetHeight, zonaPrecios.offsetHeight));
+            const alturasSuperiores = bloquesSuperiores.map(bloque => bloque.offsetHeight);
+            modalContent.style.height = `${altoModal}px`;
+            zonaPrecios.style.minHeight = `${altoReservado}px`;
+            bloquesSuperiores.forEach((bloque, i) => { bloque.style.minHeight = `${alturasSuperiores[i]}px`; });
+          }
+          modalPVPCInfo.classList.add('is-changing-price-type');
           applyModalType(pvpcTypeSelector.value || 'pvpc');
-          resetModalData();
+          resetModalData({ mantenerAltura: true });
           pvpcCacheKey = null;
-          document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
           const myTypeToken = __pvpcTypeToken;
-          await cargarHoy();
-          await cargarManana();
-          // Otro cambio posterior ya gobierna el modal: que pinte el suyo.
-          if (myTypeToken !== __pvpcTypeToken) return;
-          if (pvpcHoy) {
-            cambiarTab('hoy');
-          } else {
-            // Sin este else la lista se quedaba en "Cargando..." para siempre.
-            document.getElementById('modalPVPCHoursList').innerHTML = mensajeSinPreciosHoy();
+          try {
+            listaHoras.innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
+            await cargarHoy();
+            if (myTypeToken !== __pvpcTypeToken) return;
+            await cargarManana();
+            if (myTypeToken !== __pvpcTypeToken) return;
+            if (pvpcHoy) {
+              cambiarTab('hoy');
+            } else {
+              listaHoras.innerHTML = mensajeSinPreciosHoy();
+            }
+          } finally {
+            if (myTypeToken === __pvpcTypeToken) modalPVPCInfo.classList.remove('is-changing-price-type');
           }
         });
         applyModalType(pvpcTypeSelector.value || 'pvpc');
@@ -811,7 +838,6 @@
 
         // Scroll a arriba
         modalPVPCInfo.scrollTop = 0;
-        const modalContent = modalPVPCInfo.querySelector('.modal-content');
         if (modalContent) modalContent.scrollTop = 0;
 
         // Cargar datos en la siguiente microtarea
@@ -879,6 +905,7 @@
         modalHideTimer = 0;
         if (closeSeq === modalOpenSeq && !modalPVPCInfo.classList.contains('show')) {
           modalPVPCInfo.style.display = 'none';
+          liberarAlturaModal();
         }
       }, modalCloseDelay());
     };

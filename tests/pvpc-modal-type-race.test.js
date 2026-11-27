@@ -237,30 +237,32 @@ describe('Modal Excedentes en Canarias usa la hora canaria del dataset', () => {
 // conservaba en el resumen el precio del PVPC bajo la cabecera de Excedentes y la lista se
 // quedaba en "Cargando..." para siempre.
 describe('Modal: una carga fallida al cambiar de tipo no deja precios del tipo anterior', () => {
-  it('limpia el resumen y muestra el error si Excedentes no carga', async () => {
+  it('limpia el resumen, mantiene la altura durante la carga y muestra el error si Excedentes no carga', async () => {
     document.body.innerHTML = `
       <select id="zonaFiscal"><option value="Península" selected>Península</option></select>
       <button id="btnPVPCInfo">Abrir</button>
       <div id="modalPVPCInfo" aria-hidden="true" style="display:none">
-        <select id="pvpcTypeSelector">
-          <option value="pvpc" selected>PVPC</option>
-          <option value="surplus">Excedentes</option>
-        </select>
-        <span id="modalPVPCTitleText"></span>
-        <span id="modalPVPCTypeIcon"></span>
-        <span id="modalPVPCHeadline"></span>
-        <button id="tabHoy">Hoy</button>
-        <button id="tabManana" style="display:none">Mañana</button>
-        <span id="modalPVPCLabel"></span>
-        <span id="modalPVPCNow"></span>
-        <span id="modalPVPCNowHour"></span>
-        <span id="modalPVPCMin"></span>
-        <span id="modalPVPCMinHour"></span>
-        <span id="modalPVPCMax"></span>
-        <span id="modalPVPCMaxHour"></span>
-        <div id="modalPVPCHoursList"></div>
-        <button id="btnCerrarPVPCX">X</button>
-        <button id="btnCerrarPVPCInfo">Cerrar</button>
+        <div class="modal-content">
+          <select id="pvpcTypeSelector">
+            <option value="pvpc" selected>PVPC</option>
+            <option value="surplus">Excedentes</option>
+          </select>
+          <span id="modalPVPCTitleText"></span>
+          <span id="modalPVPCTypeIcon"></span>
+          <span id="modalPVPCHeadline"></span>
+          <button id="tabHoy">Hoy</button>
+          <button id="tabManana" style="display:none">Mañana</button>
+          <span id="modalPVPCLabel"></span>
+          <span id="modalPVPCNow"></span>
+          <span id="modalPVPCNowHour"></span>
+          <span id="modalPVPCMin"></span>
+          <span id="modalPVPCMinHour"></span>
+          <span id="modalPVPCMax"></span>
+          <span id="modalPVPCMaxHour"></span>
+          <div id="pvpcPricesRegion"><div id="modalPVPCHoursList"></div></div>
+          <button id="btnCerrarPVPCX">X</button>
+          <button id="btnCerrarPVPCInfo">Cerrar</button>
+        </div>
       </div>
     `;
 
@@ -283,15 +285,34 @@ describe('Modal: una carga fallida al cambiar de tipo no deja precios del tipo a
     await flush();
     expect(document.getElementById('modalPVPCNow').textContent).toContain('0,200');
 
+    const modalContent = document.querySelector('#modalPVPCInfo .modal-content');
+    const zonaPrecios = document.getElementById('pvpcPricesRegion');
+    Object.defineProperty(modalContent, 'offsetHeight', { value: 600 });
+    Object.defineProperty(zonaPrecios, 'offsetHeight', { value: 1000 });
+    Object.defineProperty(document.getElementById('btnCerrarPVPCInfo'), 'offsetHeight', { value: 60 });
+    vi.spyOn(modalContent, 'getBoundingClientRect').mockReturnValue({ bottom: 620 });
+    vi.spyOn(zonaPrecios, 'getBoundingClientRect').mockReturnValue({ top: 300 });
     const selector = document.getElementById('pvpcTypeSelector');
     selector.value = 'surplus';
     selector.dispatchEvent(new Event('change'));
+    expect(modalContent.parentElement.classList.contains('is-changing-price-type')).toBe(true);
+    expect(modalContent.style.height).toBe('600px');
+    expect(zonaPrecios.style.minHeight).toBe('380px');
     await flush();
 
+    expect(modalContent.parentElement.classList.contains('is-changing-price-type')).toBe(false);
+    expect(modalContent.style.height).toBe('600px');
+    expect(zonaPrecios.style.minHeight).toBe('380px');
     expect(document.getElementById('modalPVPCHeadline').textContent).toContain('excedentes');
     for (const id of ['modalPVPCNow', 'modalPVPCMin', 'modalPVPCMax']) {
       expect(document.getElementById(id).textContent).not.toContain('0,200');
     }
     expect(document.getElementById('modalPVPCHoursList').textContent).toContain('Error al cargar precios');
+
+    document.getElementById('btnCerrarPVPCX').click();
+    document.getElementById('btnPVPCInfo').click();
+    expect(modalContent.style.height).toBe('');
+    expect(zonaPrecios.style.minHeight).toBe('');
+    await flush();
   });
 });

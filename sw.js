@@ -9,7 +9,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20261127-075514";
+const CACHE_VERSION = "20261127-082523";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
