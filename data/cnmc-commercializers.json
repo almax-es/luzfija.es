@@ -2,11 +2,12 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-11-25",
-    "count": 951,
-    "sourceRows": 952,
+    "syncedAt": "2026-11-27",
+    "count": 954,
+    "sourceRows": 956,
     "duplicateCodes": [
-      "R2-222"
+      "R2-222",
+      "R2-719"
     ],
     "invalidWebsiteCodes": [
       "R2-1081",
@@ -37,6 +38,7 @@
       "R2-1021",
       "R2-1022",
       "R2-1023",
+      "R2-1024",
       "R2-1025",
       "R2-1026",
       "R2-1030",
@@ -306,6 +308,7 @@
       "R2-703",
       "R2-705",
       "R2-706",
+      "R2-709",
       "R2-713",
       "R2-715",
       "R2-717",
@@ -661,6 +664,11 @@
       "name": "IBAR ENERGIA, S.L.",
       "phone": "900 670 793",
       "website": "http://www.ibarenergia.com/"
+    },
+    "R2-1024": {
+      "name": "SPOCK P2P, S.L.",
+      "phone": "900 670 922",
+      "website": "https://spock.es/informacion-sobre-spock-p2p-sl"
     },
     "R2-1025": {
       "name": "GRIBEN RENOVABLES, S.L.",
@@ -1410,6 +1418,11 @@
       "name": "SOMOS OCHO ENERGIA, SOCIEDAD LIMITADA",
       "phone": "900 649 462",
       "website": "https://somos8energia.com/"
+    },
+    "R2-1174": {
+      "name": "CLARUX ENERGIA 2025 SL",
+      "phone": "900 732 824",
+      "website": "https://www.claruxenergia.com/"
     },
     "R2-119": {
       "name": "ALPIQ ENERGIA ESPAÑA SAU",
@@ -3547,6 +3560,11 @@
       "name": "EFI DUERO ENERGY SOCIEDAD COOP EUROPEA LIMITADA",
       "phone": "900 67 00 92",
       "website": "http://www.efiduero.com/"
+    },
+    "R2-709": {
+      "name": "AVANGREEN ENERGY SOLUTIONS SA",
+      "phone": "900 000 151",
+      "website": "http://www.avangreen.com/"
     },
     "R2-710": {
       "name": "COMERCIALIZADORA ELÉCTRICA SUDANELL, S.L.U.",
